@@ -21,30 +21,95 @@ from langchain.agents import create_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.document_loaders import YoutubeLoader
 
-# ── 1. 더랩바이블랑두 3대 핵심 제품 프리셋 ──────────────────────────────
-BLANCDOUX_PRODUCTS = {
-    "올리고 히알루론산 딥 토너": {
-        "name": "올리고 히알루론산 딥 토너",
-        "tagline": "속건조 1초 잡는 저분자 히알루론산 100% 흡수 물토너",
-        "key_features": "올리브영 1위 토너, 끈적임 없는 7스킨 레이어링, 피부 속 2.5mm 보습 개선, 저자극 순한 포뮬러",
-        "target_concern": "속건조, 화장 들뜸, 각질 부각, 유수분 밸런스 붕괴",
-        "recommended_hook": "속건조 때문에 파데 뜨는 사람? 물토너 3번 찹찹 레이어링 비포/애프터"
-    },
-    "그린 플라보노이드 2.5 패드": {
-        "name": "그린 플라보노이드 2.5 패드",
-        "tagline": "트러블 피부 붉은기 급속 진정 비건 쿨링 패드",
-        "key_features": "식물 유래 그린 플라보노이드™, 얇고 밀착되는 3중 레이어 거즈 패드, 붉은기 즉각 완화, 여드름성 피부 적합",
-        "target_concern": "붉은기, 트러블 열감, 민감성 자극, 볼 부위 진정팩 필요",
-        "recommended_hook": "볼에 열감 올라왔을 때 3분 만에 홍조 싹 가라앉히는 치트키"
-    },
-    "올리고 히알루론산 워터리 스킨 마스크": {
-        "name": "올리고 히알루론산 워터리 스킨 마스크",
-        "tagline": "피부 열감 내리는 밀착 수분 충전 급속 부스팅 마스크",
-        "key_features": "저분자 히알루론산 에센스 듬뿍, 피부에 초밀착되는 식물성 시트, 메이크업 전 쿨링 진정",
-        "target_concern": "중요한 날 아침 화장 먹방, 메이크업 전 급속 수분 충전, 열감 진정",
-        "recommended_hook": "오늘 중요한 약속인데 화장 잘 먹어야 할 때 10분 수분 급속 충전법"
-    }
-}
+# ── 1. 제품 정보 로드 (products.json 단일 출처) & YouTube 예산 가드 ──────
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PRODUCTS_PATH = os.path.join(BASE_DIR, "products.json")
+USAGE_LOG_PATH = os.path.join(BASE_DIR, "qa", "usage_log.json")
+YOUTUBE_UNIT_LIMIT = 1500
+
+
+def load_products(path: str = PRODUCTS_PATH) -> Dict[str, Any]:
+    """products.json에서 확인된 제품 정보를 로드하고 하위 호환 필드를 구성합니다."""
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f).get("products", {})
+    out: Dict[str, Any] = {}
+    for name, info in raw.items():
+        claims = info.get("verified_claims", [])
+        fit_terr = info.get("fit_territory", [])
+        out[name] = {
+            **info,
+            # 하위 호환성 유지 (app.py 등 기존 참조용, 확인된 문구만 조합)
+            "name": name,
+            "tagline": claims[0] if claims else name,
+            "key_features": ", ".join(claims),
+            "target_concern": ", ".join(fit_terr),
+        }
+    return out
+
+
+BLANCDOUX_PRODUCTS = load_products()
+
+
+def get_used_youtube_units(log_path: str = USAGE_LOG_PATH) -> int:
+    """qa/usage_log.json에서 누적 YouTube Data API 사용 유닛을 반환합니다."""
+    if not os.path.exists(log_path):
+        return 0
+    try:
+        with open(log_path, encoding="utf-8") as f:
+            data = json.load(f)
+        return int(data.get("total_units", 0))
+    except Exception:
+        return 0
+
+
+def record_youtube_units(
+    units: int,
+    action: str = "",
+    meta: Optional[Dict[str, Any]] = None,
+    log_path: str = USAGE_LOG_PATH,
+    limit: int = YOUTUBE_UNIT_LIMIT,
+) -> int:
+    """YouTube API 호출 전 누적 유닛을 확인·기록합니다. 상한 초과 시 RuntimeError 발생."""
+    if units < 0:
+        raise ValueError("units는 0 이상이어야 합니다.")
+    data: Dict[str, Any] = {"total_units": 0, "limit": limit, "events": []}
+    if os.path.exists(log_path):
+        try:
+            with open(log_path, encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                data.update(loaded)
+        except Exception:
+            pass
+
+    current = int(data.get("total_units", 0))
+    if current + units > limit:
+        raise RuntimeError(
+            f"YouTube API 누적 유닛 상한({limit}) 초과로 호출을 차단했습니다: "
+            f"현재 {current} + 요청 {units} = {current + units} > {limit}"
+        )
+
+    new_total = current + units
+    data["total_units"] = new_total
+    data["limit"] = limit
+    events = data.get("events", [])
+    if not isinstance(events, list):
+        events = []
+    events.append({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": action,
+        "units": units,
+        "total_after": new_total,
+        "meta": meta or {},
+    })
+    data["events"] = events
+
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return new_total
 
 # ── 2. K-뷰티 메가 바이럴 앵커 키워드 ──────────────────────────────────
 # 조회수 10만~수백만 회를 유발하는 대한민국 뷰티 쇼츠 핵심 검색 앵커
@@ -115,7 +180,7 @@ class TrendReport(BaseModel):
     golden_reason: str = Field(description="골든픽 선정 이유")
 
 # ── 4. 캐시 레이어 ────────────────────────────────────────────────────
-_cache = diskcache.Cache("./cache_store")
+_cache = diskcache.Cache(os.path.join(BASE_DIR, "cache_store"))
 
 def clear_cache():
     _cache.clear()
@@ -129,7 +194,7 @@ def is_korean(row: dict, min_hangul: int = MIN_HANGUL) -> bool:
     return len(_HANGUL.findall(text)) >= min_hangul
 
 def recent_published_after(days: int = 7) -> str:
-    days = max(1, min(days, 10))
+    days = max(1, min(days, 30))
     return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def iso8601_to_seconds(dur: str) -> int:
@@ -164,6 +229,7 @@ def fetch_mega_kbeauty_shorts(
     # 1) 키워드별 검색 (search.list = 100 unit/회)
     for kw in search_keywords[:3]:
         try:
+            record_youtube_units(100, action="search.list", meta={"q": kw, "category": "26", "days": days})
             sr = youtube.search().list(
                 part="snippet",
                 q=f"{kw} shorts",
@@ -177,9 +243,12 @@ def fetch_mega_kbeauty_shorts(
                 publishedAfter=published_after,
             ).execute()
             candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
+        except RuntimeError:
+            raise
         except Exception as e:
             # Howto & Style 카테고리 미지원 시 일반 검색 폴백
             try:
+                record_youtube_units(100, action="search.list_fallback", meta={"q": kw, "days": days})
                 sr = youtube.search().list(
                     part="snippet",
                     q=f"{kw} shorts",
@@ -192,6 +261,8 @@ def fetch_mega_kbeauty_shorts(
                     publishedAfter=published_after,
                 ).execute()
                 candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
+            except RuntimeError:
+                raise
             except Exception as e2:
                 print(f"[YouTube Search Error] {kw}: {e2}")
 
@@ -200,11 +271,13 @@ def fetch_mega_kbeauty_shorts(
         return []
 
     # 2) 영상 상세 정보 일괄 조회 (videos.list = 1 unit)
+    record_youtube_units(1, action="videos.list", meta={"count": len(candidate_ids[:50])})
     det = youtube.videos().list(
         part="snippet,contentDetails,statistics",
         id=",".join(candidate_ids[:50]),
     ).execute()
 
+    now_utc = datetime.now(timezone.utc)
     results = []
     for item in det.get("items", []):
         secs = iso8601_to_seconds(item.get("contentDetails", {}).get("duration", ""))
@@ -214,6 +287,15 @@ def fetch_mega_kbeauty_shorts(
         sn = item["snippet"]
         stats = item.get("statistics", {})
         views = int(stats.get("viewCount", 0))
+        likes = int(stats.get("likeCount", 0))
+        pub_raw = sn.get("publishedAt", "")
+        try:
+            pub_dt = datetime.fromisoformat(pub_raw.replace("Z", "+00:00"))
+            days_since_published = max(1, (now_utc - pub_dt).days)
+        except Exception:
+            days_since_published = 1
+        views_per_day = int(views / days_since_published)
+        like_rate = round(likes / max(1, views) * 100, 2)
 
         # 저유입 노이즈 필터링 (최소 10,000회 이상 우선)
         results.append({
@@ -222,8 +304,11 @@ def fetch_mega_kbeauty_shorts(
             "description": sn.get("description", "")[:300],
             "channel_title": sn.get("channelTitle", ""),
             "views": views,
-            "likes": int(stats.get("likeCount", 0)),
-            "published_at": (sn.get("publishedAt", ""))[:10],
+            "likes": likes,
+            "days_since_published": days_since_published,
+            "views_per_day": views_per_day,
+            "like_rate": like_rate,
+            "published_at": pub_raw[:10],
             "thumbnail_url": sn.get("thumbnails", {}).get("medium", {}).get("url", ""),
             "duration_s": secs,
             "is_short60": secs <= 60,
@@ -264,6 +349,7 @@ def create_mega_tools(youtube_client, default_days: int = 7, default_keyword: st
         """키워드로 최신 K-뷰티 Shorts를 추가 심층 검색합니다."""
         try:
             pub_after = recent_published_after(days=days or default_days)
+            record_youtube_units(100, action="search_shorts", meta={"q": query, "days": days or default_days})
             resp = youtube_client.search().list(
                 part="snippet",
                 q=f"{query} shorts",
@@ -322,13 +408,15 @@ def generate_blancdoux_storyboard(
     trend_summary: str,
     llm
 ) -> ShortsStoryboard:
-    """선택된 더랩바이블랑두 제품과 트렌드를 접목한 4단 콘티 생성"""
-    prod_info = BLANCDOUX_PRODUCTS.get(product_name, {
+    """선택된 더랩바이블랑두 제품과 트렌드를 접목한 4단 콘티 생성 (products.json 기반)"""
+    products = load_products()
+    prod_info = products.get(product_name, {
         "name": product_name,
-        "tagline": "더랩바이블랑두의 베스트셀러 스킨케어",
-        "key_features": "속건조 완화, 저자극 순한 성분, 피부 진정",
-        "recommended_hook": "스킨케어 유목민 주목"
+        "tagline": product_name,
+        "key_features": "확인된 제품 문구 없음",
+        "unverified_removed_from_v1": [],
     })
+    banned = ", ".join(prod_info.get("unverified_removed_from_v1", []))
 
     prompt = f"""
     당신은 K-뷰티 숏폼 전문 크리에이티브 디렉터입니다.
@@ -339,15 +427,16 @@ def generate_blancdoux_storyboard(
     - 트렌드: {trend_title}
     - 내용: {trend_summary}
 
-    [더랩바이블랑두 제품 정보]
+    [더랩바이블랑두 제품 정보 — 아래 확인된 문구만 사용]
     - 제품명: {prod_info['name']}
-    - 슬로건: {prod_info['tagline']}
-    - 핵심 소구점: {prod_info['key_features']}
+    - 요약: {prod_info['tagline']}
+    - 확인된 문구: {prod_info['key_features']}
+    - 금지 표현: {banned or '확인되지 않은 수치·순위·효능 표현 금지'}
 
     [작성 규칙]
     - hook_scene: 첫 3초 시선 강탈 훅 (구체적 행동 + 대사/자막)
     - setup_scene: 문제 제기 및 비포 공감대 (10초 이내)
-    - solution_scene: 제품 특장점과 텍스처/흡수감 연출 (애프터)
+    - solution_scene: 제품 특장점과 텍스처/흡수감 연출 (확인된 문구 범위 안에서만)
     - cta_scene: 마켓 타이밍 구매 유도 (올영세일, 댓글 이벤트 등)
     """
 

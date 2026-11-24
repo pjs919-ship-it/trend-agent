@@ -1,39 +1,22 @@
-# 📋 Product Backlog & Sprint Plan
+# 📋 Product Backlog v2 (PM 노아 관리)
 
----
+> 기준 시각: 2026-11-25 01:45 ~ 07:00 (자동 스프린트 스케줄 운영)
 
-## 🏃 Sprint Overview (오늘 오전 7시 완료 목표)
+| 스프린트 | 예정 시각 | 담당 | 목표 | 상태 |
+|---|---|---|---|---|
+| **Loop 0** | 01:30 | PM | 출처 확인된 `products.json` 및 `PLAYBOOK.md` 구축 | ✅ 완료 |
+| **Sprint 1** | 01:45 ~ 02:00 | Engineer → QA | P0~P3 B2B 파이프라인 구현 + 1차 독립 QA | ❌ FAIL (결함 6건 반려) |
+| **Sprint 2** | 02:00 ~ 03:30 | Engineer → QA | QA 결함 6건 전수 수정 + 오프라인 골든셋 15개(`qa/golden_set.json`) & 자동 채점기(`qa/eval_golden.py`) 통과 | 🔄 진행중 |
+| **Sprint 3** | 03:35 ~ 04:30 | Engineer → QA | 7일 / 14일 / 30일 + `mostPopular`(cat 26) 실측 비교로 최적 수집 전략 확정 | ⏳ 예약됨 |
+| **Sprint 4** | 04:35 ~ 05:30 | Designer → Engineer | `DESIGN_SYSTEM.md` v2 수립 + `TrendSetter_KBeauty_Pro.html` & `app.py` B2B 위계 전면 개편 | ⏳ 예약됨 |
+| **Sprint 5** | 05:35 ~ 06:30 | QA → Engineer/Designer | 레드팀 공격 (블랑두 3개 제품 전체 + 신규 키워드 테스트) + 발견 결함 전수 수정 | ⏳ 예약됨 |
+| **Sprint 6** | 06:35 ~ 06:55 | PM + QA | 최종 실사용 리허설 리포트(`docs/QA_REPORT.md`), `RELEASE_NOTES.md`, Git 커밋 및 최종 보고 | ⏳ 예약됨 |
 
-| 스프린트 | 목표 | 상태 |
-|---|---|:---:|
-| **Sprint 1: 기반 및 문서화** | Git 원격 저장소 연동, PRD 및 디자인 시스템 수립 | ✅ 완료 |
-| **Sprint 2: 수집 엔진 고도화** | 10만+ 조회수 메가 쇼츠 수집 알고리즘 및 블랑두 프리셋 지원 (`agent_core.py`) | 🔄 진행중 |
-| **Sprint 3: K-뷰티 Pro HTML 앱** | `TrendSetter (1).html` 능가하는 단독 실행형 웹앱 (`TrendSetter_KBeauty_Pro.html`) | ⏳ 대기 |
-| **Sprint 4: Streamlit UI 전면 개편** | `app.py`에 동일 수준의 커스텀 위계 및 카드 컴포넌트 이식 | ⏳ 대기 |
-| **Sprint 5: 5대 PMF 지표 검증** | 더랩바이블랑두 3대 제품 테스트, 조회수 및 환각 검증, 최종 릴리즈 | ⏳ 대기 |
-
----
-
-## 📌 Detailed Backlog Items
-
-### [Sprint 2: Core Engine]
-- [x] **TS-101**: K-뷰티 메가 앵커 키워드 및 `Howto & Style` 카테고리(ID 26) 필터 결합
-- [x] **TS-102**: 1~10일 기간 내 조회수 상위(수만~수십만 회 이상) 우선 랭킹 알고리즘 구현
-- [x] **TS-103**: 더랩바이블랑두 3대 제품(딥 토너, 2.5 패드, 워터리 마스크) 프리셋 템플릿 정의
-- [x] **TS-104**: 4단 숏폼 콘티([첫 3초 훅] - [연출] - [소구점] - [CTA]) Pydantic 스키마 설계
-
-### [Sprint 3: Standalone Web App]
-- [x] **TS-201**: `TrendSetter (1).html`의 마켓 인사이트, 도트 게이지, 칩, 골든픽 계층 복원
-- [x] **TS-202**: 각 트렌드 카드 하단에 근거 영상 썸네일+조회수 1:1 직결 임베드
-- [x] **TS-203**: 블랑두 3대 제품 원클릭 버튼 및 맞춤 숏폼 콘티 생성 패널 탑재
-- [x] **TS-204**: 원클릭 노션/슬랙 마크다운 요약 복사 및 JSON 다운로드 기능 추가
-
-### [Sprint 4: Streamlit Web Dashboard]
-- [x] **TS-301**: Streamlit 기본 마크다운을 대체하는 커스텀 CSS 카드 렌더러 구현
-- [x] **TS-302**: 사이드바에 블랑두 3대 제품 원클릭 셀렉터 추가
-- [x] **TS-303**: 최신 Gemini 모델(`gemini-2.5-flash-lite`, `gemini-flash-latest`) 자동 연동
-
-### [Sprint 5: PMF Verification]
-- [ ] **TS-401**: 조회수 10만+ 영상 필터링 동작 여부 자체 채점
-- [ ] **TS-402**: 환각 제로(인용 ID 100% 실존 일치) 무결성 테스트
-- [ ] **TS-403**: 최종 Git 커밋 및 릴리즈 노트 작성
+## 현재 백로그 상세 (P0 → P3)
+- [ ] **B2B-01 (P0)**: `agent_core.py`에 `views_per_day`, `like_rate`, `qa/usage_log.json` (1,500유닛 상한 가드) 추가
+- [ ] **B2B-02 (P1)**: `pipeline.py` Step 1에 `format_tag`(포맷 분류) 및 전체 영상 관통 `market_patterns`(2~3개) 추가
+- [ ] **B2B-03 (P2)**: `pipeline.py` Step 2 Go/Pivot/Drop 판정 로직 정교화 및 `jfsweQpxqsY` Drop 검증
+- [ ] **B2B-04 (P3)**: `pipeline.py` Step 3에 `[팀장 보고용 요약]` + `[크리에이터 전달용 가이드]` 2종 출력 포맷 추가
+- [ ] **B2B-05 (QA)**: 정답 라벨 골든셋(`qa/golden_set.json`) 구축 및 자동 채점기(`qa/eval_golden.py`) 작성
+- [ ] **B2B-06 (Data)**: 7/14/30일 기간 비교 실측 스크립트(`qa/benchmark_days.py`) 실행 및 기본 기간 확정
+- [ ] **B2B-07 (UI)**: HTML 및 Streamlit에 [클리핑 Top 10(상승속도·반응률·포맷)] → [시장 패턴] → [Go 카드 + 자막인용 + 2종 복사] → [Drop 접기] 위계 구현
