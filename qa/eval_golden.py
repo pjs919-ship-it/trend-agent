@@ -12,6 +12,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import agent_core
+import history_store
 import pipeline
 
 
@@ -523,6 +524,111 @@ def test_multi_product_matrix(products):
     return f"PASS (jfsweQpxqsY=3종 Drop, 수분->토너/마스크 Go, 트러블쿨링->패드 best_product, 추천={mat['recommended_product']})"
 
 
+def test_history_delta_and_onboarding(products):
+    # 1) 시계열 스냅샷 비교 (임시 파일): 1회차 저장 → 2회차 조회수 +12,000 + 신규 1건
+    with tempfile.TemporaryDirectory() as td:
+        hist_path = os.path.join(td, "history.json")
+        v1 = [
+            {"video_id": "brKNpouibqo", "title": "기존 수분세럼 쇼츠", "views": 10000, "likes": 300,
+             "published_at": "2026-11-20T00:00:00Z", "text_source": "caption"},
+        ]
+        run1 = history_store.annotate_with_history(v1, save=True, store_path=hist_path)
+        _assert(run1[0]["has_prev_snapshot"] is False and run1[0]["is_new"] is False and run1[0]["views_delta"] is None,
+                f"1회차 스냅샷 초기값 오류: {run1[0]}")
+
+        v2 = [
+            {"video_id": "brKNpouibqo", "title": "기존 수분세럼 쇼츠", "views": 22000, "likes": 650,
+             "published_at": "2026-11-20T00:00:00Z", "text_source": "caption"},
+            {"video_id": "new_vid_999", "title": "오늘 새로 뜬 토너팩 쇼츠", "views": 35000, "likes": 1200,
+             "published_at": "2026-11-25T00:00:00Z", "text_source": "caption"},
+        ]
+        run2 = history_store.annotate_with_history(v2, save=True, store_path=hist_path)
+        by_id = {x["video_id"]: x for x in run2}
+        _assert(by_id["brKNpouibqo"]["has_prev_snapshot"] is True and by_id["brKNpouibqo"]["is_new"] is False,
+                f"기존 영상 판별 오류: {by_id['brKNpouibqo']}")
+        _assert(by_id["brKNpouibqo"]["views_delta"] == 12000, f"views_delta 계산 오류: {by_id['brKNpouibqo']}")
+        _assert(by_id["new_vid_999"]["is_new"] is True and by_id["new_vid_999"]["views_delta"] is None,
+                f"신규 영상 판별 오류: {by_id['new_vid_999']}")
+
+        # internal_report_md에 🆕 NEW 및 +12,000 표기 검증
+        rep = pipeline.format_copyable_outputs({
+            "product": "올리고 히알루론산 딥 토너",
+            "report_date": "2026-11-25",
+            "days_range": 30,
+            "videos": run2,
+            "facts": [
+                {"video_id": "brKNpouibqo", "domain": "기초/스킨케어", "format_tag": "응급처치 루틴형",
+                 "hook_quote": "기존 수분세럼", "evidence_quote": "기존 수분세럼", "evidence_ok": True, "text_source": "caption"},
+                {"video_id": "new_vid_999", "domain": "기초/스킨케어", "format_tag": "응급처치 루틴형",
+                 "hook_quote": "오늘 새로 뜬 토너팩", "evidence_quote": "오늘 새로 뜬 토너팩", "evidence_ok": True, "text_source": "caption"},
+            ],
+            "judgements": [
+                {"video_id": "brKNpouibqo", "decision": "Go", "score": 5, "reason": "수분 케어 일치", "linked_claim": products["올리고 히알루론산 딥 토너"]["verified_claims"][0]},
+                {"video_id": "new_vid_999", "decision": "Go", "score": 4, "reason": "토너팩 일치", "linked_claim": products["올리고 히알루론산 딥 토너"]["verified_claims"][3]},
+            ],
+            "briefs": [],
+            "stats": {"videos": 2, "transcript_caption": 2, "has_prev_snapshot": True, "new_videos_count": 1},
+            "product_confidence": "high",
+        })["internal_report_md"]
+        _assert("🆕 NEW" in rep and "+12,000" in rep, f"internal_report_md에 NEW/+12,000 누락:\n{rep}")
+
+        # 1-B) history_store 병합 유지 검증: 3회차에 new_vid_999만 저장해도 기존 brKNpouibqo 이력이 유지되어야 함
+        history_store.annotate_with_history(
+            [{"video_id": "only_third_vid", "title": "3회차 신규", "views": 500, "likes": 10}],
+            save=True, store_path=hist_path,
+        )
+        loaded_hist = history_store.load_history(store_path=hist_path)
+        _assert("brKNpouibqo" in loaded_hist["videos"] and "only_third_vid" in loaded_hist["videos"],
+                f"history_store 병합 실패(기존 이력 소실): {list(loaded_hist['videos'].keys())}")
+
+    # 2) 자사 제품 상세페이지 온보딩: 금지어 격리(rejected_claims) + confidence=medium 유지 + 전량 금지 시 거부
+    up_mixed = pipeline.upsert_product_from_text(
+        name="올리고 히알루론산 신제품 크림",
+        raw_claims_text="- 저분자 히알루론산 크림 제형\n- 여드름 완치 및 아토피 피부염 치료 효과",
+        fit_territory_csv="속건조, 보습 장벽",
+        non_fit_territory_csv="색조 메이크업",
+        source_url="https://blancdoux.com/new",
+        save_to_file=False,
+    )
+    _assert(up_mixed["entry"]["confidence"] == "medium", f"금지어 혼입 시 high 승격 차단 실패: {up_mixed}")
+    _assert(len(up_mixed["entry"]["verified_claims"]) == 1, f"금지어 격리 실패(verified_claims 오염): {up_mixed}")
+    _assert(len(up_mixed["rejected_claims"]) == 1, f"rejected_claims 누락: {up_mixed}")
+
+    # 2-B) 정상 문구만 입력 시 confidence=high 승격
+    up_clean = pipeline.upsert_product_from_text(
+        name="올리고 히알루론산 신제품 크림",
+        raw_claims_text="- 저분자 히알루론산 크림 제형\n- 민감성 피부 자극 테스트 완료",
+        fit_territory_csv="속건조, 보습 장벽",
+        non_fit_territory_csv="색조 메이크업",
+        save_to_file=False,
+    )
+    _assert(up_clean["entry"]["confidence"] == "high" and up_clean["rejected_claims"] == [], f"정상 온보딩 high 승격 실패: {up_clean}")
+
+    # 2-C) 금지어만 입력 시 ValueError로 저장 거부
+    refused = False
+    try:
+        pipeline.upsert_product_from_text(
+            name="금지 테스트 크림",
+            raw_claims_text="- 여드름 완치 아토피 치료 크림",
+            save_to_file=False,
+        )
+    except ValueError:
+        refused = True
+    _assert(refused, "금지어만 입력 시 저장 거부(ValueError) 미발생")
+
+    # 2-D) 의약품 오인 금지어 무조건 차단: verified_claims에 억지로 넣어도 _brief_violations가 무조건 적발
+    poisoned_prod = {"verified_claims": ["여드름 완치 및 아토피 피부염 치료"], "unverified_removed_from_v1": []}
+    poisoned_sb = pipeline.Storyboard(
+        video_id="poison_1", hook="여드름 완치 토너", before="아토피 피부염 고민",
+        product_moment="피부과 시술 대신 치료 효과", cta="확인해보세요", creator_note="메모",
+    )
+    pv = " | ".join(pipeline._brief_violations(poisoned_sb, poisoned_prod))
+    _assert("완치" in pv and "아토피" in pv and "피부염" in pv and "피부과 시술" in pv,
+            f"의약품 오인 무조건 차단 실패: {pv}")
+
+    return "PASS (delta=+12,000, merge OK, banned quarantine/refusal, absolute medical guard)"
+
+
 def main():
     products = pipeline.load_products()
     print("=== [1] QA 6대 결함 회귀 테스트 ===")
@@ -532,6 +638,7 @@ def main():
     print("  Defect 5 & 6 (2종 복사 산출물/DM 정화/go_ids):", test_defect_5_and_6_outputs_and_brief_ids(products))
     print("  Red-Team RT1~RT4:", test_redteam_rt1_to_rt4(products))
     print("  B2B-08 Multi-Product Matrix:", test_multi_product_matrix(products))
+    print("  B2B-10 History Delta & Onboarding:", test_history_delta_and_onboarding(products))
 
     print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
     summary = eval_golden_set(products)

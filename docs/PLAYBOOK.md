@@ -93,3 +93,18 @@
   - **스냅샷 히스토리 비교(`🆕 NEW` 급상승 / `+Δ조회수` 감지)** + **UI 내 자사 신제품/상세페이지 원문 붙여넣기(`confidence=high` 승격)** — B2B 월 구독 리텐션(매일 아침 켤 이유 + 신제품 출시 대응) 극대화.
 - 다음 규칙:
   - 제품군 간 교차 추천 시 공통 효능(수분)만으로 고득점을 주지 말고, 제형(토너/패드/시트팩) 일치 여부를 반드시 변별 기준으로 삼는다.
+
+## Sprint 7 / 7-R (04:13 Iteration 2) — B2B-10 스냅샷 시계열 변화 감지 & 자사 제품 온보딩 (2026-11-25 04:23) — 판정: ✅ PASS
+- 틀린 가정:
+  1. "온보딩 폼에서 화장품법 금지어가 들어오면 경고만 띄우고 저장해 주면 마케터가 알아서 고칠 것이다" → `verified_claims`에 금지어가 들어가면 Step 4 감사(`nt not in norm_claims`)가 100% 무력화되는 치명적 법무 우회 구멍 발생.
+  2. "`st.warning()` 직후 `st.rerun()`을 호출해도 경고가 보일 것이다" → 0.01초 만에 증발.
+  3. "`history.json`을 현재 배치로 덮어쓰면 될 것이다" → 다른 키워드 1회 검색 시 기존 이력이 날아가 다음 날 전부 `NEW`로 오탐.
+- 증거 (`docs/QA_REPORT.md` Sprint 7 → 7-R):
+  - Sprint 7 FAIL 반려 후 3건 전수 수정 → Sprint 7-R 4대 레드팀 재검증 및 `qa/eval_golden.py` 전체 통과 (`overclaim=18 violations caught`).
+- 고친 방법:
+  - 금지어 포함 줄 `rejected_claims` 격리 + 0건 시 `ValueError` 거부 + 경고 시 `confidence=high` 승격 차단 + `ABSOLUTE_MEDICAL_BANNED_TERMS` 무조건 차단 하드 가드.
+  - `st.session_state["onboarding_flash"]`로 rerun 후 1회 표시 유지, `history_store` 기존 dict 병합(최신 200건 유지).
+- 성과 극대화 아이디어 (다음 05:35 Iteration 3 백로그 — **B2B-11**):
+  - 사용자가 아침에 기상하자마자 **명령어 딱 1줄(`python qa/run_live_all.py`)**로 7/14/30일 벤치마크 + 블랑두 라이브 E2E 실행 + 최신 리포트 자동 생성까지 끝낼 수 있는 원클릭 런처와 실무 `README.md` 구축.
+- 다음 규칙:
+  - 사용자 입력을 신뢰 데이터(`verified_claims`)에 반영할 때는 항상 **법적 절대 금지어(의약품 오인) 하드 가드**를 우회할 수 없도록 감사 로직을 이중화한다.

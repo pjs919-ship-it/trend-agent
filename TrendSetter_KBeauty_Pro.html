@@ -264,6 +264,30 @@ details.b2b-details summary::-webkit-details-marker { display: none; }
       </label>
     </div>
     <div id="statusBar" class="status-bar"></div>
+    <details class="b2b-details" style="margin-top:12px;">
+      <summary>▶ ➕ 자사 신제품 / 공식 문구 추가 (localStorage 저장 · confidence=high 승격)</summary>
+      <div class="panel-grid" style="margin-top:12px;">
+        <div class="field">
+          <label>제품명 (기존 제품명 입력 시 신뢰도 high 승격)</label>
+          <input id="obName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
+        </div>
+        <div class="field">
+          <label>적합 영역 (쉼표 구분)</label>
+          <input id="obFit" type="text" placeholder="속건조, 수분 보충, 토너 팩" />
+        </div>
+        <div class="field">
+          <label>부적합 영역 (쉼표 구분)</label>
+          <input id="obNonFit" type="text" placeholder="색조 메이크업, 헤어/바디" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>공식 상세페이지 확인 문구 (줄바꿈 구분)</label>
+        <textarea id="obClaims" rows="3" style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:10px;font-size:0.86rem;" placeholder="저분자 히알루론산 워터 제형 토너&#10;소듐하이알루로네이트 2,700ppm"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-sec" onclick="saveCustomProduct()">💾 저장 및 신뢰도 high 승격</button>
+      </div>
+    </details>
   </div>
 
   <div id="dashboard"></div>
@@ -406,6 +430,9 @@ function cleanClaim(s) {
     .replace(/(?:으)?로\s*소개$/, "")
     .trim();
 }
+const ABSOLUTE_MEDICAL_BANNED = [
+  "완치","여드름 완치","아토피","피부염","치료","피부과 치료","염증 완화","염증완화","피부과 시술","기적"
+];
 function checkBriefViolations(b, prod) {
   const text = `${b.hook || ""} ${b.before || ""} ${b.product_moment || ""} ${b.cta || ""}`;
   const nt = norm(text);
@@ -414,6 +441,9 @@ function checkBriefViolations(b, prod) {
   const v = [];
   for (const bad of (prod.banned || [])) {
     if (norm(bad) && nt.includes(norm(bad))) v.push(`확인되지 않은 문구: ${bad}`);
+  }
+  for (const med of ABSOLUTE_MEDICAL_BANNED) {
+    if (norm(med) && nt.includes(norm(med))) v.push(`의약품 오인 절대 금지 표현: ${med}`);
   }
   for (const term of COSMETIC_BANNED) {
     if (norm(term) && nt.includes(norm(term)) && !nc.includes(norm(term))) v.push(`과대광고 의심: ${term}`);
@@ -553,6 +583,111 @@ function buildMultiProductMatrix(videos, facts, primaryProduct, primaryJudgement
   return { products: prodNames, rows, product_summary, recommended_product, recommendation_reason };
 }
 
+const CUSTOM_PROD_KEY = "ts_custom_products_v2";
+const HISTORY_KEY = "ts_history_snapshot_v2";
+
+function loadCustomProducts() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CUSTOM_PROD_KEY) || "{}");
+    Object.assign(PRODUCTS, saved);
+  } catch (e) {}
+}
+function refreshProductDropdown(selectName) {
+  const sel = document.getElementById("productSel");
+  sel.innerHTML = "";
+  Object.keys(PRODUCTS).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = PRODUCTS[name].confidence === "high" ? `${name} (✅ high)` : name;
+    sel.appendChild(opt);
+  });
+  if (selectName && PRODUCTS[selectName]) sel.value = selectName;
+}
+function saveCustomProduct() {
+  const name = document.getElementById("obName").value.trim();
+  const rawClaims = document.getElementById("obClaims").value;
+  const fit = document.getElementById("obFit").value.split(",").map(s => s.trim()).filter(Boolean);
+  const nonFit = document.getElementById("obNonFit").value.split(",").map(s => s.trim()).filter(Boolean);
+  const lines = rawClaims.split(/\r?\n/).map(l => l.replace(/^\s*[-•*·]\s*/, "").trim()).filter(Boolean);
+  if (!name || !lines.length) { showToast("⚠️ 제품명과 공식 확인 문구를 입력하세요."); return; }
+
+  const existing = PRODUCTS[name] || {};
+  const existingBanned = existing.banned || [];
+  const accepted = [], rejected = [], warns = [];
+  for (const c of lines) {
+    const nc = norm(c);
+    const hits = [];
+    for (const term of COSMETIC_BANNED) {
+      if (norm(term) && nc.includes(norm(term))) hits.push(term);
+    }
+    for (const bad of existingBanned) {
+      if (norm(bad) && nc.includes(norm(bad))) hits.push(bad);
+    }
+    if (hits.length) {
+      rejected.push(c);
+      warns.push(`격리(${[...new Set(hits)].join(",")}): ${c.slice(0, 30)}`);
+    } else {
+      accepted.push(c);
+    }
+  }
+  if (!accepted.length) {
+    document.getElementById("statusBar").textContent = "🚨 저장 거부: 화장품법 금지 표현만 포함되어 저장할 수 없습니다.";
+    showToast("🚨 금지 표현으로 저장이 거부되었습니다.");
+    return;
+  }
+
+  const conf = rejected.length ? "medium" : "high";
+  const entry = {
+    confidence: conf,
+    verified_claims: accepted,
+    banned: existingBanned,
+    fit_territory: fit.length ? fit : (existing.fit_territory || ["기초 스킨케어"]),
+    non_fit_territory: nonFit.length ? nonFit : (existing.non_fit_territory || ["색조 메이크업", "헤어/바디"])
+  };
+  PRODUCTS[name] = entry;
+  try {
+    const prev = JSON.parse(localStorage.getItem(CUSTOM_PROD_KEY) || "{}");
+    prev[name] = entry;
+    localStorage.setItem(CUSTOM_PROD_KEY, JSON.stringify(prev));
+  } catch (e) {}
+  refreshProductDropdown(name);
+  const msg = rejected.length
+    ? `⚠️ '${name}' 저장 완료 (금지어 ${rejected.length}건 격리 → confidence=medium 유지): ${warns.join(" / ")}`
+    : `✅ '${name}' 저장 완료 (confidence=high 승격)!`;
+  loadSampleRehearsal();
+  document.getElementById("statusBar").textContent = msg;
+}
+function annotateHistoryLocal(videos, save = true) {
+  let prev = null;
+  try { prev = JSON.parse(localStorage.getItem(HISTORY_KEY) || "null"); } catch (e) {}
+  const hasPrev = !!(prev && prev.videos && Object.keys(prev.videos).length);
+  const prevV = hasPrev ? prev.videos : {};
+  const out = videos.map(v => {
+    const item = { ...v };
+    if (!hasPrev) {
+      item.has_prev_snapshot = false; item.is_new = false; item.views_delta = null;
+    } else if (!prevV[v.video_id]) {
+      item.has_prev_snapshot = true; item.is_new = true; item.views_delta = null;
+    } else {
+      item.has_prev_snapshot = true; item.is_new = false;
+      item.views_delta = Math.max(0, Number(v.views || 0) - Number(prevV[v.video_id].views || 0));
+    }
+    return item;
+  });
+  if (save && videos.length) {
+    try {
+      const nowIso = new Date().toISOString();
+      const merged = { ...prevV };
+      videos.forEach(v => { merged[v.video_id] = { views: Number(v.views || 0), likes: Number(v.likes || 0), captured_at: nowIso }; });
+      const entries = Object.entries(merged)
+        .sort((a, b) => String(b[1].captured_at || "").localeCompare(String(a[1].captured_at || "")))
+        .slice(0, 200);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify({ last_captured_at: nowIso, videos: Object.fromEntries(entries) }));
+    } catch (e) {}
+  }
+  return out;
+}
+
 function buildCopyables(res) {
   const prod = PRODUCTS[res.product] || { verified_claims: [], banned: [] };
   const vBy = Object.fromEntries((res.videos || []).map(v => [v.video_id, computeMetrics(v)]));
@@ -579,7 +714,9 @@ function buildCopyables(res) {
     ...go.map((j, i) => {
       const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {}, b = bBy[j.video_id];
       const warnLine = (b && b.needs_review) ? `> 🚨 [발송 보류 — 검수 필요]: ${(b.violations||[]).join("; ")}\n` : "";
-      return `### Go #${i+1}. ${v.title || j.video_id}\n${warnLine}- https://youtube.com/shorts/${j.video_id} | 조회수 ${(v.views||0).toLocaleString()}회 · 일평균 ${(v.views_per_day||0).toLocaleString()}회/일 | 포맷: ${f.format_tag || "기타"}\n- 근거(${j.score}점): ${j.reason}\n- 인용: "${f.hook_quote || f.evidence_quote || "-"}"`;
+      const newTag = v.is_new ? " 🆕 NEW" : "";
+      const dTag = (typeof v.views_delta === "number" && v.views_delta > 0) ? ` (+${v.views_delta.toLocaleString()}회 ↑)` : "";
+      return `### Go #${i+1}.${newTag} ${v.title || j.video_id}\n${warnLine}- https://youtube.com/shorts/${j.video_id} | 조회수 ${(v.views||0).toLocaleString()}회${dTag} · 일평균 ${(v.views_per_day||0).toLocaleString()}회/일 | 포맷: ${f.format_tag || "기타"}\n- 근거(${j.score}점): ${j.reason}\n- 인용: "${f.hook_quote || f.evidence_quote || "-"}"`;
     }),
     "", `## 3. Drop 제외 요약 (${dr.length}건)`,
     ...dr.map(j => `- [${(fBy[j.video_id]||{}).domain || "-"}] ${(vBy[j.video_id]||{}).title || j.video_id}: ${j.reason}`),
@@ -669,7 +806,7 @@ async function runLive2Stage() {
       });
     }).filter(Boolean);
     videos.sort((a, b) => sortBy === "views" ? b.views - a.views : (b.views_per_day*0.6 + b.views*0.4) - (a.views_per_day*0.6 + a.views*0.4));
-    videos = videos.slice(0, 10);
+    videos = annotateHistoryLocal(videos.slice(0, 10), true);
 
     // Stage 1: 브랜드 정보 완전 차단 팩트 + 포맷 + 패턴 추출
     status.textContent = "2/3. [Stage 1] 브랜드 편향 차단 팩트·포맷·시장 패턴 추출 중...";
@@ -885,6 +1022,8 @@ function renderDashboard(res, opts = {}) {
                 <div class="evid-meta">
                   <span>📺 ${esc(v.channel_title || "-")}</span>
                   <span>👀 ${(v.views||0).toLocaleString()}회</span>
+                  ${v.is_new ? `<span class="pill pill-go">🆕 NEW</span>` : ""}
+                  ${(typeof v.views_delta === "number" && v.views_delta > 0) ? `<span class="pill pill-go">+${v.views_delta.toLocaleString()}회 ↑</span>` : ""}
                   <span class="pill pill-hot">🔥 ${(v.views_per_day||0).toLocaleString()}회/일</span>
                   <span>❤️ ${(v.like_rate||0).toFixed(2)}%</span>
                   <span>📅 ${esc((v.published_at||"-").slice(0,10))}</span>
@@ -945,9 +1084,12 @@ function renderDashboard(res, opts = {}) {
     const f = fBy[v.video_id] || {}, j = jBy[v.video_id] || {};
     const dec = j.decision || "-";
     const dCls = dec === "Go" ? "pill-go" : dec === "Pivot" ? "pill-warn" : "pill-drop";
+    const deltaB = v.is_new
+      ? ` <span class="pill pill-go">🆕 NEW</span>`
+      : (typeof v.views_delta === "number" && v.views_delta > 0 ? ` <span class="pill pill-go">+${v.views_delta.toLocaleString()} ↑</span>` : "");
     return `<tr>
       <td><b>${i+1}</b></td>
-      <td><a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc((v.title||v.video_id).slice(0,45))} ↗</a></td>
+      <td><a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc((v.title||v.video_id).slice(0,45))} ↗</a>${deltaB}</td>
       <td>${esc(v.channel_title || "-")}</td>
       <td>${v.views.toLocaleString()}</td>
       <td><b>🔥 ${v.views_per_day.toLocaleString()}</b></td>
@@ -1057,13 +1199,9 @@ function renderDashboard(res, opts = {}) {
   `;
 }
 
-// Init product dropdown & load sample rehearsal
-const sel = document.getElementById("productSel");
-Object.keys(PRODUCTS).forEach(name => {
-  const opt = document.createElement("option");
-  opt.value = name; opt.textContent = name;
-  sel.appendChild(opt);
-});
+// Init custom products, dropdown & load sample rehearsal
+loadCustomProducts();
+refreshProductDropdown();
 loadSampleRehearsal();
 </script>
 </body>

@@ -16,6 +16,8 @@ import diskcache
 from pydantic import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+import history_store
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 _cache = diskcache.Cache(os.path.join(BASE, "cache_store"))
 
@@ -36,6 +38,99 @@ FORMAT_TAGS = [
 def load_products() -> Dict[str, Any]:
     with open(os.path.join(BASE, "products.json"), encoding="utf-8") as f:
         return json.load(f)["products"]
+
+
+def upsert_product_from_text(
+    name: str,
+    raw_claims_text: str,
+    fit_territory_csv: str = "",
+    non_fit_territory_csv: str = "",
+    source_url: str = "",
+    save_to_file: bool = True,
+    products_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """공식 상세페이지 원문 문구를 파싱해 products.json에 등록/승격합니다.
+    화장품법 금지어 또는 미확인 금지 문구가 포함된 줄은 verified_claims에 절대 넣지 않고 rejected_claims로 격리합니다.
+    """
+    clean_name = (name or "").strip()
+    if not clean_name:
+        raise ValueError("제품명을 입력해야 합니다.")
+
+    raw_lines: List[str] = []
+    for line in (raw_claims_text or "").splitlines():
+        cleaned = re.sub(r"^\s*[-•*·]\s*", "", line).strip()
+        if cleaned:
+            raw_lines.append(cleaned)
+    if not raw_lines:
+        raise ValueError("최소 1개 이상의 공식 확인 문구를 입력해야 합니다.")
+
+    fit_list = [x.strip() for x in (fit_territory_csv or "").split(",") if x.strip()]
+    non_fit_list = [x.strip() for x in (non_fit_territory_csv or "").split(",") if x.strip()]
+
+    path = products_path or os.path.join(BASE, "products.json")
+    full_doc: Dict[str, Any] = {"_meta": {}, "products": {}}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            full_doc = json.load(f)
+
+    existing = full_doc.get("products", {}).get(clean_name, {})
+    existing_banned = [
+        _clean_banned_for_creator(x)
+        for x in existing.get("unverified_removed_from_v1", [])
+        if _clean_banned_for_creator(x)
+    ]
+
+    # 화장품법 제13조 금지어 및 미확인 금지 문구 검사 → 적발된 줄은 verified_claims에서 완전 격리
+    accepted_claims: List[str] = []
+    rejected_claims: List[str] = []
+    warnings: List[str] = []
+    for c in raw_lines:
+        nc = _norm(c)
+        hit_terms: List[str] = []
+        for term in COSMETIC_LAW_BANNED_TERMS:
+            nt = _norm(term)
+            if nt and nt in nc:
+                hit_terms.append(term)
+        for bad in existing_banned:
+            nb = _norm(bad)
+            if nb and nb in nc:
+                hit_terms.append(bad)
+        if hit_terms:
+            rejected_claims.append(c)
+            warnings.append(
+                f"금지 표현 격리({', '.join(dict.fromkeys(hit_terms))}): \"{c[:50]}\""
+            )
+        else:
+            accepted_claims.append(c)
+
+    if not accepted_claims:
+        raise ValueError("화장품법 금지 표현이 포함되어 저장할 수 없습니다.")
+
+    warnings = list(dict.fromkeys(warnings))
+    # 격리된 문구가 1건 이상 있으면 confidence를 high로 승격하지 않고 medium 유지
+    confidence = "medium" if rejected_claims else "high"
+    entry: Dict[str, Any] = {
+        "confidence": confidence,
+        "verified_claims": accepted_claims,
+        "unverified_removed_from_v1": existing.get("unverified_removed_from_v1", []),
+        "fit_territory": fit_list or existing.get("fit_territory", ["기초 스킨케어"]),
+        "non_fit_territory": non_fit_list or existing.get("non_fit_territory", ["색조 메이크업", "헤어/바디"]),
+        "source_url": (source_url or "").strip(),
+        "updated_at": date.today().isoformat(),
+    }
+
+    if save_to_file:
+        full_doc.setdefault("products", {})[clean_name] = entry
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(full_doc, f, ensure_ascii=False, indent=2)
+
+    return {
+        "product_name": clean_name,
+        "entry": entry,
+        "warnings": warnings,
+        "rejected_claims": rejected_claims,
+        "saved": save_to_file,
+    }
 
 
 _CAPTION_NOISE_RE = re.compile(r"\[[^\]]{1,15}\]|>>")
@@ -657,6 +752,11 @@ COSMETIC_LAW_BANNED_TERMS = [
     "모공 축소", "주름 개선", "미백 효과", "미백",
     "품절 대란", "베스트셀러", "랭킹",
 ]
+# 의약품 오인 핵심 금지어: verified_claims 포함 여부와 무관하게 무조건 위반 적발 (우회 원천 차단)
+ABSOLUTE_MEDICAL_BANNED_TERMS = [
+    "완치", "여드름 완치", "아토피", "피부염", "치료", "피부과 치료",
+    "염증 완화", "염증완화", "피부과 시술", "기적",
+]
 
 
 def _token_in_claims(tok: str, claims_text: str) -> bool:
@@ -687,6 +787,11 @@ def _brief_violations(b: Storyboard, product: Dict[str, Any]) -> List[str]:
     for bad in product.get("unverified_removed_from_v1", []):
         if _norm(bad) and _norm(bad) in norm_text:
             v.append(f"확인되지 않은 문구 사용: {bad}")
+
+    for med in ABSOLUTE_MEDICAL_BANNED_TERMS:
+        nm = _norm(med)
+        if nm and nm in norm_text:
+            v.append(f"의약품 오인 절대 금지 표현: {med}")
 
     for term in COSMETIC_LAW_BANNED_TERMS:
         nt = _norm(term)
@@ -819,9 +924,13 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
     )
 
     # 1) 팀장/슬랙 보고용 1페이지 요약 (internal_report_md)
+    has_prev = stats.get("has_prev_snapshot", any(v.get("has_prev_snapshot") for v in videos))
+    new_cnt = stats.get("new_videos_count", sum(1 for v in videos if v.get("is_new")))
+    delta_summary = f" | 신규 🆕 {new_cnt}건" if has_prev else ""
+
     rep: List[str] = [
         f"# [주간 K-뷰티 쇼츠 트렌드 보고] {product_name}",
-        f"- **보고 기준일**: {report_date} | **수집 기간**: {period_label}",
+        f"- **보고 기준일**: {report_date} | **수집 기간**: {period_label}{delta_summary}",
         f"- **수집 현황**: 총 {total_v}건 (자막 확보 {caption_v}건 / {caption_pct}%) | "
         f"**판정 합계 ({len(go_items) + len(pivot_items) + len(drop_items)}건)**: "
         f"Go {len(go_items)}건 · Pivot {len(pivot_items)}건 · Drop {len(drop_items)}건",
@@ -850,13 +959,16 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
             quote = f.get("hook_quote") or f.get("evidence_quote") or "-"
             is_caption = f.get("text_source") == "caption"
             src_tag = "자막 확보(caption)" if is_caption else "⚠️ 자막 미확인(meta — 직접 시청 필수)"
+            new_tag = " 🆕 NEW" if v.get("is_new") else ""
+            v_delta = v.get("views_delta")
+            delta_tag = f" (+{v_delta:,}회 ↑)" if isinstance(v_delta, int) and v_delta > 0 else ""
 
-            rep.append(f"### Go #{idx}. {v.get('title', vid)} (`{vid}`)")
+            rep.append(f"### Go #{idx}.{new_tag} {v.get('title', vid)} (`{vid}`)")
             if b and b.get("needs_review"):
                 rep.append(f"> 🚨 **[발송 보류 — 검수 필요]**: {'; '.join(b.get('violations', []))}")
             rep.extend([
                 f"- **레퍼런스**: https://youtube.com/shorts/{vid} | 채널: {v.get('channel_title', '-')} | 업로드일: {pub_date}",
-                f"- **지표**: 조회수 {views:,}회 | 일평균 {vpd:,}회/일 | 좋아요율 {like_rate:.2f}% | 포맷: `{f.get('format_tag', '기타')}`",
+                f"- **지표**: 조회수 {views:,}회{delta_tag} | 일평균 {vpd:,}회/일 | 좋아요율 {like_rate:.2f}% | 포맷: `{f.get('format_tag', '기타')}`",
                 f"- **Go 근거 ({j['score']}점)**: {j['reason']}",
                 f"- **연결 제품 문구**: {j.get('linked_claim') or '-'}",
                 f"- **원문 인용 ({src_tag})**: \"{quote}\"",
@@ -989,10 +1101,14 @@ def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
                  max_videos: int = 10, max_briefs: int = 3,
                  days_range: Optional[int] = None,
                  include_matrix: bool = True,
-                 matrix_use_llm: bool = False) -> Dict[str, Any]:
+                 matrix_use_llm: bool = False,
+                 use_history: bool = True,
+                 history_path: Optional[str] = None) -> Dict[str, Any]:
     products = load_products()
     llm = llm or make_llm(api_key, model)
     vids = enrich_with_transcripts(videos[:max_videos])
+    if use_history:
+        vids = history_store.annotate_with_history(vids, save=True, store_path=history_path)
 
     fact_sheet = extract_facts(llm, vids)
     raw_facts = fact_sheet.facts
@@ -1015,6 +1131,8 @@ def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
         "drop": sum(1 for j in judgements if j["decision"] == "Drop"),
         "briefs": len(briefs),
         "briefs_need_review": sum(1 for b in briefs if b["needs_review"]),
+        "has_prev_snapshot": any(v.get("has_prev_snapshot") for v in vids),
+        "new_videos_count": sum(1 for v in vids if v.get("is_new")),
     }
     matrix = (
         build_multi_product_matrix(

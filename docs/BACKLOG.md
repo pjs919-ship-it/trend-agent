@@ -22,7 +22,10 @@
 
 ## 다음 스프린트 성과 극대화 백로그 (02:35~)
 - [x] **B2B-08 (성과 극대화)**: **제품 3종 교차 매칭 매트릭스 (Multi-Product Triage)** — 한 번의 클리핑(추가 쿼터 0)으로 3종 교차 비교 + 제형 변별력·타이브레이커 + 추천 배너 상시 노출 완료 (QA & Designer PASS)
-- [ ] **B2B-10 (03:35 Iteration 2 — B2B 리텐션 극대화)**:
-  - ① **스냅샷 시계열 변화 감지 (`history_store.py`)**: 이전 실행 스냅샷 대비 신규 등장 쇼츠(`🆕 NEW`)와 조회수 증가분(`+Δ회`) 자동 계산 → "어제보다 오늘 새로 터진 영상" 1초 식별
-  - ② **자사 제품 상세페이지 원문 붙여넣기 온보딩 (`confidence: medium → high` 승격)**: 마케터가 개발자 없이 신제품을 추가하거나 공식 상세페이지 텍스트를 붙여넣으면 즉시 확인 문구로 반영
-- [ ] **B2B-09 (라이브 E2E 대기)**: 사용자 기상 후 외부 네트워크 허용 시 `python qa/benchmark_days.py` + `python qa/run_once.py` 1회 실행으로 라이브 실측 확정
+- [x] **B2B-10 (04:13 Iteration 2 — B2B 리텐션 극대화)**:
+  - ① **스냅샷 시계열 변화 감지 (`history_store.py`)**: 200건 병합 보존 + `🆕 NEW` / `+Δ회 ↑` 감지 (QA PASS)
+  - ② **자사 제품 상세페이지 원문 온보딩**: `confidence: medium → high` 승격 + 금지어 격리/거부 + 의약품 오인 절대 하드 가드 + Flash 경고 유지 (QA PASS)
+- [ ] **B2B-11 (05:35 Iteration 3 — 기상 후 1클릭 라이브 E2E 런처 & 실무 `README.md`)**:
+  - `qa/run_live_all.py`: 기상 후 명령어 1줄로 `benchmark_days.py` + `run_once.py`(30일) + `qa/run_latest.json` 생성까지 자동화(예산 가드 1,500유닛 내, `--dry-run` 검증)
+  - `README.md`: 마케터/대표용 3분 시작 가이드(HTML 더블클릭, Streamlit 실행, GitHub 푸시, Streamlit Cloud Secrets 배포, 라이브 E2E 실행)
+- [ ] **B2B-09 (라이브 E2E 대기)**: 사용자 기상 후 외부 네트워크 허용 시 `python qa/run_live_all.py` 1회 실행으로 라이브 실측 확정

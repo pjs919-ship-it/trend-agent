@@ -323,3 +323,71 @@
 3. **[Low] `internal_report_md` 교차 매칭 요약에서 동률 Go 건수 시 추천 근거 불명확 (`pipeline.py` L876-886)**
    - **증거**: 실제 출력에서 `딥 토너`와 `워터리 마스크` 모두 `Go 3건 · Pivot 1건 · Drop 11건`으로 동일하게 표시되는데, 추천 사유에도 `(Go 3건 · Pivot 1건 · Drop 11건)`만 표기되어 팀장이 "둘 다 3건인데 왜 토너가 1등이지?"라고 되물을 수 있음(실제는 `total_go_score` 15 vs 14 차이).
    - **개선 제안**: 각 제품 요약 줄과 추천 사유에 `Go 총점` (예: `Go 3건(15점)`)을 함께 표기해 의사결정 투명성 확보.
+
+
+---
+
+## Sprint 7 레드팀 QA 검수 — B2B-10 스냅샷 시계열 변화 감지 + 자사 제품 온보딩
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `history_store.py`, `pipeline.py` (`upsert_product_from_text`, `_brief_violations`), `app.py`, `TrendSetter_KBeauty_Pro.html`, `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / `ALL TESTS PASSED!`
+  - 임시 디렉토리(`tempfile`) 기반 레드팀 3대 공격 테스트 실행 (깨진 `history.json` 복구, 기존 금지 목록 보존, 화장품법 금지어 온보딩을 통한 Step 4 감사 우회)
+- **최종 판정**: **❌ FAIL (반려 — 자사 제품 온보딩 경로를 통한 Step 4 화장품법 감사 100% 우회 취약점 및 경고 증발 버그 확인)**
+
+> **마케터 총평**:  
+> 스냅샷 오염 방지(리허설 모드가 `history.json`/`localStorage`를 건드리지 않음), 깨진 `history.json` 안전 복구, 기존 제품 승격 시 `unverified_removed_from_v1` 보존은 모두 잘 구현되었다. 그러나 **자사 제품 온보딩에서 화장품법 제13조 위반 문구(`아토피 피부염 완치`, `여드름 3초 만에 즉각 치료`, `올리브영 1위`)를 붙여넣으면 경고만 반환한 채 `confidence="high"`로 그대로 저장되어 Step 4 과대광고 감사(`_brief_violations`)가 0건으로 완전히 무력화되는 치명적 우회 구멍**이 실증되었고, `app.py`에서는 `st.rerun()` 때문에 그 경고마저 화면에서 즉시 증발한다. 이는 절대 기준 3(과대광고 0건) 위반이므로 **FAIL** 판정한다.
+
+---
+
+### 1. 통과 확인 항목
+- **스냅샷 오염 없음**: `app.py`의 `build_offline_rehearsal_result()`는 `history_store`를 호출하지 않고, `TrendSetter_KBeauty_Pro.html`의 `loadSampleRehearsal()`도 `annotateHistoryLocal()`을 호출하지 않아 라이브 스냅샷을 오염시키지 않음.
+- **깨진 `history.json` 복구**: `"{broken json!!!"` 입력 시 예외 없이 `has_prev_snapshot=False, is_new=False`로 안전 복구 확인.
+- **기존 금지 목록 보존**: `올리고 히알루론산 딥 토너` 승격 시 기존 `unverified_removed_from_v1` 4종(`7스킨 레이어링`, `올리브영 1위 토너`, `피부 속 2.5mm 보습 개선`, `100% 흡수`)이 100% 보존됨 확인.
+
+---
+
+### 2. 발견된 결함 3가지 (재현 증거 포함) 및 개선 제안
+
+#### [결함 1 — Critical] 온보딩 금지어 저장 시 `confidence="high"` 승격 + Step 4 화장품법 감사 100% 우회
+- **위치**: `pipeline.py` L69-93 (`upsert_product_from_text`), L667-670 (`_brief_violations`), `TrendSetter_KBeauty_Pro.html` L608-622 (`saveCustomProduct`)
+- **재현 증거 (샌드박스 `tempfile` 단위 테스트)**:
+  - 입력: `raw_claims_text = "아토피 피부염 완치 효과\n여드름 3초 만에 즉각 치료\n올리브영 1위 베스트셀러"`
+  - 결과 1: `warnings: 7`이 감지되었음에도 `entry["confidence"] == "high"`로 그대로 저장됨.
+  - 결과 2: 해당 제품으로 `"아토피 피부염 완치 효과! 올리브영 1위 베스트셀러 / 여드름 3초 만에 즉각 치료되는 세럼"` 콘티를 `_brief_violations()`에 통과시킨 결과 → **`violations = []` (위반 0건 완전 통과!)**.
+  - 원인: `_brief_violations` L669가 `if nt and nt in norm_text and nt not in norm_claims:`로 되어 있어, 금지어가 `verified_claims`에 들어가는 순간 Step 4 감사가 영구 무력화되고, `creator_dm_clean_md` 소구 포인트에도 그대로 인플루언서에게 발송됨.
+- **개선 제안 (이중 방어)**:
+  1. `upsert_product_from_text()` (및 HTML `saveCustomProduct`)에서 화장품법 제13조 금지어가 포함된 줄은 `verified_claims`에서 **자동 제외(`rejected_claims`로 분리)**하고, 제외 후 남은 유효 문구가 없으면 저장을 거부(`ValueError`). 또한 `warnings`가 발생한 경우 `confidence`를 `"high"`로 승격하지 않거나(최대 `"medium"`), 금지어가 0건일 때만 `"high"` 허용.
+  2. `_brief_violations()`(L669)에서 `COSMETIC_LAW_BANNED_TERMS` 중 의약품 오인·순위·과대광고 핵심어(`완치`, `아토피`, `피부염`, `치료`, `시술`, `1위`, `1등`, `즉각`, `기적`)는 `norm_claims` 존재 여부와 무관하게 **무조건 위반 처리**하도록 하드 가드.
+
+#### [결함 2 — High] `app.py` 온보딩 저장 직후 `st.rerun()`으로 화장품법 경고 메시지 증발
+- **위치**: `app.py` L443-449
+- **근거**: `st.warning("화장품법 제13조 주의 표현 감지...")`와 `st.success(...)`를 호출한 직후 L449에서 `st.rerun()`을 실행하므로, 사용자가 경고 문구를 읽을 틈도 없이 0.01초 만에 화면에서 사라진다.
+- **개선 제안**: 경고·성공 메시지를 `st.session_state["ob_flash"]`에 저장한 뒤 `st.rerun()`하고, 사이드바/상단 렌더링 시 1회 pop해서 표시하도록 수정.
+
+#### [결함 3 — Low] `history_store.py`의 `save_history` 전체 덮어쓰기로 인한 `NEW` 오탐 가능성
+- **위치**: `history_store.py` L27-45 (`save_history`)
+- **근거**: `save_history`가 기존 `history.json`의 `videos` dict를 통째로 덮어쓰므로, 마케터가 다른 추가 키워드로 1회 검색하면 직전 메인 배치의 영상 이력이 전부 사라져 다음 메인 실행 시 기존 영상이 모두 `🆕 NEW`로 오탐된다.
+- **개선 제안**: `save_history`에서 기존 `videos` dict를 로드해 병합(merge)하고 최근 200건까지만 유지하도록 개선.
+
+
+---
+
+## Sprint 7-R 최종 QA 재검수 — B2B-10 법무 우회 봉합·Flash 경고·History 병합 검증
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `pipeline.py`, `history_store.py`, `app.py`, `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`** (`overclaim=18 violations caught`, `B2B-10` 통과)
+  - 샌드박스 `tempfile` 기반 4대 레드팀 공격 재검증 → **`ALL SPRINT 7-R RED-TEAM CHECKS PASSED!`**
+- **최종 판정**: **✅ PASS**
+
+### 검증 상세 결과
+1. **전부 금지어 입력 거부 (`RT1`)**: `아토피 피부염 완치 / 여드름 즉각 치료 / 올리브영 1위`만 입력 시 `ValueError("화장품법 금지 표현이 포함되어 저장할 수 없습니다.")`로 저장 원천 차단 확인.
+2. **정상+금지어 혼합 시 격리 & `high` 승격 차단 (`RT2`)**: 금지어 문구만 `rejected_claims`로 자동 격리되고 `verified_claims`에는 정상 문구만 남으며 `confidence="medium"` 유지 확인.
+3. **의약품 오인 절대 금지 하드 가드 (`RT3`)**: 강제로 `verified_claims`에 `아토피/완치/피부염/치료`를 주입해도 `_brief_violations()`가 4건 전부 무조건 위반으로 적발 확인.
+4. **`app.py` Flash 메시지 유지 (`L456-467`)**: `st.session_state["onboarding_flash"]`로 `st.rerun()` 이후에도 경고·성공 메시지가 유실되지 않도록 수정 확인.
+5. **`history_store.py` 병합(Merge) 보존 (`RT4`)**: 서로 다른 배치(`A`, `B`) 연속 저장 시 기존 `A`가 소실되지 않고 `['A', 'B']`로 안전 병합 확인.
+
+> **총괄 결론**: Sprint 1~7-R에 걸친 오프라인 B2B 코어·법무 가드레일·3개 제품 DM·제품 3종 교차 매트릭스·스냅샷 시계열 변화·자사 제품 온보딩 전 기능이 독립 QA 게이트를 **PASS**했다. 남은 유일한 최종 출고 단계는 외부 API 권한 확보 후 `qa/benchmark_days.py` 및 `qa/run_once.py` 라이브 E2E 1회 실증이다.

@@ -406,6 +406,72 @@ with st.sidebar:
     run_live = st.button("🚀 실시간 트렌드 분석 실행", type="primary", use_container_width=True)
     run_demo = st.button("🧪 스냅샷/리허설 보기 (쿼터 0)", use_container_width=True)
 
+    st.markdown("---")
+    flash_msg = st.session_state.pop("onboarding_flash", None)
+    with st.expander(
+        "➕ 자사 제품 추가 / 상세페이지 원문으로 신뢰도 승격 (medium → high)",
+        expanded=bool(flash_msg),
+    ):
+        if flash_msg:
+            if flash_msg.get("level") == "success":
+                st.success(flash_msg["message"])
+            else:
+                st.warning(flash_msg["message"])
+            if flash_msg.get("warnings"):
+                st.warning("🚫 격리된 금지 표현:\n- " + "\n- ".join(flash_msg["warnings"]))
+
+        ob_mode = st.radio("등록 모드", ["기존 제품 신뢰도 승격", "신규 SKU 등록"], horizontal=True, key="ob_mode")
+        if ob_mode == "기존 제품 신뢰도 승격":
+            ob_name = st.selectbox("승격 대상 제품", product_names, key="ob_existing_name")
+            ex_info = products_map.get(ob_name, {})
+            default_claims = "\n".join(ex_info.get("verified_claims", []))
+            default_fit = ", ".join(ex_info.get("fit_territory", []))
+            default_nonfit = ", ".join(ex_info.get("non_fit_territory", []))
+        else:
+            ob_name = st.text_input("신규 제품명", placeholder="예: 올리고 히알루론산 카밍 크림", key="ob_new_name")
+            default_claims, default_fit, default_nonfit = "", "속건조, 보습, 진정", "색조 메이크업, 헤어/바디"
+
+        ob_claims = st.text_area(
+            "공식 상세페이지 확인 문구 (줄바꿈 구분)",
+            value=default_claims,
+            height=110,
+            key="ob_claims",
+            help="공식 상세페이지 원문에서 확인된 성분·제형·사용법 문구만 줄바꿈으로 입력하세요.",
+        )
+        ob_fit = st.text_input("적합 영역 (쉼표 구분)", value=default_fit, key="ob_fit")
+        ob_nonfit = st.text_input("부적합 영역 (쉼표 구분)", value=default_nonfit, key="ob_nonfit")
+        ob_url = st.text_input("공식 상세페이지 URL (선택)", placeholder="https://blancdoux.com/...", key="ob_url")
+
+        if st.button("💾 저장 및 신뢰도 high 승격", use_container_width=True, key="ob_save_btn"):
+            try:
+                saved = pipeline.upsert_product_from_text(
+                    name=ob_name,
+                    raw_claims_text=ob_claims,
+                    fit_territory_csv=ob_fit,
+                    non_fit_territory_csv=ob_nonfit,
+                    source_url=ob_url,
+                    save_to_file=True,
+                )
+                conf_after = saved["entry"]["confidence"]
+                if saved.get("rejected_claims"):
+                    st.session_state["onboarding_flash"] = {
+                        "level": "warning",
+                        "message": f"'{saved['product_name']}' 저장 완료 — 금지어 {len(saved['rejected_claims'])}건이 격리되어 confidence={conf_after} 유지됩니다.",
+                        "warnings": saved["warnings"],
+                    }
+                else:
+                    st.session_state["onboarding_flash"] = {
+                        "level": "success",
+                        "message": f"'{saved['product_name']}' 저장 완료 (confidence={conf_after} 승격)!",
+                        "warnings": [],
+                    }
+                st.session_state["b2b_result"] = build_offline_rehearsal_result(saved["product_name"], days_range=days_range)
+                st.session_state["is_rehearsal"] = True
+                st.session_state["rehearsal_product"] = saved["product_name"]
+                st.rerun()
+            except Exception as e:
+                st.error(f"저장 거부: {e}")
+
 if "b2b_result" not in st.session_state:
     st.session_state["b2b_result"] = build_offline_rehearsal_result(selected_product, days_range=days_range)
     st.session_state["is_rehearsal"] = True
@@ -711,6 +777,8 @@ else:
                   <div class="evid-meta">
                     <span>📺 {_esc(v.get('channel_title', '-'))}</span>
                     <span>👀 {v.get('views', 0):,}회</span>
+                    {f'<span class="pill pill-go">🆕 NEW</span>' if v.get('is_new') else ''}
+                    {f'<span class="pill pill-go">+{int(v.get("views_delta")):,}회 ↑</span>' if isinstance(v.get('views_delta'), int) and v.get('views_delta') > 0 else ''}
                     <span class="pill pill-hot">🔥 {v.get('views_per_day', 0):,}회/일</span>
                     <span>❤️ {v.get('like_rate', 0.0):.2f}%</span>
                     <span>📅 {_esc(pub_date)}</span>
@@ -833,10 +901,19 @@ with st.expander(f"📊 클리핑 원본 Top {len(videos)} 전체 보기 (정렬
         dec = j.get("decision", "-")
         dec_cls = "pill-go" if dec == "Go" else "pill-warn" if dec == "Pivot" else "pill-drop"
         cap_ico = "✅" if v.get("text_source") == "caption" else "⚠️"
+        delta_badge = (
+            ' <span class="pill pill-go">🆕 NEW</span>'
+            if v.get("is_new")
+            else (
+                f' <span class="pill pill-go">+{int(v.get("views_delta")):,} ↑</span>'
+                if isinstance(v.get("views_delta"), int) and v.get("views_delta") > 0
+                else ""
+            )
+        )
         t_rows.append(
             f"<tr>"
             f"<td><b>{rank}</b></td>"
-            f"<td><a href='https://youtube.com/shorts/{_esc(vid)}' target='_blank' rel='noopener'>{_esc(v.get('title', vid)[:45])} ↗</a></td>"
+            f"<td><a href='https://youtube.com/shorts/{_esc(vid)}' target='_blank' rel='noopener'>{_esc(v.get('title', vid)[:45])} ↗</a>{delta_badge}</td>"
             f"<td>{_esc(v.get('channel_title', '-'))}</td>"
             f"<td>{v.get('views', 0):,}</td>"
             f"<td><b>🔥 {v.get('views_per_day', 0):,}</b></td>"
