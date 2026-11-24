@@ -264,7 +264,7 @@ def create_kbeauty_tools(youtube_client, default_days: int = 7, default_keyword:
 def get_kbeauty_agent(
     youtube_client,
     google_api_key: Optional[str] = None,
-    model_name: str = "gemini-2.5-flash",
+    model_name: str = "gemini-2.5-flash-lite",
     days: int = 7,
     detail_keyword: str = "",
 ):

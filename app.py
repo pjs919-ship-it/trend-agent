@@ -131,8 +131,14 @@ with st.sidebar:
     st.markdown("---")
     model_choice = st.selectbox(
         "Gemini 모델 선택",
-        options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-pro"],
-        index=0
+        options=[
+            "gemini-2.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-3.1-flash-lite",
+            "gemini-2.5-flash"
+        ],
+        index=0,
+        help="gemini-2.5-flash-lite 또는 gemini-flash-latest는 무료 티어(Free Tier)에서 가장 안정적이고 빠릅니다."
     )
 
     if st.button("🧹 로컬 캐시 초기화"):
