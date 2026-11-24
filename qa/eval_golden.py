@@ -1,0 +1,328 @@
+"""qa/eval_golden.py — 오프라인 QA 6대 결함 회귀 테스트 + 골든셋 15건 규칙/감사 자동 채점기
+네트워크 없이 샌드박스에서 즉시 실행 가능:
+  python qa/eval_golden.py
+"""
+import json
+import os
+import sys
+import tempfile
+from datetime import datetime, timedelta, timezone
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+
+import agent_core
+import pipeline
+
+
+def _assert(cond: bool, msg: str):
+    if not cond:
+        raise AssertionError(f"[FAIL] {msg}")
+
+
+def test_defect_1_brief_violations(products):
+    toner = products["올리고 히알루론산 딥 토너"]
+
+    # 1-A: 정상 스크립트 + 금지어를 안내하는 creator_note → 위반 0건 (자기모순 오탐 제거)
+    clean_sb = pipeline.Storyboard(
+        video_id="Zl5CPQxmWFE",
+        hook="전성분표 직접 확인해본 속건조 물토너 루틴",
+        before="세안 후 속건조로 피부가 당기는 저녁 루틴",
+        product_moment="저분자 히알루론산 워터 제형 토너를 화장솜에 적셔 15~20분 토너 팩으로 활용",
+        cta="올리브영에서 올리고 히알루론산 딥 토너 확인해보세요",
+        creator_note="주의: 올리브영 1위 토너, 7스킨 레이어링, 100% 흡수 같은 미확인 표현은 절대 사용 금지",
+    )
+    v_clean = pipeline._brief_violations(clean_sb, toner)
+    _assert(v_clean == [], f"creator_note 오탐 발생: {v_clean}")
+
+    # 1-B: 화장품법 과대광고 + 미확인 수치 → 전부 적발
+    bad_sb = pipeline.Storyboard(
+        video_id="Zl5CPQxmWFE",
+        hook="올리브영 1등 수분 토너! 3초 만에 즉각 진정",
+        before="24시간 속건조 고민",
+        product_moment="10배 수분 흡수되는 기적의 토너, 피부 염증 완화 및 재생 효과",
+        cta="지금 1위 제품 구매",
+        creator_note="정상 메모",
+    )
+    v_bad = pipeline._brief_violations(bad_sb, toner)
+    joined = " | ".join(v_bad)
+    for must_catch in ["1등", "3초", "즉각", "24시간", "10배", "기적", "재생", "1위"]:
+        _assert(must_catch in joined, f"과대광고 미탐('{must_catch}'): {v_bad}")
+    return f"PASS (clean=0 violations, overclaim={len(v_bad)} violations caught)"
+
+
+def test_defect_2_agent_core_p0():
+    # 2-A: 색조 키워드 제거 확인
+    _assert("메이크업 꿀팁" not in agent_core.KBEAUTY_MEGA_KEYWORDS, "색조 키워드('메이크업 꿀팁') 잔존")
+    _assert(len(agent_core.KBEAUTY_MEGA_KEYWORDS) >= 3, "기초 앵커 키워드 부족")
+
+    # 2-B: float 기반 days_since_published (47시간 전 = 1.96일, 2배 왜곡 제거)
+    now = datetime(2026, 11, 25, 0, 0, 0, tzinfo=timezone.utc)
+    pub_47h = (now - timedelta(hours=47)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    m = agent_core.compute_video_metrics(views=100000, likes=3000, published_at=pub_47h, now_utc=now)
+    _assert(1.9 <= m["days_since_published"] <= 2.0, f"47h 경과일 오류: {m}")
+    _assert(50000 <= m["views_per_day"] <= 52000, f"views_per_day 왜곡: {m}")
+    _assert(m["like_rate"] == 3.0, f"like_rate 오류: {m}")
+
+    # 2-C: 최근 1시간 영상도 최소 0.25일 하한 적용
+    pub_1h = (now - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    m_1h = agent_core.compute_video_metrics(views=10000, likes=500, published_at=pub_1h, now_utc=now)
+    _assert(m_1h["days_since_published"] == 0.25, f"최소 0.25일 하한 미적용: {m_1h}")
+
+    # 2-D: YouTube 유닛 상한(1,500) 가드 테스트 (임시 로그 파일)
+    with tempfile.TemporaryDirectory() as td:
+        tmp_log = os.path.join(td, "usage_log.json")
+        t1 = agent_core.record_youtube_units(1000, action="test1", log_path=tmp_log)
+        _assert(t1 == 1000, f"유닛 기록 오류: {t1}")
+        blocked = False
+        try:
+            agent_core.record_youtube_units(501, action="test_overflow", log_path=tmp_log)
+        except RuntimeError:
+            blocked = True
+        _assert(blocked, "1,500유닛 초과 시 RuntimeError 미발생")
+
+    # 2-E: 미사용 YoutubeLoader import 제거 확인 (Defect 6)
+    _assert(not hasattr(agent_core, "YoutubeLoader"), "미사용 YoutubeLoader가 agent_core에 남아있음")
+    return "PASS (keywords, 47h float velocity, 0.25d floor, 1500-unit guard, no dead import)"
+
+
+def test_defect_3_and_4_step2_guardrails(products):
+    toner = products["올리고 히알루론산 딥 토너"]
+    pad = products["그린 플라보노이드 2.5 패드"]
+    valid_claim = toner["verified_claims"][0]
+
+    # 3: text_source="meta" 영상은 LLM이 Go(5점)를 줘도 Pivot(3점)으로 상한 제한
+    meta_fact = {
+        "video_id": "meta_vid_1",
+        "domain": "기초/스킨케어",
+        "format_tag": "응급처치 루틴형",
+        "what_happens": "속건조 물토너 루틴",
+        "product_types": ["토너"],
+        "evidence_ok": True,
+        "text_source": "meta",
+    }
+    raw_meta_go = [pipeline.Judgement(
+        video_id="meta_vid_1", decision="Go", score=5,
+        reason="속건조 토너와 일치", linked_claim=valid_claim,
+    )]
+    res_meta = pipeline.apply_judgement_rules(raw_meta_go, [meta_fact], toner)[0]
+    _assert(res_meta["decision"] == "Pivot" and res_meta["score"] == 3, f"meta Go 차단 실패: {res_meta}")
+    _assert(any("자막 미확인" in fl for fl in res_meta["flags"]), f"자막 미확인 플래그 누락: {res_meta}")
+
+    # 4-A: 기초/스킨케어 내부 non_fit_territory (각질 필링 패드 vs 그린 패드) 강제 Drop
+    exfol_fact = {
+        "video_id": "exfol_1",
+        "domain": "기초/스킨케어",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "아하 바하 각질 제거 필링 패드로 묵은 각질 닦아내기",
+        "product_types": ["각질 필링 패드"],
+        "evidence_ok": True,
+        "text_source": "caption",
+    }
+    raw_exfol_go = [pipeline.Judgement(
+        video_id="exfol_1", decision="Go", score=5,
+        reason="패드 제품이라 적합", linked_claim=pad["verified_claims"][0],
+    )]
+    res_exfol = pipeline.apply_judgement_rules(raw_exfol_go, [exfol_fact], pad)[0]
+    _assert(res_exfol["decision"] == "Drop" and res_exfol["score"] <= 2, f"non_fit_territory 차단 실패: {res_exfol}")
+
+    # 4-B: linked_claim 2글자("토너") 우회 차단
+    _assert(not pipeline._is_valid_linked_claim("토너", toner["verified_claims"]), "2글자 linked_claim 우회 허용됨")
+    _assert(pipeline._is_valid_linked_claim(valid_claim, toner["verified_claims"]), "정상 linked_claim 거부됨")
+    cap_fact = {**meta_fact, "video_id": "cap_vid_1", "text_source": "caption"}
+    raw_short_lc = [pipeline.Judgement(
+        video_id="cap_vid_1", decision="Go", score=5,
+        reason="토너 연결", linked_claim="토너",
+    )]
+    res_short = pipeline.apply_judgement_rules(raw_short_lc, [cap_fact], toner)[0]
+    _assert(res_short["decision"] == "Pivot" and res_short["score"] == 3, f"2글자 linked_claim 강등 실패: {res_short}")
+
+    # 4-C: evidence_ok=False 영상 증발 방지 (합계 100% 일치)
+    bad_ev_fact = {**cap_fact, "video_id": "bad_ev_1", "evidence_ok": False}
+    res_all = pipeline.apply_judgement_rules(raw_short_lc, [cap_fact, bad_ev_fact], toner)
+    _assert(len(res_all) == 2, f"evidence_ok=False 증발 발생: {len(res_all)}")
+    bad_ev_j = next(j for j in res_all if j["video_id"] == "bad_ev_1")
+    _assert(bad_ev_j["decision"] == "Drop", f"evidence_ok=False가 Drop이 아님: {bad_ev_j}")
+
+    return "PASS (meta->Pivot cap, non_fit->Drop, 2-char linked_claim blocked, no evaporated videos)"
+
+
+def test_defect_5_and_6_outputs_and_brief_ids(products):
+    # 5: 2종 복사 산출물 검증 (products.json 미노출, confidence=medium 경고, needs_review 상단 경고, 메타데이터)
+    dummy_result = {
+        "product": "올리고 히알루론산 딥 토너",
+        "report_date": "2026-11-25",
+        "days_range": 30,
+        "product_confidence": "medium",
+        "market_patterns": ["성분 함량 팩트체크형 쇼츠 강세", "속건조 보습 성분 비교 콘텐츠 확산"],
+        "videos": [{
+            "video_id": "Zl5CPQxmWFE",
+            "title": "일명 수지 세럼 성분표 숫자 다 더하니 3%",
+            "channel_title": "FLIKO",
+            "views": 162,
+            "likes": 0,
+            "published_at": "2026-11-19T12:02:34Z",
+            "text_source": "caption",
+        }],
+        "facts": [{
+            "video_id": "Zl5CPQxmWFE",
+            "domain": "기초/스킨케어",
+            "format_tag": "비포/애프터 실험형",
+            "what_happens": "전성분표 함량 비교",
+            "hook_quote": "성분표 숫자 다 더하니 3%",
+            "evidence_quote": "히알루론산 함량을 직접 확인",
+            "evidence_ok": True,
+            "text_source": "caption",
+        }],
+        "judgements": [{
+            "video_id": "Zl5CPQxmWFE",
+            "decision": "Go",
+            "score": 4,
+            "reason": "함량 공개 포맷 일치",
+            "linked_claim": products["올리고 히알루론산 딥 토너"]["verified_claims"][1],
+            "flags": [],
+        }],
+        "briefs": [{
+            "video_id": "Zl5CPQxmWFE",
+            "hook": "전성분표 함량 확인",
+            "before": "속건조 고민",
+            "product_moment": "소듐하이알루로네이트 2,700ppm 토너",
+            "cta": "올리브영 확인",
+            "creator_note": "미확인 표현 금지",
+            "violations": ["테스트 위반"],
+            "needs_review": True,
+        }],
+        "stats": {"videos": 1, "transcript_caption": 1, "go": 1, "pivot": 0, "drop": 0},
+    }
+    outs = pipeline.format_copyable_outputs(dummy_result)
+    rep = outs["internal_report_md"]
+    guide = outs["creator_guide_md"]
+
+    _assert("products.json" not in guide, "creator_guide_md에 개발자 파일명(products.json) 노출")
+    _assert("제품 정보 확인 필요" in rep and "제품 정보 확인 필요" in guide, "confidence=medium 경고 누락")
+    _assert("발송 보류 — 검수 필요" in rep and "발송 보류 — 검수 필요" in guide, "needs_review 상단 경고 누락")
+    _assert("2026-11-25" in rep and "최근 30일" in rep and "2026-11-19" in rep, "기준일/수집기간/업로드일 누락")
+    _assert("자막 확인 완료" in guide and "자막 확보(caption)" in rep, "자막 출처 표기 누락")
+
+    # 6: write_briefs가 go_ids 밖의 ID를 필터링하는지 검증 (Mock LLM)
+    class MockStructuredLLM:
+        def invoke(self, _prompt):
+            return pipeline.BriefSheet(briefs=[
+                pipeline.Storyboard(
+                    video_id="Zl5CPQxmWFE", hook="정상 훅", before="속건조 고민",
+                    product_moment="저분자 히알루론산 워터 제형 토너", cta="확인해보세요",
+                    creator_note="과대광고 금지",
+                ),
+                pipeline.Storyboard(
+                    video_id="jfsweQpxqsY", hook="비인가 ID 훅", before="블러셔",
+                    product_moment="억지 연결", cta="구매", creator_note="메모",
+                ),
+            ])
+
+    class MockLLM:
+        def with_structured_output(self, _schema):
+            return MockStructuredLLM()
+
+    facts_map = {
+        "Zl5CPQxmWFE": dummy_result["facts"][0],
+        "jfsweQpxqsY": {**dummy_result["facts"][0], "video_id": "jfsweQpxqsY"},
+    }
+    briefs_out = pipeline.write_briefs(
+        MockLLM(), dummy_result["judgements"], facts_map, "올리고 히알루론산 딥 토너", products
+    )
+    _assert([b["video_id"] for b in briefs_out] == ["Zl5CPQxmWFE"], f"go_ids 필터링 실패: {briefs_out}")
+    return "PASS (no products.json leak, medium/needs_review banners, metadata, go_ids strict filter)"
+
+
+def eval_golden_set(products):
+    golden_path = os.path.join(ROOT, "qa", "golden_set.json")
+    with open(golden_path, encoding="utf-8") as f:
+        gs = json.load(f)
+    items = gs["items"]
+    target_product = gs["_meta"]["target_product"]
+    toner = products[target_product]
+    valid_claim = toner["verified_claims"][0]
+
+    # 1) Step 1 audit_facts 검증 (15건 정상 인용 + 1건 날조 인용 차단)
+    videos = [pipeline._ensure_video_metrics(it) for it in items]
+    raw_facts = [
+        pipeline.Fact(video_id=it["video_id"], **it["sample_fact"])
+        for it in items
+    ]
+    audited = pipeline.audit_facts(raw_facts, videos)
+    _assert(len(audited) == len(items), f"팩트 수 불일치: {len(audited)} != {len(items)}")
+    fabricated_pass = sum(1 for f in audited if not f["evidence_ok"])
+    _assert(fabricated_pass == 0, f"정상 골든셋 인용 검증 실패: {fabricated_pass}건")
+
+    # 날조 인용 탐지 테스트
+    fake_fact = pipeline.Fact(
+        video_id="jfsweQpxqsY",
+        domain="색조/메이크업",
+        format_tag="믹싱 꿀팁형",
+        what_happens="날조된 내용",
+        product_types=["립틴트"],
+        hook_quote="영상에 절대 없는 가짜 훅 문장",
+        evidence_quote="영상에 절대 없는 가짜 근거 문장",
+    )
+    fake_audited = pipeline.audit_facts([fake_fact], [videos[0]])[0]
+    _assert(not fake_audited["evidence_ok"] and fake_audited["hook_quote"] == "", "날조 인용 차단 실패")
+
+    # 2) 적대적 LLM(전부 Go 5점 반환) 대비 하드 가드레일 테스트
+    adversarial_js = [
+        pipeline.Judgement(
+            video_id=it["video_id"],
+            decision="Go",
+            score=5,
+            reason="전부 Go 시도",
+            linked_claim=valid_claim,
+        )
+        for it in items
+    ]
+    adv_out = pipeline.apply_judgement_rules(adversarial_js, audited, toner)
+    _assert(len(adv_out) == len(items), "합계 불일치")
+
+    # 정답이 Drop인 11건(jfsweQpxqsY 포함) 전부 강제 Drop 되는지 확인
+    expected_drops = [it["video_id"] for it in items if it["expected_decision_for_toner"] == "Drop"]
+    adv_by_id = {j["video_id"]: j for j in adv_out}
+    drop_hits = sum(1 for vid in expected_drops if adv_by_id[vid]["decision"] == "Drop")
+    drop_acc = round(drop_hits / len(expected_drops) * 100, 1)
+    _assert(adv_by_id["jfsweQpxqsY"]["decision"] == "Drop", "jfsweQpxqsY 강제 Drop 실패!")
+    _assert(drop_acc >= 90.0, f"Drop 정확도 미달: {drop_acc}%")
+
+    # 자막 없는 RdXhzcCVtsw(meta)가 적대적 Go(5)에도 Pivot(3) 이하로 막히는지 확인
+    _assert(adv_by_id["RdXhzcCVtsw"]["decision"] == "Pivot", f"meta 영상 Go 차단 실패: {adv_by_id['RdXhzcCVtsw']}")
+
+    # Go/Pivot/Drop 분포 집계 (전부 Go 금지 확인)
+    go_cnt = sum(1 for j in adv_out if j["decision"] == "Go")
+    pivot_cnt = sum(1 for j in adv_out if j["decision"] == "Pivot")
+    drop_cnt = sum(1 for j in adv_out if j["decision"] == "Drop")
+    _assert(go_cnt + pivot_cnt + drop_cnt == len(items), "Go+Pivot+Drop 합계 불일치")
+    _assert(go_cnt < len(items), "전부 Go 판정 금지 위반")
+
+    return {
+        "total_items": len(items),
+        "expected_drops": len(expected_drops),
+        "drop_hits": drop_hits,
+        "drop_accuracy_pct": drop_acc,
+        "jfsweQpxqsY_decision": adv_by_id["jfsweQpxqsY"]["decision"],
+        "fabricated_quote_blocked": True,
+        "distribution_under_adversarial_llm": {"Go": go_cnt, "Pivot": pivot_cnt, "Drop": drop_cnt},
+    }
+
+
+def main():
+    products = pipeline.load_products()
+    print("=== [1] QA 6대 결함 회귀 테스트 ===")
+    print("  Defect 1 (Step 4 감사/과대광고):", test_defect_1_brief_violations(products))
+    print("  Defect 2 & 6 (P0 키워드/지표/유닛가드/import):", test_defect_2_agent_core_p0())
+    print("  Defect 3 & 4 (meta/non_fit/linked_claim/합계):", test_defect_3_and_4_step2_guardrails(products))
+    print("  Defect 5 & 6 (2종 복사 산출물/go_ids 필터):", test_defect_5_and_6_outputs_and_brief_ids(products))
+
+    print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
+    summary = eval_golden_set(products)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    print("\nALL TESTS PASSED!")
+
+
+if __name__ == "__main__":
+    main()

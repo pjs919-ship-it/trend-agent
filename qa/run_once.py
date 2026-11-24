@@ -38,7 +38,7 @@ else:
         json.dump(videos, f, ensure_ascii=False, indent=2)
     print(f"[신규 수집] {len(videos)}건 저장 → {sample_path} (이번 {after_units - before_units}유닛 / 누적 {after_units}유닛)")
 
-res = pipeline.run_pipeline(videos, args.product, model=args.model)
+res = pipeline.run_pipeline(videos, args.product, model=args.model, days_range=args.days)
 out_path = os.path.join(qa_dir, args.out)
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(res, f, ensure_ascii=False, indent=2)

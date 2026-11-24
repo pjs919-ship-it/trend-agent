@@ -1,0 +1,339 @@
+{
+  "_meta": {
+    "description": "K-Beauty TrendSetter Pro 오프라인 골든셋 (15건: 로컬 cache_store 14건 + 틴트 블러셔 믹싱 대표 오탐 케이스 jfsweQpxqsY 1건)",
+    "target_product": "올리고 히알루론산 딥 토너",
+    "created_at": "2026-11-25"
+  },
+  "items": [
+    {
+      "video_id": "jfsweQpxqsY",
+      "title": "립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts #메이크업꿀팁",
+      "description": "립틴트 한 방울에 컨실러를 살짝 섞어 볼에 톡톡 두드리면 자연스러운 맑은 블러셔 완성!",
+      "channel_title": "K-뷰티 메이크업랩",
+      "views": 156361,
+      "likes": 4820,
+      "published_at": "2026-11-15T09:00:00Z",
+      "text_source": "caption",
+      "source_text": "립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 오늘 립틴트랑 컨실러 섞어서 맑은 블러셔 만드는 법 알려드릴게요 손등에 틴트 한 방울 덜고 컨실러 살짝 섞어서 볼에 톡톡 두드리면 끝",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "믹싱 꿀팁형",
+        "what_happens": "립틴트와 컨실러를 손등에 섞어 블러셔로 바르는 색조 믹싱 꿀팁 시연",
+        "product_types": ["립틴트", "컨실러", "블러셔"],
+        "hook_quote": "립틴트랑 컨실러 섞어서 맑은 블러셔 만드는 법",
+        "evidence_quote": "손등에 틴트 한 방울 덜고 컨실러 살짝 섞어서 볼에 톡톡 두드리면 끝"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "색조 메이크업·블러셔/틴트 믹싱으로 올리고 히알루론산 딥 토너의 non_fit_territory에 해당. 반드시 Drop."
+    },
+    {
+      "video_id": "5c41Ho3-4Wo",
+      "title": "데일리 글로우 글로시 핑크 룩 💓 #shorts #viral #뷰티 #douyin #메이크업 #정설",
+      "description": "",
+      "channel_title": "ES '설'",
+      "views": 5269,
+      "likes": 165,
+      "published_at": "2026-11-19T16:57:26Z",
+      "text_source": "meta",
+      "source_text": "데일리 글로우 글로시 핑크 룩 💓 #shorts #viral #뷰티 #douyin #메이크업 #정설",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "겟레디윗미",
+        "what_happens": "글로시 핑크 톤의 데일리 메이크업 룩 연출",
+        "product_types": ["핑크 메이크업"],
+        "hook_quote": "데일리 글로우 글로시 핑크 룩",
+        "evidence_quote": "데일리 글로우 글로시 핑크 룩"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "색조 메이크업 룩 영상으로 기초 토너와 영역 불일치."
+    },
+    {
+      "video_id": "GX1H1O2CgBc",
+      "title": "데일리 로즈 팥죽색 매트 립틴트 🌹 #shorts #viral #뷰티 #douyin #메이크업 #정설",
+      "description": "",
+      "channel_title": "ES '설'",
+      "views": 3421,
+      "likes": 103,
+      "published_at": "2026-11-18T10:05:31Z",
+      "text_source": "meta",
+      "source_text": "데일리 로즈 팥죽색 매트 립틴트 🌹 #shorts #viral #뷰티 #douyin #메이크업 #정설",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "로즈 팥죽색 매트 립틴트 발색 시연",
+        "product_types": ["립틴트"],
+        "hook_quote": "데일리 로즈 팥죽색 매트 립틴트",
+        "evidence_quote": "데일리 로즈 팥죽색 매트 립틴트"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "립틴트 색조 제품 리뷰로 non_fit_territory."
+    },
+    {
+      "video_id": "q0kqfLjZ5zM",
+      "title": "아래 속눈썹 도장으로 찍는 거 짝짝이 걱정 없는 눈도장 #shorts",
+      "description": "[광고] 아래 속눈썹을 «도장»으로 찍는 거 처음 봤어요. 눈 밑 속눈썹을 한 올씩 그리다가 결국 짝짝이 되는 게 너무 스트레스였는데 도장처럼 꾹 찍으면 한 번에 모양이 나오는 게 있어서 가져왔어요",
+      "channel_title": "1분사고",
+      "views": 3357,
+      "likes": 99,
+      "published_at": "2026-11-24T07:30:30Z",
+      "text_source": "meta",
+      "source_text": "아래 속눈썹 도장으로 찍는 거 짝짝이 걱정 없는 눈도장 #shorts [광고] 아래 속눈썹을 도장으로 찍는 거 처음 봤어요",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "아래 속눈썹을 도장으로 찍어 그리는 아이메이크업 도구 소개",
+        "product_types": ["속눈썹 도장"],
+        "hook_quote": "아래 속눈썹 도장으로 찍는 거",
+        "evidence_quote": "아래 속눈썹을 도장으로 찍는 거 처음 봤어요"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "아이메이크업 소품으로 기초 토너와 무관."
+    },
+    {
+      "video_id": "az4IoS-IE_M",
+      "title": "동안 얼굴 만드는 김나영 블러셔 위치 #동안메이크업 #셀럽템 #메이크업 #김나영 #블러셔",
+      "description": "김나영이 데일리 메이크업에서 꺼낸 마법의 블러셔. 광대 안쪽에 볼 색을 더하고, 코끝에는 하이라이트를 콕콕 찍어요.",
+      "channel_title": "셀럽의 모든것",
+      "views": 3274,
+      "likes": 4,
+      "published_at": "2026-11-22T09:25:11Z",
+      "text_source": "meta",
+      "source_text": "동안 얼굴 만드는 김나영 블러셔 위치 광대 안쪽에 볼 색을 더하고, 코끝에는 하이라이트를 콕콕 찍어요.",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "광대 안쪽 블러셔와 코끝 하이라이터 위치로 동안 메이크업 연출",
+        "product_types": ["블러셔", "하이라이터"],
+        "hook_quote": "동안 얼굴 만드는 김나영 블러셔 위치",
+        "evidence_quote": "광대 안쪽에 볼 색을 더하고, 코끝에는 하이라이트를 콕콕 찍어요"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "블러셔/하이라이터 색조 메이크업 영상."
+    },
+    {
+      "video_id": "HzeiH1MGv_k",
+      "title": "데일리 메이크업을 위한 핑크 페탈 로즈 립틴트 🌹 #shorts #바이럴 #뷰티 #douyin #메이크업",
+      "description": "",
+      "channel_title": "ES '설'",
+      "views": 3198,
+      "likes": 74,
+      "published_at": "2026-11-23T03:55:05Z",
+      "text_source": "meta",
+      "source_text": "데일리 메이크업을 위한 핑크 페탈 로즈 립틴트 🌹 #shorts #바이럴 #뷰티 #douyin #메이크업",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "핑크 페탈 로즈 컬러 립틴트 데일리 메이크업 발색",
+        "product_types": ["립틴트"],
+        "hook_quote": "핑크 페탈 로즈 립틴트",
+        "evidence_quote": "데일리 메이크업을 위한 핑크 페탈 로즈 립틴트"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "립틴트 색조 발색 영상."
+    },
+    {
+      "video_id": "ph_mz0F54DE",
+      "title": "코 밑 쉐딩 3초, 얼굴 작아짐 | 중안부축소 #shorts #데일리메이크업 #메이크업꿀팁",
+      "description": "출근 3초 전, 코 밑 양옆에 쉐딩만 쓱. 코 밑에 은은한 그림자가 지면 중안부가 짧아 보여요.",
+      "channel_title": "은비네 진단카페",
+      "views": 2677,
+      "likes": 4,
+      "published_at": "2026-11-20T22:04:52Z",
+      "text_source": "meta",
+      "source_text": "코 밑 쉐딩 3초, 얼굴 작아짐 출근 3초 전, 코 밑 양옆에 쉐딩만 쓱 코 밑에 은은한 그림자가 지면 중안부가 짧아 보여요.",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "비포/애프터 실험형",
+        "what_happens": "코 밑 양옆에 쉐딩을 넣어 중안부를 짧아 보이게 하는 메이크업 팁",
+        "product_types": ["쉐딩"],
+        "hook_quote": "코 밑 쉐딩 3초, 얼굴 작아짐",
+        "evidence_quote": "코 밑 양옆에 쉐딩만 쓱"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "쉐딩 색조 메이크업 팁으로 기초 토너와 무관."
+    },
+    {
+      "video_id": "B6ZcLGy2vi4",
+      "title": "해외에서 난리 난 국내 컨실러 😳 #컨실러 #shorts",
+      "description": "누적 판매 100만 개 넘은 국내 브랜드 컨실러예요. 두껍게 떡칠 없이 기미·다크서클 커버, 얇게 밀착.",
+      "channel_title": "픽셔널 Picktional",
+      "views": 1907,
+      "likes": 11,
+      "published_at": "2026-11-18T07:00:18Z",
+      "text_source": "meta",
+      "source_text": "해외에서 난리 난 국내 컨실러 두껍게 떡칠 없이 기미·다크서클 커버 얇게 밀착",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "제품 리뷰형",
+        "what_happens": "기미와 다크서클을 얇게 커버하는 국내 브랜드 컨실러 소개",
+        "product_types": ["컨실러"],
+        "hook_quote": "해외에서 난리 난 국내 컨실러",
+        "evidence_quote": "두껍게 떡칠 없이 기미·다크서클 커버"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "컨실러 색조 베이스 커버 영상."
+    },
+    {
+      "video_id": "aMnm17Dz1gk",
+      "title": "냅킨 두 장, 3초 톤 진단 | 퍼스널컬러 #shorts #데일리메이크업 #메이크업꿀팁",
+      "description": "냅킨 두 장으로 가늠해 보는 3초 톤 진단. 흰 냅킨이랑 아이보리 냅킨을 턱 밑에 번갈아 대 보고 찾아보세요.",
+      "channel_title": "은비네 진단카페",
+      "views": 1380,
+      "likes": 4,
+      "published_at": "2026-11-19T21:47:07Z",
+      "text_source": "meta",
+      "source_text": "냅킨 두 장, 3초 톤 진단 퍼스널컬러 흰 냅킨이랑 아이보리 냅킨을 턱 밑에 번갈아 대 보고 찾아보세요.",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "비포/애프터 실험형",
+        "what_happens": "흰 냅킨과 아이보리 냅킨을 턱 밑에 대어 웜톤/쿨톤 퍼스널컬러를 진단",
+        "product_types": [],
+        "hook_quote": "냅킨 두 장, 3초 톤 진단",
+        "evidence_quote": "흰 냅킨이랑 아이보리 냅킨을 턱 밑에 번갈아 대 보고"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "퍼스널컬러 톤 진단으로 기초 토너와 무관."
+    },
+    {
+      "video_id": "eeHKwx5Iq2k",
+      "title": "남편이랑 놀러 나가는 날 ✨ 데일리 메이크업 #Shorts",
+      "description": "당진 여행 가기 전, 가볍게 데일리 메이크업! #데일리메이크업 #40대메이크업 #GRWM",
+      "channel_title": "베로리",
+      "views": 1370,
+      "likes": 10,
+      "published_at": "2026-11-18T09:44:27Z",
+      "text_source": "meta",
+      "source_text": "남편이랑 놀러 나가는 날 데일리 메이크업 당진 여행 가기 전, 가볍게 데일리 메이크업!",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "겟레디윗미",
+        "what_happens": "여행 출발 전 가볍게 하는 데일리 메이크업 GRWM",
+        "product_types": ["데일리 메이크업"],
+        "hook_quote": "남편이랑 놀러 나가는 날",
+        "evidence_quote": "당진 여행 가기 전, 가볍게 데일리 메이크업"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "데일리 색조 메이크업 GRWM 영상."
+    },
+    {
+      "video_id": "BK1FYkqQn7w",
+      "title": "Tomie Inspired Makeup 🖤 토미에 데일리 메이크업 #shorts",
+      "description": "Tomie inspired daily makeup 토미에 데일리 메이크업",
+      "channel_title": "유르 YURU",
+      "views": 1261,
+      "likes": 15,
+      "published_at": "2026-11-22T10:00:26Z",
+      "text_source": "meta",
+      "source_text": "Tomie Inspired Makeup 토미에 데일리 메이크업",
+      "sample_fact": {
+        "domain": "색조/메이크업",
+        "format_tag": "겟레디윗미",
+        "what_happens": "토미에 캐릭터 콘셉트의 데일리 메이크업 변신",
+        "product_types": ["메이크업"],
+        "hook_quote": "토미에 데일리 메이크업",
+        "evidence_quote": "토미에 데일리 메이크업"
+      },
+      "expected_domain": "색조/메이크업",
+      "expected_decision_for_toner": "Drop",
+      "label_reason": "캐릭터 콘셉트 색조 메이크업 영상."
+    },
+    {
+      "video_id": "brKNpouibqo",
+      "title": "물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼 | aweop #Shorts",
+      "description": "피부가 원하는 건, 결국 수분! 푸석한 피부를 위한 데일리 수분 케어. 11종 히알루론산으로 촉촉한 수분 케어, 반짝이는 수분광부터 화잘먹 피부 표현까지!",
+      "channel_title": "aweop",
+      "views": 1187,
+      "likes": 12,
+      "published_at": "2026-11-20T07:10:16Z",
+      "text_source": "caption",
+      "source_text": "물먹은 듯 촉촉한 쫀광 피부 11종 히알루론산 수분세럼 푸석한 피부를 위한 데일리 수분 케어 반짝이는 수분광부터 화잘먹 피부 표현까지",
+      "sample_fact": {
+        "domain": "기초/스킨케어",
+        "format_tag": "응급처치 루틴형",
+        "what_happens": "푸석한 피부에 히알루론산 수분 제품으로 데일리 수분 케어 및 화잘먹 피부 연출",
+        "product_types": ["히알루론산 수분세럼"],
+        "hook_quote": "물먹은 듯 촉촉한 쫀광 피부",
+        "evidence_quote": "푸석한 피부를 위한 데일리 수분 케어"
+      },
+      "expected_domain": "기초/스킨케어",
+      "expected_decision_for_toner": "Go",
+      "label_reason": "히알루론산 데일리 수분 케어·속건조/수분 보충 포맷으로 딥 토너 fit_territory와 직접 일치."
+    },
+    {
+      "video_id": "RdXhzcCVtsw",
+      "title": "세럼 하나로 분기 1000억 찍은 브랜드 👑 #shorts",
+      "description": "토리든이 3분기 매출 1014억 원으로 처음으로 분기 매출 1000억 원을 넘겼어요. 대표 제품 다이브인 저분자 히알루론산 세럼.",
+      "channel_title": "쇼핑공주",
+      "views": 1009,
+      "likes": 3,
+      "published_at": "2026-11-22T22:10:18Z",
+      "text_source": "meta",
+      "source_text": "세럼 하나로 분기 1000억 찍은 브랜드 토리든이 3분기 매출 1014억 원 대표 제품 다이브인 저분자 히알루론산 세럼",
+      "sample_fact": {
+        "domain": "기초/스킨케어",
+        "format_tag": "기타",
+        "what_happens": "경쟁 브랜드의 저분자 히알루론산 세럼 분기 매출 1000억 돌파 소식 전달",
+        "product_types": ["저분자 히알루론산 세럼"],
+        "hook_quote": "세럼 하나로 분기 1000억 찍은 브랜드",
+        "evidence_quote": "대표 제품 다이브인 저분자 히알루론산 세럼"
+      },
+      "expected_domain": "기초/스킨케어",
+      "expected_decision_for_toner": "Pivot",
+      "label_reason": "저분자 히알루론산 시장은 관련 있으나 경쟁사 매출 뉴스형+자막 미확인(meta)이라 Pivot 상한."
+    },
+    {
+      "video_id": "Zl5CPQxmWFE",
+      "title": "일명 '수지 세럼' 성분표 숫자 다 더하니 3% #shorts",
+      "description": "일명 수지 세럼 성분표 괄호 숫자를 다 더해 보니 히알루론산 3%(30,000ppm). 성분 함량을 직접 비교해보는 팩트체크.",
+      "channel_title": "FLIKO",
+      "views": 162,
+      "likes": 0,
+      "published_at": "2026-11-19T12:02:34Z",
+      "text_source": "caption",
+      "source_text": "일명 수지 세럼 성분표 숫자 다 더하니 3% 성분표 괄호 숫자를 다 더해 보니 히알루론산 함량을 직접 확인하는 전성분 팩트체크",
+      "sample_fact": {
+        "domain": "기초/스킨케어",
+        "format_tag": "비포/애프터 실험형",
+        "what_happens": "히알루론산 제품의 전성분표 함량(ppm)을 직접 검증하는 성분 팩트체크",
+        "product_types": ["히알루론산 세럼", "크림"],
+        "hook_quote": "성분표 숫자 다 더하니 3%",
+        "evidence_quote": "히알루론산 함량을 직접 확인하는 전성분 팩트체크"
+      },
+      "expected_domain": "기초/스킨케어",
+      "expected_decision_for_toner": "Go",
+      "label_reason": "전성분 함량 검증 포맷이 딥 토너의 '소듐하이알루로네이트 2,700ppm' 확인 문구와 직접 연결."
+    },
+    {
+      "video_id": "rFgfkV4GZRQ",
+      "title": "수분크림 3개? 성분표 보면 90% 똑같아요! 💧 보습 3대장 20초 컷 #Shorts",
+      "description": "전성분 앞줄만 보면 90% 똑같아서 그래요! 오늘 딱 보습 3대장만 구분해요. 1. 히알루론산 — 수분 끌어당기는 자석! (건성·속건조 추천)",
+      "channel_title": "안이솔",
+      "views": 126,
+      "likes": 0,
+      "published_at": "2026-11-24T12:03:59Z",
+      "text_source": "caption",
+      "source_text": "수분크림 3개 성분표 보면 90% 똑같아요 보습 3대장 20초 컷 히알루론산 수분 끌어당기는 자석 건성 속건조 추천",
+      "sample_fact": {
+        "domain": "기초/스킨케어",
+        "format_tag": "올영 추천 리스트형",
+        "what_happens": "속건조 피부용 보습 핵심 성분으로 히알루론산을 20초 만에 정리해 추천",
+        "product_types": ["수분크림", "히알루론산 보습제"],
+        "hook_quote": "보습 3대장 20초 컷",
+        "evidence_quote": "히알루론산 수분 끌어당기는 자석 건성 속건조 추천"
+      },
+      "expected_domain": "기초/스킨케어",
+      "expected_decision_for_toner": "Go",
+      "label_reason": "속건조용 히알루론산 보습 성분 설명 포맷으로 딥 토너의 속건조 케어 문구와 직접 연결."
+    }
+  ]
+}

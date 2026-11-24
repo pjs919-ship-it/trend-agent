@@ -19,7 +19,6 @@ from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain.agents import create_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_community.document_loaders import YoutubeLoader
 
 # ── 1. 제품 정보 로드 (products.json 단일 출처) & YouTube 예산 가드 ──────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -111,17 +110,15 @@ def record_youtube_units(
         json.dump(data, f, ensure_ascii=False, indent=2)
     return new_total
 
-# ── 2. K-뷰티 메가 바이럴 앵커 키워드 ──────────────────────────────────
-# 조회수 10만~수백만 회를 유발하는 대한민국 뷰티 쇼츠 핵심 검색 앵커
+# ── 2. K-뷰티 메가 바이럴 앵커 키워드 (기초 스킨케어 중심) ──────────────
+# 조회수 10만~수백만 회를 유발하는 대한민국 기초 스킨케어 뷰티 쇼츠 핵심 검색 앵커
 KBEAUTY_MEGA_KEYWORDS = [
-    "올리브영 추천템",
-    "스킨케어 꿀조합",
-    "메이크업 꿀팁",
-    "인생템 추천",
+    "올리브영 스킨케어 추천",
     "피부 뒤집어졌을때",
-    "올영 세일 쟁여템",
     "화잘먹 기초 루틴",
-    "파우치 털기"
+    "스킨케어 꿀조합",
+    "올영 세일 쟁여템",
+    "속건조 토너 추천",
 ]
 
 SYSTEM_PROMPT = """당신은 K-뷰티 인하우스 마케터(더랩바이블랑두 등)를 위한 대한민국 최정상 숏폼 바이럴 캠페인 총괄 디렉터 AI입니다.
@@ -210,24 +207,46 @@ def build_youtube_client(api_key: Optional[str] = None):
         raise ValueError("YOUTUBE_API_KEY가 설정되지 않았습니다.")
     return build("youtube", "v3", developerKey=key)
 
+def compute_video_metrics(views: int, likes: int, published_at: str, now_utc: Optional[datetime] = None) -> Dict[str, Any]:
+    """영상의 경과일(float, 최소 0.25일), 일평균 조회수, 좋아요 반응률을 계산합니다."""
+    now = now_utc or datetime.now(timezone.utc)
+    try:
+        pub_dt = datetime.fromisoformat((published_at or "").replace("Z", "+00:00"))
+        if pub_dt.tzinfo is None:
+            pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+        elapsed_hours = max(0.0, (now - pub_dt).total_seconds() / 3600.0)
+        days_since = round(max(0.25, elapsed_hours / 24.0), 2)
+    except Exception:
+        days_since = 1.0
+    views_per_day = int(round(views / days_since))
+    like_rate = round(likes / max(1, views) * 100, 2)
+    return {
+        "days_since_published": days_since,
+        "views_per_day": views_per_day,
+        "like_rate": like_rate,
+    }
+
+
 def fetch_mega_kbeauty_shorts(
     youtube,
     detail_keyword: str = "",
     days: int = 7,
-    min_views: int = 10000  # 최소 조회수 임계치 (노이즈 방지)
+    min_views: int = 10000,  # 최소 조회수 임계치 (노이즈 방지)
+    sort_by: str = "velocity",  # "velocity" (일평균+총조회수 복합) | "views" (총조회수)
+    max_queries: int = 3,
 ) -> List[Dict[str, Any]]:
     """대한민국 뷰티 카테고리(Howto & Style) 메가 트렌드 쇼츠 정밀 수집"""
     if detail_keyword.strip():
         dk = detail_keyword.strip()
-        search_keywords = [f"{dk} 올리브영", f"{dk} 추천", f"{dk} 꿀조합", dk]
+        search_keywords = [f"{dk} 올리브영", f"{dk} 추천", f"{dk} 꿀조합", dk][:max_queries]
     else:
-        search_keywords = KBEAUTY_MEGA_KEYWORDS[:4]
+        search_keywords = KBEAUTY_MEGA_KEYWORDS[:max_queries]
 
     published_after = recent_published_after(days=days)
     candidate_ids = []
 
     # 1) 키워드별 검색 (search.list = 100 unit/회)
-    for kw in search_keywords[:3]:
+    for kw in search_keywords:
         try:
             record_youtube_units(100, action="search.list", meta={"q": kw, "category": "26", "days": days})
             sr = youtube.search().list(
@@ -289,15 +308,8 @@ def fetch_mega_kbeauty_shorts(
         views = int(stats.get("viewCount", 0))
         likes = int(stats.get("likeCount", 0))
         pub_raw = sn.get("publishedAt", "")
-        try:
-            pub_dt = datetime.fromisoformat(pub_raw.replace("Z", "+00:00"))
-            days_since_published = max(1, (now_utc - pub_dt).days)
-        except Exception:
-            days_since_published = 1
-        views_per_day = int(views / days_since_published)
-        like_rate = round(likes / max(1, views) * 100, 2)
+        metrics = compute_video_metrics(views, likes, pub_raw, now_utc=now_utc)
 
-        # 저유입 노이즈 필터링 (최소 10,000회 이상 우선)
         results.append({
             "video_id": item["id"],
             "title": sn.get("title", ""),
@@ -305,27 +317,33 @@ def fetch_mega_kbeauty_shorts(
             "channel_title": sn.get("channelTitle", ""),
             "views": views,
             "likes": likes,
-            "days_since_published": days_since_published,
-            "views_per_day": views_per_day,
-            "like_rate": like_rate,
+            **metrics,
             "published_at": pub_raw[:10],
             "thumbnail_url": sn.get("thumbnails", {}).get("medium", {}).get("url", ""),
             "duration_s": secs,
             "is_short60": secs <= 60,
+            "low_views_fallback": False,
         })
 
-    # 2-1) 저유입 영상(조회수 5,000회 미만)은 마케팅 가치 없으므로 가차없이 제거
-    high_impact = [r for r in results if r["views"] >= 5000]
+    # 2-1) min_views 기준 적용 (충분한 결과가 없을 때만 안전 폴백 + 경고 플래그)
+    high_impact = [r for r in results if r["views"] >= min_views]
     if len(high_impact) >= 5:
         results = high_impact
+    else:
+        for r in results:
+            if r["views"] < min_views:
+                r["low_views_fallback"] = True
 
     # 한글 필터링
     korean = [r for r in results if is_korean(r)]
     if len(korean) >= 3:
         results = korean
 
-    # 3) 조회수 순 내림차순 정렬 (진짜 메가 바이럴 최우선)
-    results.sort(key=lambda r: r["views"], reverse=True)
+    # 3) 정렬 (기본: 급상승 속도 + 총조회수 복합 점수 / 선택: views 단독)
+    if sort_by == "views":
+        results.sort(key=lambda r: r["views"], reverse=True)
+    else:
+        results.sort(key=lambda r: (r["views_per_day"] * 0.6 + r["views"] * 0.4), reverse=True)
     return results[:10]
 
 # ── 6. 에이전트 도구 및 인스턴스 팩토리 ────────────────────────────────

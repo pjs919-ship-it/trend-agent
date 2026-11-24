@@ -116,3 +116,76 @@
 4. [ ] `non_fit_territory` 코드 가드레일 추가 + `linked_claim` 개별 매칭(최소 길이 8자) + `evidence_ok=False` 영상의 Drop 명시로 합계 정합성 100% 확보
 5. [ ] `creator_guide_md`의 `products.json` 노출 제거, `confidence="medium"` 경고 배너, `needs_review=True` 상단 경고 배너, 기준일/수집기간/업로드일 추가
 6. [ ] 실제 캐시 또는 신규 수집 데이터 1회 E2E 실행 결과(`qa/run_latest.json`)를 마케터 눈으로 직접 검수하여 색조(`jfsweQpxqsY` 포함) Drop ≥ 90%, 날조 인용 0건, 과대광고 0건 실증
+
+
+---
+
+## Sprint 2 독립 QA 재검수 — 회귀 검증 + 레드팀 감사 + 복사 산출물 전문 검수
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `agent_core.py`, `pipeline.py`, `qa/golden_set.json`, `qa/eval_golden.py`
+- **실행 검증**: 샌드박스(`BypassSandbox=false`)에서 `python qa/eval_golden.py` 직접 실행 + `format_copyable_outputs()` 전문 출력 검수 + 레드팀 4대 공격 테스트 실행
+- **최종 판정**: **❌ FAIL (Sprint 1 6대 결함은 전부 해결되었으나, 레드팀 테스트 및 복사 산출물 전문 검수에서 월요일 아침 즉시 복붙 발송을 막는 4건의 잔여 결함 발견)**
+
+> **마케터 총평 (월요일 아침 9시 법인카드 결제 테스트)**:  
+> Sprint 1의 6대 결함이 전부 수정되었고 `qa/eval_golden.py` 회귀 테스트(`ALL TESTS PASSED!`, 적대적 LLM 대상 Drop 정확도 100%, `jfsweQpxqsY` 강제 Drop)가 깔끔하게 통과한 점은 높이 평가한다. 그러나 **실제 `creator_guide_md` 출력 전문을 읽어본 결과, 인플루언서 DM에 그대로 복붙하면 브랜드 신뢰도가 추락하는 내부 요약 주석(`(kurly, glowpick 요약)`, `(costco, glowpick 요약)`)이 노출**되고 있으며, 레드팀 테스트에서 **정상 숏폼 훅(`"첫 3초: ..."`)이 과대광고로 오탐**되고 반대로 **화장품법 제13조 의약품 오인 표현(`"여드름 완치"`, `"아토피"`, `"주름 개선"`, `"미백"`)이 0건으로 무사 통과**하는 구멍이 확인되었다. 이 4건을 해결하기 전까지는 법인카드 결제 기준 **FAIL**이다.
+
+---
+
+### 1. Sprint 1 6대 결함 회귀 검증 결과 (`python qa/eval_golden.py` 직접 실행)
+- **실행 결과**: `Command exited with code 0` / `ALL TESTS PASSED!`
+- **골든셋 15건 오프라인 채점**: `expected_drops=11`, `drop_hits=11` (**Drop 정확도 100.0%**), `jfsweQpxqsY_decision="Drop"`, `fabricated_quote_blocked=true`, `meta` 영상(`RdXhzcCVtsw`) `Pivot` 상한 적용 확인.
+- **확인 완료**: `creator_note` 자기모순 제거, `KBEAUTY_MEGA_KEYWORDS` 기초 중심 개편, `47h` float `views_per_day`, 1,500유닛 상한 가드, `go_ids` 필터링, `evidence_ok=False` 증발 방지.
+
+---
+
+### 2. 레드팀 감사 및 복사 산출물 전문 검수에서 발견된 잔여 약점 (증거 포함)
+
+#### [잔여 결함 1 — Critical] `creator_guide_md` 대외 발송 불가 문구 노출 (인플루언서 DM 복붙 불가)
+- **위치**: `pipeline.py` L640-641, L672-676 (`format_copyable_outputs`)
+- **근거 (실제 출력 전문 확인)**:
+  - `creator_guide_md` 하단 `### [참고] 공식 확인된 제품 소구 포인트`에 `products.json`의 내부 리서치 출처 메모와 제3자 어투가 그대로 출력된다:
+    - `- 저분자 히알루론산 워터 제형 토너 (blancdoux.com, kurly, glowpick 요약)`
+    - `- 끈적임·겉도는 느낌이 적고 속건조 케어를 내세움 (kurly, glowpick 요약)`
+    - `- 민감성 포함 모든 피부 타입 사용 가능으로 소개 (costco, glowpick 요약)`
+  - 인하우스 마케터가 인플루언서/대행사 DM에 `"속건조 케어를 내세움 (kurly, glowpick 요약)"`이라고 보내면 **"본인 회사 제품을 컬리·코스트코 요약 보고 썼느냐"**는 비웃음을 산다.
+  - 또한 상단 `conf_banner`도 마케터 내부 확인용 경고인데 크리에이터 가이드 본문 최상단에 그대로 들어가 있어, 실수로 함께 복붙 발송할 위험이 높다.
+- **개선 제안**:
+  - `creator_guide_md`에 소구 포인트를 출력할 때 괄호 출처 주석(`(blancdoux.com, ... 요약)` 등)을 정규식으로 제거하거나, `products.json`에 대외용 정제 문구(`public_claims` 또는 전처리 함수 `_clean_claim_for_creator()`)를 적용.
+  - `conf_banner`가 `creator_guide_md`에 들어갈 경우 `[마케터 내부 확인 — 크리에이터 전달 전 본 박스 삭제 필수]` 문구를 명시적으로 표기.
+
+---
+
+#### [잔여 결함 2 — Critical] `_brief_violations`의 정상 숏폼 훅(`"첫 3초"`) 오탐 + 화장품법 제13조 의약품 오인 표현 미탐
+- **위치**: `pipeline.py` L422-427 (`NUM_TOKEN`, `COSMETIC_LAW_BANNED_TERMS`), L430-442 (`_token_in_claims`)
+- **근거 (레드팀 재현 증거)**:
+  1. **정상 숏폼 연출 오탐 (`RT1`)**: `Storyboard.hook` 자체가 `"첫 3초: 화면/행동/자막"`을 요구하는데, 실제로 `hook="첫 3초: 화장솜에 토너를 듬뿍 적시는 클로즈업"`을 입력하면 **`['출처 없는 수치 표현: 3초']`로 위반 오탐**된다! 실제 LLM이 콘티를 쓸 때마다 불필요한 재시도와 `needs_review=True` 오염이 대량 발생할 치명적 버그.
+  2. **의약품 오인·미인증 기능성 과대광고 미탐 (`RT2`)**: `hook="올영 랭킹 1등! 여드름 완치 수준으로 가라앉는 토너"`, `before="아토피 피부염으로 붉어진 얼굴"`, `product_moment="피부과 시술 없이 모공 축소, 주름 개선, 미백 효과 확실"`, `cta="품절 대란 베스트셀러 지금 구매"` 입력 시 → `1등`만 잡히고 **`여드름 완치`, `아토피`, `피부염`, `시술`, `모공 축소`, `주름 개선`, `미백`, `베스트셀러`가 전부 미탐 통과!**
+- **개선 제안**:
+  - 연출 지시어 화이트리스트 패턴(예: `첫\s*\d+\s*초`, `초반\s*\d+\s*초`, `\d+\s*초\s*컷`, `\d+\s*초\s*후` 등 영상 타임코드/연출 지시)은 `NUM_TOKEN` 수치 위반에서 제외(단 `"3초 만에 진정"` 같은 효능 시간 표현은 계속 차단).
+  - `_token_in_claims`의 범위 표기 정규식을 시작값(`15~20분`의 `15분`)뿐 아니라 끝값(`20분`)도 대칭적으로 검증하도록 보강.
+  - `COSMETIC_LAW_BANNED_TERMS`에 화장품법 제13조 핵심 위반어(`완치`, `아토피`, `피부염`, `시술`, `모공 축소`, `주름 개선`, `미백`, `여드름 치료`, `트러블 완치`, `베스트셀러`, `랭킹`, `품절 대란`) 추가.
+
+---
+
+#### [잔여 결함 3 — High] 자동자막 `[음악]` 태그 오탐(`audit_facts`) 및 `"각질 부각"` 문맥 오탐 Drop(`_find_non_fit_hits`)
+- **위치**: `pipeline.py` L52-54 (`get_transcript`), L208-212 (`audit_facts`), L259 (`NON_FIT_KEYWORD_MAP`)
+- **근거 (레드팀 재현 증거)**:
+  1. **자막 노이즈 태그 오탐 (`RT3`)**: 실제 YouTube 자동자막에 빈번한 `[음악]`, `[박수]`가 문장 중간에 있을 때(`"오늘 피부가 [음악] 너무 당겨서 토너팩 해봤어요"`), LLM이 `[음악]`을 빼고 정상 인용하면 `audit_facts`가 **`evidence_ok=False`로 오탐 탈락**시킴(재현 확인: `False`).
+  2. **정상 기초 영상 오탐 Drop (`RT4`)**: `그린 플라보노이드 2.5 패드`의 `non_fit_territory="각질 제거"` 때문에 `NON_FIT_KEYWORD_MAP`에 단일어 `"각질"`이 들어가 있어, `"화장 전 건조해서 각질 부각될 때 진정 패드로 5분 팩하기"` 같은 **최상급 Go(5점) 수분/진정 영상이 `non_fit` 충돌로 강제 Drop**됨(재현 확인: `Drop`).
+- **개선 제안**:
+  - `get_transcript` 및 `audit_facts` 정규화 전에 `re.sub(r"\[[^\]]{1,15}\]", " ", text)`로 `[음악]`/`[박수]` 등 비음성 태그를 제거.
+  - `NON_FIT_KEYWORD_MAP["각질"]`에서 단일어 `"각질"`을 제거하고 `"각질제거"`, `"각질 제거"`, `"각질 케어"`, `"필링"`, `"스크럽"`, `"아하"`, `"바하"`, `"bha"`, `"aha"`처럼 각질 제거 행위/성분 키워드만 매칭하도록 정밀화.
+
+---
+
+#### [잔여 결함 4 — Medium / 다음 스프린트 과제] 실제 LLM & YouTube API E2E 실증 미완
+- **근거**: `qa/eval_golden.py`는 사람이 작성한 `sample_fact`와 Mock LLM으로 결정론적 가드레일만 검증했다. 실제 `gemini-2.5-flash-lite`가 생성하는 콘티의 구체성(절대 기준 4: 뻔한 문장 금지)과 7/14/30일 실측 수집 품질(PRD 수용 기준 5)은 외부 API 권한 승인 후 반드시 E2E 1회 실행(`qa/run_once.py`)으로 실증해야 한다.
+
+---
+
+### 3. Sprint 3 PASS 통과 조건 (단기 수정 체크리스트)
+1. [ ] `creator_guide_md`에서 `(blancdoux.com, kurly, glowpick 요약)` 등 내부 출처 주석 제거 + 마케터 발송 전 삭제 안내 문구 분리
+2. [ ] `_brief_violations`에서 `"첫 3초"` 등 숏폼 연출 타임코드 오탐 방지 + 화장품법 제13조 의약품 오인/미인증 기능성 금지어(`완치/아토피/시술/주름 개선/미백/베스트셀러` 등) 검출 테스트 추가
+3. [ ] 자막 `[음악]`/`[박수]` 태그 전처리 + `NON_FIT_KEYWORD_MAP["각질"]`에서 `"각질 부각"` 정상 영상 오탐 Drop 방지 테스트 추가
+4. [ ] (외부 API 권한 확보 시) `qa/run_once.py` 라이브 E2E 1회 실행 및 결과물 마케터 검수
