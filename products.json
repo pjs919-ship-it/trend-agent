@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "brand": "THE LAB by blanc doux (더랩바이블랑두)",
+    "collected_at": "2026-11-25",
+    "method": "웹 검색 요약(search_web) 기반. 공식 페이지 원문을 직접 읽은 것이 아니므로 confidence=medium. 상세페이지 원문 붙여넣기 시 high로 갱신.",
+    "user_given_urls": [
+      "https://blancdoux.com/",
+      "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002924"
+    ]
+  },
+  "products": {
+    "올리고 히알루론산 딥 토너": {
+      "confidence": "medium",
+      "verified_claims": [
+        "저분자 히알루론산 워터 제형 토너 (blancdoux.com, kurly, glowpick 요약)",
+        "소듐하이알루로네이트 2,700ppm (blancdoux.com 전성분 요약)",
+        "끈적임·겉도는 느낌이 적고 속건조 케어를 내세움 (kurly, glowpick 요약)",
+        "화장솜에 적셔 15~20분 올리는 '토너 팩'으로 활용 가능 (kurly 요약)",
+        "민감성 포함 모든 피부 타입 사용 가능으로 소개 (costco, glowpick 요약)",
+        "용량: 200ml / 300ml / 500ml 등 채널별 상이"
+      ],
+      "unverified_removed_from_v1": [
+        "7스킨 레이어링",
+        "올리브영 1위 토너",
+        "피부 속 2.5mm 보습 개선",
+        "100% 흡수"
+      ],
+      "fit_territory": ["속건조", "수분 보충", "토너 팩/화장솜 팩", "기초 레이어링(루틴)"],
+      "non_fit_territory": ["색조 메이크업", "블러셔/틴트 믹싱", "헤어/바디"]
+    },
+    "그린 플라보노이드 2.5 패드": {
+      "confidence": "medium",
+      "verified_claims": [
+        "비건 진정 토너 패드 (blancdoux.com, koreadepart 요약)",
+        "'2.5'는 이오시딘(Eosidin) 2.5% 함유를 뜻함 (blancdoux.com 요약)",
+        "그린 플라보노이드™ 성분, 외부 자극·트러블로 예민해진 피부 진정",
+        "은은한 쿨링감과 수분, 끈적임 없는 마무리 (hwahae 요약)",
+        "여드름성 피부 자극 테스트 완료 (blancdoux.com 요약)",
+        "얇고 부드러운 고밀착 패드, 5~10분 팩처럼 얹어 사용"
+      ],
+      "unverified_removed_from_v1": [
+        "3중 레이어 거즈 패드",
+        "붉은기 즉각 완화(단정 표현)"
+      ],
+      "fit_territory": ["트러블 진정", "자극 후 진정", "열감/쿨링", "메이크업 전 진정 루틴"],
+      "non_fit_territory": ["색조 메이크업", "미백 광고성 표현", "각질 제거"]
+    },
+    "올리고 히알루론산 워터리 스킨 마스크": {
+      "confidence": "medium",
+      "verified_claims": [
+        "저분자 올리고 히알루론산 1,000ppm (blancdoux.com 요약)",
+        "1회 사용 직후 깊은 수분 개선율 111.25% 임상 (blancdoux.com 요약, 시험 조건은 미확인이므로 광고 문구 사용 전 원문 확인 필요)",
+        "대나무 유래 비건 시트 (blancdoux.com, gsshop 요약)",
+        "자극 테스트 0.00(비자극) 판정 (blancdoux.com 요약)",
+        "메이크업 전 사용 / 1일 1팩 용도로 소개 (hwahae 요약)",
+        "사용: 10~20분"
+      ],
+      "unverified_removed_from_v1": [
+        "식물성 초밀착 시트(대나무 유래로 정정)",
+        "열감 내리는 효과(단정 표현)"
+      ],
+      "fit_territory": ["속당김", "메이크업 전 수분 루틴", "1일 1팩", "시트팩 루틴"],
+      "non_fit_territory": ["색조 메이크업 믹싱", "모공/피지 집중 케어"]
+    }
+  }
+}
