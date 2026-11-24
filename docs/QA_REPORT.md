@@ -391,3 +391,25 @@
 5. **`history_store.py` 병합(Merge) 보존 (`RT4`)**: 서로 다른 배치(`A`, `B`) 연속 저장 시 기존 `A`가 소실되지 않고 `['A', 'B']`로 안전 병합 확인.
 
 > **총괄 결론**: Sprint 1~7-R에 걸친 오프라인 B2B 코어·법무 가드레일·3개 제품 DM·제품 3종 교차 매트릭스·스냅샷 시계열 변화·자사 제품 온보딩 전 기능이 독립 QA 게이트를 **PASS**했다. 남은 유일한 최종 출고 단계는 외부 API 권한 확보 후 `qa/benchmark_days.py` 및 `qa/run_once.py` 라이브 E2E 1회 실증이다.
+
+
+---
+
+## Sprint 8 QA 검수 — B2B-11 `qa/run_live_all.py` & `README.md`
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `qa/run_live_all.py`, `README.md`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/run_live_all.py --dry-run` → `exit code 0` / **`DRY-RUN PASS!`** (904/1,500유닛 예산 내, `search_30d` 선정, 요약 4,328 chars 생성)
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`**
+  - `--dry-run` 실행 전후 오염 점검: `qa/run_latest.json` (`False → False`), `cache_store/history.json` (`False → False`), `qa/LIVE_E2E_SUMMARY.md` (`False → False`) — **오염 0건 확인**.
+  - `README.md` 링크 파일 10종 실존 여부 전수 확인: 10/10 전부 `True`.
+- **최종 판정**: **✅ PASS**
+
+### 1. 핵심 검수 결과
+- **`qa/run_live_all.py`**: `--dry-run` / `--skip-benchmark` / 라이브 1클릭 실행 구조가 명확하며, Step B가 Step A 벤치마크 결과를 그대로 재사용해 추가 YouTube 쿼터 0을 달성. `--dry-run` 시 어떤 결과 파일이나 히스토리도 오염시키지 않음.
+- **`README.md`**: v1.0 과장 표현(`7스킨`, `올리브영 1위`, `2.5mm 보습`, `PMF 100점`) **0건**. 비개발자 기준 10초 HTML 체험 → 로컬 Streamlit → 1줄 라이브 E2E → Cloud 배포 순으로 단계별 안내가 깔끔하게 구성됨.
+
+### 2. 잔여 개선 포인트 2가지 (Low / 추후 보강 권장)
+1. **[`qa/run_live_all.py` L217-222]** `selected_vids`가 빈 리스트(`[]`)일 때 `pipeline.run_pipeline()`을 호출하기 전에 `if not selected_vids:` 가드로 조기 종료·안내하면 불필요한 빈 LLM 호출을 방지할 수 있음.
+2. **[`README.md` L22-25]** 다른 PC에서 처음 실행하는 비개발자를 위해 `pip install -r requirements.txt` 설치 안내 1줄과 `.env` 키 설정 예시를 보강하면 온보딩 완성도가 더욱 높아짐.
