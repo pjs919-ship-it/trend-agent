@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrendSetter Agent</title>
+<style>
+  :root{
+    --purple:#6C2BD9; --purple-soft:#f1ecfc; --teal:#14897F; --teal-soft:#e7f4f2;
+    --ink:#1C1730; --gold:#BF8A12; --gold-soft:#fffdf6; --line:#ece9f5; --muted:#6b7280;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",
+    "Segoe UI",Roboto,sans-serif; color:var(--ink); background:#faf9fe; line-height:1.55;}
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 90px;}
+  .layout{display:flex; gap:16px; align-items:flex-start;}
+  .main{flex:1; min-width:0;} .side{width:310px; flex:none; position:sticky; top:14px;}
+  .side-card{background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px 18px;
+    box-shadow:0 1px 3px rgba(28,23,48,.05); margin-bottom:14px;}
+  .side-h{font-weight:800; font-size:.95rem; margin-bottom:10px;}
+  .cloud{line-height:2.05;}
+  .kw{display:inline-block; margin:1px 7px 1px 0; color:var(--purple); font-weight:700;}
+  .bar-row{margin:8px 0;} .bar-label{font-size:.8rem; margin-bottom:3px; color:#4b5563;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .bar-track{background:#efeafb; border-radius:6px; height:11px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px; background:var(--purple);}
+  .bar-fill.gold{background:var(--gold);}
+  .bar-num{float:right; font-size:.75rem; color:var(--muted); font-weight:700;}
+  .collage{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .collage a img{width:100%; height:66px; object-fit:cover; border-radius:8px; display:block;}
+  @media(max-width:860px){ .layout{flex-direction:column;} .side{width:100%; position:static;} }
+  .hero{font-size:1.9rem; font-weight:800; margin:6px 0 2px;}
+  .sub{color:var(--muted); margin-bottom:22px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px 22px;
+    box-shadow:0 1px 3px rgba(28,23,48,.05); margin-bottom:16px;}
+  label{display:block; font-weight:700; font-size:.9rem; margin:12px 0 5px;}
+  input,select{width:100%; padding:11px 12px; border:1px solid #ddd6ee; border-radius:10px;
+    font-size:.95rem; background:#fff; color:var(--ink);}
+  input:focus,select:focus{outline:none; border-color:var(--purple);}
+  .row{display:flex; gap:14px; flex-wrap:wrap;} .row > div{flex:1; min-width:220px;}
+  .hint{font-size:.8rem; color:var(--muted); margin-top:4px;} .hint a{color:var(--teal);}
+  button.primary{margin-top:18px; width:100%; padding:13px; border:none; border-radius:12px;
+    background:var(--purple); color:#fff; font-size:1rem; font-weight:700; cursor:pointer;}
+  button.primary:hover{filter:brightness(1.05);} button.primary:disabled{opacity:.5; cursor:not-allowed;}
+  button.sec{padding:10px 16px; border:1px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:10px; font-weight:700; cursor:pointer; font-size:.9rem;}
+  button.sec:hover{background:var(--purple-soft);} button.sec:disabled{opacity:.5; cursor:not-allowed;}
+  .keystatus{display:inline-block; font-size:.78rem; font-weight:700; margin-left:8px;}
+  .ok{color:var(--teal);} .bad{color:#b91c1c;}
+  .log{font-size:.85rem; color:var(--muted); margin-top:14px; white-space:pre-wrap;}
+  .section-h{font-weight:800; margin:2px 0 12px; font-size:1.1rem;}
+  .cat{display:inline-block; font-size:.72rem; font-weight:700; color:var(--purple);
+    background:var(--purple-soft); border-radius:999px; padding:3px 10px; margin-bottom:6px;}
+  .tcard{border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:14px; background:#fff;}
+  .tcard.gold{border:2px solid var(--gold); background:var(--gold-soft);}
+  .ttitle{font-size:1.08rem; font-weight:700; margin:2px 0 5px;}
+  .tsum{color:#374151; margin-bottom:8px;}
+  .meta-line{font-size:.85rem; color:var(--muted); margin:6px 0;}
+  .meta-line b{color:#4b5563; font-weight:700;}
+  .tangle{color:#374151; font-size:.93rem; border-top:1px dashed var(--line); padding-top:9px; margin-top:9px;}
+  .score{float:right; font-weight:800; letter-spacing:2px; font-size:1.02rem;}
+  .dim{color:#d8d3e8;}
+  .chips{margin:8px 0 2px;} .chip{display:inline-block; font-size:.76rem; color:var(--teal);
+    background:var(--teal-soft); border-radius:999px; padding:3px 9px; margin:0 5px 5px 0;}
+  .insight{background:linear-gradient(180deg,#f6f2ff,#fff); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; color:#3b3560; margin-bottom:14px; font-size:.95rem;}
+  .evid{display:flex; gap:10px; align-items:center; margin:8px 0; padding:7px; border:1px solid var(--line);
+    border-radius:10px; background:#fcfbfe;}
+  .evid img{width:88px; height:50px; object-fit:cover; border-radius:6px; flex:none; background:#eee;}
+  .evid .thumb{width:88px; height:50px; border-radius:6px; flex:none; background:#eee;}
+  .evid .info{min-width:0;} .evid .t{font-weight:600; font-size:.86rem; line-height:1.35;
+    overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+  .evid .m{font-size:.76rem; color:var(--muted);} .evid a{color:var(--teal); text-decoration:none;}
+  .evid a:hover{text-decoration:underline;}
+  .evid-label{font-size:.78rem; font-weight:700; color:var(--muted); margin:10px 0 2px;}
+  .badge{font-weight:700;}
+  details{margin-top:12px;} summary{cursor:pointer; color:var(--muted); font-size:.85rem;}
+  pre{background:#f6f4fc; padding:12px; border-radius:10px; overflow:auto; font-size:.78rem;}
+  .err{background:#fff1f1; border:1px solid #ffd4d4; color:#b91c1c; padding:12px 14px; border-radius:10px; margin-top:12px; font-size:.9rem;}
+  .privacy{font-size:.78rem; color:var(--muted); margin-top:10px;}
+  .legend{font-size:.78rem; color:var(--muted); margin-top:6px;}
+  .verdict{font-size:1.05rem; font-weight:800; margin:6px 0;}
+  .hidden{display:none;}
+  .toolbar{display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;}
+  .meta{color:#9ca3af; font-size:.82rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">📈 TrendSetter Agent</div>
+  <div class="sub">한국 유튜브 Shorts 트렌드 → 브랜드 캠페인 기회를 5분 안에. · YouTube Data API v3 + Gemini</div>
+
+  <div class="card" id="config">
+    <div class="section-h">① API 키 입력 후 실행</div>
+    <div class="row">
+      <div>
+        <label>YouTube Data API v3 키 <span id="ytStatus" class="keystatus"></span></label>
+        <input id="ytKey" type="password" placeholder="AIzaSy... (YouTube)" autocomplete="off" />
+        <div class="hint">발급: <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Google Cloud Console</a> → YouTube Data API v3 사용 설정 → API 키</div>
+      </div>
+      <div>
+        <label>Gemini API 키 <span id="gmStatus" class="keystatus"></span></label>
+        <input id="gmKey" type="password" placeholder="AIzaSy... (Gemini)" autocomplete="off" />
+        <div class="hint">발급: <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> → Get API key</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>카테고리</label>
+        <select id="category"></select>
+        <div class="hint" id="kwHint"></div>
+      </div>
+      <div>
+        <label>Gemini 모델 <span class="meta">(키 입력 시 자동 로딩)</span></label>
+        <select id="model"><option value="">Gemini 키를 먼저 입력하세요</option></select>
+        <div class="hint">모델이 안 뜨면 키를 확인하세요. flash-lite 계열 권장.</div>
+      </div>
+    </div>
+    <button class="primary" id="runBtn" disabled>🚀 트렌드 분석 실행</button>
+    <div class="log" id="log"></div>
+    <div class="privacy">🔒 입력한 키는 이 브라우저 안에서만 쓰이고 구글 API로만 전송됩니다. 저장/외부 서버 전송 없음.</div>
+  </div>
+
+  <div id="results" class="hidden"></div>
+</div>
+
+<script>
+const CATEGORY_KEYWORDS = {
+  "뷰티":   ["데일리 메이크업","국룰 메이크업","화장법","스킨케어 루틴","립 메이크업","올리브영 추천"],
+  "식음료": ["먹방","맛집 추천","편의점 꿀조합","집밥 레시피","카페 추천","요리"],
+  "패션":   ["데일리룩","코디 추천","무신사 하울","룩북","패션 꿀팁","신발 추천"],
+  "테크":   ["아이폰 꿀팁","가성비 노트북","앱 추천","갤럭시 팁","가젯 리뷰"],
+  "피트니스":["홈트","다이어트 운동","헬스 루틴","요가 스트레칭","필라테스"],
+};
+const RECENT_DAYS=30, MIN_HANGUL=2, KR_MIN_RESULTS=3;
+const HANGUL=/[가-힣]/g;
+
+const SYSTEM_PROMPT = `당신은 브랜드 마케터 전용 유튜브 트렌드 분석 AI입니다.
+역할: 한국 유튜브 Shorts 트렌드를 수집·분석해 브랜드 캠페인 기회를 발굴하고, 마케터가 5분 안에 캠페인 방향을 결정할 정보를 제공합니다.
+브랜드 기회 점수 기준: 1점 브랜드와 무관 | 2점 간접 언급 | 3점 소셜 테스트 | 4점 콘텐츠 협업 | 5점 즉시 캠페인 런칭.
+규칙: 반드시 한국어. 데이터 없이 추측으로 점수 금지. evidence_ids에는 제공된 목록에 실제로 있는 video_id만 넣고, 없는 ID는 절대 만들지 말 것.`;
+
+const $=id=>document.getElementById(id);
+const ytKey=$("ytKey"), gmKey=$("gmKey"), catSel=$("category"), modelSel=$("model"),
+      runBtn=$("runBtn"), logEl=$("log"), resultsEl=$("results");
+let CTX={ rows:[], byId:{}, report:null };
+
+Object.keys(CATEGORY_KEYWORDS).forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;catSel.appendChild(o);});
+const showKw=()=> $("kwHint").textContent="검색 키워드: "+CATEGORY_KEYWORDS[catSel.value].slice(0,3).join(", ")+" …";
+catSel.addEventListener("change",showKw); showKw();
+
+const log=m=>{logEl.textContent+=(logEl.textContent?"\n":"")+m;};
+const clearLog=()=>logEl.textContent="";
+const setStatus=(el,ok)=>{el.className="keystatus "+(ok?"ok":"bad");el.textContent=ok?"🟢":"🔴";};
+function refreshRun(){ runBtn.disabled=!(ytKey.value.trim().length>20 && gmKey.value.trim().length>20 && modelSel.value); }
+ytKey.addEventListener("input",()=>{setStatus($("ytStatus"),ytKey.value.trim().length>20);refreshRun();});
+gmKey.addEventListener("input",()=>{setStatus($("gmStatus"),gmKey.value.trim().length>20);refreshRun();});
+gmKey.addEventListener("blur",loadModels);
+
+async function loadModels(){
+  const key=gmKey.value.trim(); if(key.length<=20) return;
+  modelSel.innerHTML='<option value="">모델 불러오는 중…</option>';
+  try{
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const data=await r.json();
+    let models=(data.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent"))
+      .map(m=>m.name.replace(/^models\//,"")).filter(n=>n.includes("gemini"));
+    if(!models.length) throw new Error("모델 없음");
+    models.sort((a,b)=>rank(a)-rank(b));
+    modelSel.innerHTML=models.map(n=>`<option value="${n}">${n}</option>`).join("");
+    modelSel.value=models[0];
+  }catch(e){
+    modelSel.innerHTML='<option value="gemini-2.5-flash">gemini-2.5-flash (기본값 — 키 확인 필요)</option>';
+    modelSel.value="gemini-2.5-flash";
+  }
+  refreshRun();
+}
+const rank=n=>/flash-lite/.test(n)?0:/flash/.test(n)?1:/pro/.test(n)?3:2;
+
+const isoSec=d=>{const m=/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d||"");return m?(+(m[1]||0))*3600+(+(m[2]||0))*60+(+(m[3]||0)):0;};
+const recentAfter=()=> new Date(Date.now()-RECENT_DAYS*86400*1000).toISOString().split(".")[0]+"Z";
+const isKorean=r=>((r.title+" "+r.description).match(HANGUL)||[]).length>=MIN_HANGUL;
+const shortErr=t=>{try{return(JSON.parse(t).error?.message||"").slice(0,160);}catch{return"";}};
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+async function geminiCall(model,gmk,systemText,userText,schema){
+  const body={ systemInstruction:{parts:[{text:systemText}]}, contents:[{role:"user",parts:[{text:userText}]}],
+    generationConfig:{responseMimeType:"application/json",responseSchema:schema,temperature:0.4} };
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${gmk}`;
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){const t=await r.text();throw new Error(`Gemini 호출 실패 (${r.status}). ${shortErr(t)}`);}
+  const d=await r.json();
+  const text=d.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"";
+  return JSON.parse(text);
+}
+
+async function fetchShorts(category,ytk){
+  const keywords=(CATEGORY_KEYWORDS[category]||[category]).slice(0,3);
+  const publishedAfter=recentAfter(); let ids=[];
+  for(const kw of keywords){
+    log(`  🔎 검색: ${kw}`);
+    const u=new URL("https://www.googleapis.com/youtube/v3/search");
+    u.search=new URLSearchParams({part:"snippet",q:`${kw} shorts`,type:"video",videoDuration:"short",
+      order:"viewCount",regionCode:"KR",relevanceLanguage:"ko",maxResults:"8",publishedAfter,key:ytk}).toString();
+    const r=await fetch(u);
+    if(!r.ok){throw new Error(`YouTube 검색 실패 (${r.status}). ${shortErr(await r.text())}`);}
+    const d=await r.json();
+    ids.push(...(d.items||[]).map(it=>it.id.videoId).filter(Boolean));
+  }
+  ids=[...new Set(ids)]; if(!ids.length) return [];
+  log("  📊 영상 상세 조회…");
+  const vu=new URL("https://www.googleapis.com/youtube/v3/videos");
+  vu.search=new URLSearchParams({part:"snippet,contentDetails,statistics",id:ids.slice(0,50).join(","),key:ytk}).toString();
+  const vr=await fetch(vu);
+  if(!vr.ok){throw new Error(`영상 조회 실패 (${vr.status}). ${shortErr(await vr.text())}`);}
+  const vd=await vr.json();
+  let rows=[];
+  for(const it of (vd.items||[])){
+    const secs=isoSec(it.contentDetails?.duration); if(secs===0||secs>180) continue;
+    const sn=it.snippet||{};
+    rows.push({ video_id:it.id, title:sn.title||"", description:(sn.description||"").slice(0,300),
+      channel:sn.channelTitle||"", views:+(it.statistics?.viewCount||0), published_at:(sn.publishedAt||"").slice(0,10),
+      thumb:(sn.thumbnails?.medium?.url)||(sn.thumbnails?.default?.url)||"", duration_s:secs, is_short60:secs<=60 });
+  }
+  const korean=rows.filter(isKorean); if(korean.length>=KR_MIN_RESULTS) rows=korean;
+  rows.sort((a,b)=>(b.is_short60-a.is_short60)||(b.views-a.views));
+  return rows.slice(0,10);
+}
+
+async function searchShorts(query,ytk){
+  const u=new URL("https://www.googleapis.com/youtube/v3/search");
+  u.search=new URLSearchParams({part:"snippet",q:`${query} shorts`,type:"video",videoDuration:"short",
+    order:"viewCount",regionCode:"KR",relevanceLanguage:"ko",maxResults:"5",publishedAfter:recentAfter(),key:ytk}).toString();
+  const r=await fetch(u);
+  if(!r.ok){throw new Error(`검색 실패 (${r.status}). ${shortErr(await r.text())}`);}
+  const d=await r.json();
+  return (d.items||[]).map(it=>({ video_id:it.id.videoId, title:it.snippet.title, channel:it.snippet.channelTitle,
+    published_at:(it.snippet.publishedAt||"").slice(0,10), thumb:it.snippet.thumbnails?.medium?.url||"" }));
+}
+
+const S=(t,extra={})=>Object.assign({type:t},extra);
+const REPORT_SCHEMA={type:"OBJECT",properties:{
+  date:S("STRING"), category:S("STRING"), market_insight:S("STRING"),
+  cards:{type:"ARRAY",items:{type:"OBJECT",properties:{
+    title:S("STRING"), category:S("STRING"), summary:S("STRING"),
+    brand_score:S("INTEGER"), score_reason:S("STRING"), campaign_angle:S("STRING"),
+    target_audience:S("STRING"), hashtags:{type:"ARRAY",items:S("STRING")},
+    evidence_ids:{type:"ARRAY",items:S("STRING")}
+  }, required:["title","category","summary","brand_score","score_reason","campaign_angle","target_audience","hashtags","evidence_ids"]}},
+  golden_pick:S("STRING"), golden_reason:S("STRING"),
+  keywords:{type:"ARRAY",items:{type:"OBJECT",properties:{word:S("STRING"),weight:S("INTEGER")},required:["word","weight"]}}
+}, required:["date","category","market_insight","cards","golden_pick","golden_reason","keywords"]};
+
+const DEEP_SCHEMA={type:"OBJECT",properties:{
+  keyword:S("STRING"), summary:S("STRING"), brand_angle:S("STRING"),
+  evidence_ids:{type:"ARRAY",items:S("STRING")}
+}, required:["keyword","summary","brand_angle","evidence_ids"]};
+
+const FIT_SCHEMA={type:"OBJECT",properties:{
+  fit_score:S("INTEGER"), verdict:S("STRING"), reasoning:S("STRING"),
+  campaign_idea:S("STRING"), hashtags:{type:"ARRAY",items:S("STRING")}
+}, required:["fit_score","verdict","reasoning","campaign_idea","hashtags"]};
+
+async function analyze(category,rows,gmk,model){
+  const today=new Date().toISOString().slice(0,10);
+  const data=rows.map(r=>`- video_id:${r.video_id} | ${r.title} | 채널 ${r.channel} | 조회수 ${r.views.toLocaleString()} | 업로드 ${r.published_at}`).join("\n");
+  const userText=`오늘(${today}) '${category}' 카테고리로 수집한 한국 유튜브 Shorts 목록입니다.
+이 목록만 근거로 작성하세요.
+- market_insight: 전체 트렌드를 관통하는 2~3문장 시장 읽기.
+- 트렌드 카드 3~5개: title / category(챌린지·밈·리뷰·이슈) / summary(30자 내외) / brand_score(1~5) / score_reason(점수 근거 한 줄) / campaign_angle(캠페인 방향 1~2문장) / target_audience(핵심 타깃) / hashtags(3~5개) / evidence_ids(아래 목록의 video_id만).
+- golden_pick: 카드 중 최적 1개 제목 + golden_reason(선정 이유).
+- keywords: 이 카테고리 트렌드를 한눈에 보여주는 핵심 키워드 8~12개. 각 항목 word(한국어 단어/짧은 구) + weight(중요도 1~5).
+
+[수집 영상]
+${data}`;
+  return geminiCall(model,gmk,SYSTEM_PROMPT,userText,REPORT_SCHEMA);
+}
+
+async function deepSearch(keyword,vids,gmk,model){
+  const data=vids.map(v=>`- video_id:${v.video_id} | ${v.title} | 채널 ${v.channel} | 업로드 ${v.published_at}`).join("\n");
+  const userText=`'${keyword}' 키워드로 추가 검색한 실제 유튜브 Shorts 목록입니다.
+이 목록에 있는 영상만 근거로 심층 분석하세요. evidence_ids에는 목록에 실제로 있는 video_id만 넣고, 없는 ID는 만들지 마세요.
+- summary: 이 키워드 트렌드의 핵심 흐름 2~3문장.
+- brand_angle: 브랜드가 참여할 구체적 방향 1~2문장.
+
+[검색 결과]
+${data}`;
+  return geminiCall(model,gmk,SYSTEM_PROMPT,userText,DEEP_SCHEMA);
+}
+
+async function fitCheck(slogan,report,gmk,model){
+  const cardsTxt=(report.cards||[]).map(c=>`- ${c.title} (${c.category}, 기회 ${c.brand_score}점): ${c.summary}`).join("\n");
+  const userText=`브랜드 슬로건: "${slogan}"
+아래는 오늘 분석한 트렌드입니다. 이 슬로건이 트렌드와 얼마나 어울리는지 판단하세요.
+- fit_score: 적합도 1~5 (5=완벽).
+- verdict: 한 문장 결론.
+- reasoning: 근거 2~3문장.
+- campaign_idea: 슬로건과 트렌드를 엮은 구체 캠페인 아이디어 1~2문장.
+- hashtags: 이 캠페인용 해시태그 3~5개.
+
+[트렌드]
+${cardsTxt}`;
+  return geminiCall(model,gmk,SYSTEM_PROMPT,userText,FIT_SCHEMA);
+}
+
+function grounding(cards,realIds){
+  const real=new Set(realIds); const cited=new Set();
+  cards.forEach(c=>(c.evidence_ids||[]).forEach(id=>cited.add(id)));
+  const ungrounded=[...cited].filter(id=>!real.has(id));
+  return {cited:[...cited], grounded:cited.size-ungrounded.length, total:cited.size, ungrounded, passed:cited.size>0&&!ungrounded.length};
+}
+
+runBtn.addEventListener("click",async()=>{
+  const ytk=ytKey.value.trim(), gmk=gmKey.value.trim(), model=modelSel.value, category=catSel.value;
+  runBtn.disabled=true; resultsEl.classList.add("hidden"); resultsEl.innerHTML=""; clearLog();
+  try{
+    log(`▶ '${category}' 트렌드 수집 시작…`);
+    const rows=await fetchShorts(category,ytk);
+    if(!rows.length) throw new Error("수집된 Shorts가 없습니다. (쿼터 초과이거나 최근 30일 결과 부족)");
+    log(`  ✅ ${rows.length}개 수집 완료`); log("  🤖 Gemini 분석 중…");
+    const report=await analyze(category,rows,gmk,model);
+    log("  ✅ 완료");
+    CTX={rows, byId:Object.fromEntries(rows.map(r=>[r.video_id,r])), report};
+    render(report,rows);
+  }catch(e){
+    resultsEl.classList.remove("hidden");
+    resultsEl.innerHTML=`<div class="card"><div class="err">⚠️ ${esc(e.message)}</div>
+      <div class="hint" style="margin-top:8px">키가 맞는지, YouTube Data API v3가 '사용 설정'됐는지, 일일 쿼터가 남았는지 확인하세요.</div></div>`;
+  }finally{ runBtn.disabled=false; }
+});
+
+const dots=n=>{n=Math.max(1,Math.min(5,n|0));const c=n===5?"var(--gold)":"var(--purple)";
+  return `<span class="score" style="color:${c}">${"●".repeat(n)}<span class="dim">${"○".repeat(5-n)}</span> ${n}</span>`;};
+
+function evidHtml(ids){
+  const found=(ids||[]).map(id=>CTX.byId[id]).filter(Boolean);
+  if(!found.length) return "";
+  return `<div class="evid-label">📌 근거 영상 ${found.length}개</div>` + found.slice(0,3).map(v=>`
+    <div class="evid">
+      ${v.thumb?`<img src="${v.thumb}" alt="">`:`<div class="thumb"></div>`}
+      <div class="info"><div class="t"><a href="https://youtu.be/${v.video_id}" target="_blank">${esc(v.title)}</a></div>
+        <div class="m">${esc(v.channel)} · ${v.views.toLocaleString()}회 · ${v.published_at} · ${v.video_id}</div></div>
+    </div>`).join("");
+}
+
+function render(report,rows){
+  const g=grounding(report.cards||[], rows.map(r=>r.video_id));
+  const golden=(report.golden_pick||"").trim();
+
+  const cards=(report.cards||[]).map(c=>{
+    const gold=golden&&(c.title.includes(golden)||golden.includes(c.title));
+    const chips=(c.hashtags||[]).map(h=>`<span class="chip">#${esc(String(h).replace(/^#/,""))}</span>`).join("");
+    return `<div class="tcard ${gold?"gold":""}">
+      ${dots(c.brand_score)}
+      <span class="cat">${esc(c.category)}</span>
+      <div class="ttitle">${gold?"👑 ":""}${esc(c.title)}</div>
+      <div class="tsum">${esc(c.summary)}</div>
+      <div class="meta-line"><b>점수 근거</b> · ${esc(c.score_reason||"-")}</div>
+      <div class="meta-line"><b>핵심 타깃</b> · ${esc(c.target_audience||"-")}</div>
+      <div class="chips">${chips}</div>
+      <div class="tangle">💡 <b>캠페인 방향</b> — ${esc(c.campaign_angle)}</div>
+      ${evidHtml(c.evidence_ids)}
+    </div>`;
+  }).join("");
+
+  const groundBadge=g.total===0?`<span class="meta">인용 근거 ID 없음</span>`
+    :g.passed?`<span class="badge ok">✅ 인용 ID ${g.grounded}/${g.total} 그라운딩 통과</span>`
+    :`<span class="badge bad">❌ 미검증 ID: ${esc(g.ungrounded.join(", "))}</span>`;
+
+  const allVids=rows.map(r=>`
+    <div class="evid">${r.thumb?`<img src="${r.thumb}" alt="">`:`<div class="thumb"></div>`}
+      <div class="info"><div class="t"><a href="https://youtu.be/${r.video_id}" target="_blank">${esc(r.title)}</a></div>
+        <div class="m">${esc(r.channel)} · ${r.views.toLocaleString()}회 · ${r.published_at} · ${r.video_id}</div></div></div>`).join("");
+
+  // ── 한눈에 보기: 키워드 클라우드 · 점수 차트 · 대표 썸네일 ──
+  const kwCloud=(report.keywords||[]).map(k=>{
+    const w=Math.max(1,Math.min(5,(k.weight|0)||1));
+    const size=(0.82+w*0.17).toFixed(2), op=(0.5+w*0.1).toFixed(2);
+    return `<span class="kw" style="font-size:${size}rem;opacity:${op}">${esc(String(k.word).replace(/^#/,""))}</span>`;
+  }).join(" ");
+  const bars=(report.cards||[]).map(c=>{
+    const gold=golden&&(c.title.includes(golden)||golden.includes(c.title));
+    const sc=Math.max(1,Math.min(5,c.brand_score|0));
+    return `<div class="bar-row"><div class="bar-label">${esc(c.title)}<span class="bar-num">${sc}</span></div>
+      <div class="bar-track"><div class="bar-fill ${gold?"gold":""}" style="width:${sc/5*100}%"></div></div></div>`;
+  }).join("");
+  const collage=rows.slice(0,4).filter(r=>r.thumb).map(r=>
+    `<a href="https://youtu.be/${r.video_id}" target="_blank"><img src="${r.thumb}" alt=""></a>`).join("");
+
+  const sideHtml=`
+    <div class="side-card">
+      <div class="side-h">🔑 핵심 키워드</div>
+      <div class="cloud">${kwCloud||'<span class="meta">키워드 없음</span>'}</div>
+    </div>
+    <div class="side-card">
+      <div class="side-h">📊 브랜드 기회 점수</div>
+      ${bars}
+      <div class="meta" style="margin-top:6px">막대가 길수록 캠페인 기회 큼 (골드=골든픽)</div>
+    </div>
+    <div class="side-card">
+      <div class="side-h">🖼️ 대표 장면</div>
+      <div class="collage">${collage}</div>
+      <div class="meta" style="margin-top:6px">실제 수집 Shorts 썸네일 · 클릭 시 재생</div>
+    </div>`;
+
+  const mainHtml=`
+    <div class="card">
+      <div class="section-h">🗂️ '${esc(report.category)}' 트렌드 리포트 · ${esc(report.date)}</div>
+      <div class="insight">🧭 <b>시장 인사이트</b> — ${esc(report.market_insight||"")}</div>
+      ${cards}
+      <div class="tcard gold" style="margin-top:4px">
+        <div class="cat" style="color:var(--gold);background:#fbf3dc">GOLDEN PICK</div>
+        <div class="ttitle">👑 ${esc(report.golden_pick||"")}</div>
+        <div class="tangle" style="border:0;padding-top:2px">${esc(report.golden_reason||"")}</div>
+      </div>
+      <div class="legend">기회 점수 ● 1 무관 · 2 간접 · 3 소셜테스트 · 4 콘텐츠협업 · 5 즉시런칭(골드)</div>
+    </div>
+
+    <div class="card">
+      <div class="section-h">🧾 그라운딩 검증 (환각 방지)</div>
+      <div style="margin-bottom:8px">${groundBadge} <span class="meta">· 실제 수집 영상 ${rows.length}건에 근거</span></div>
+      <div class="evid-label">수집된 실제 영상 (get_trending_shorts)</div>
+      ${allVids}
+      <details><summary>구조화 출력 (TrendReport JSON) 보기</summary><pre>${esc(JSON.stringify(report,null,2))}</pre></details>
+    </div>
+
+    <div class="card">
+      <div class="section-h">🔍 심층 탐색 <span class="meta" style="font-weight:400">— 키워드로 추가 검색 후 실제 영상만 근거로 분석</span></div>
+      <div class="row"><div style="flex:2"><input id="deepKw" placeholder="예: 원희 립조합 / 올리브영 세일" /></div>
+        <div style="flex:none;align-self:flex-end"><button class="sec" id="deepBtn">심층 탐색</button></div></div>
+      <div id="deepOut"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-h">🎯 브랜드 적합성 <span class="meta" style="font-weight:400">— 슬로건과 트렌드의 시너지 판단</span></div>
+      <div class="row"><div style="flex:2"><input id="slogan" placeholder="예: 빛나는 하루" value="빛나는 하루" /></div>
+        <div style="flex:none;align-self:flex-end"><button class="sec" id="fitBtn">적합성 판단</button></div></div>
+      <div id="fitOut"></div>
+    </div>
+
+    <div class="toolbar">
+      <button class="sec" id="copyBtn">📋 발표용 요약 복사</button>
+      <button class="sec" id="dlBtn">⬇️ 리포트 JSON 저장</button>
+    </div>`;
+
+  resultsEl.classList.remove("hidden");
+  resultsEl.innerHTML=`<div class="layout"><div class="main">${mainHtml}</div><aside class="side">${sideHtml}</aside></div>`;
+
+  wireActions(report,rows);
+  resultsEl.scrollIntoView({behavior:"smooth"});
+}
+
+function wireActions(report,rows){
+  const gmk=gmKey.value.trim(), model=modelSel.value, ytk=ytKey.value.trim();
+
+  $("deepBtn").addEventListener("click",async()=>{
+    const kw=$("deepKw").value.trim()||(report.cards?.[0]?.title||"");
+    const out=$("deepOut"); const btn=$("deepBtn"); btn.disabled=true; out.innerHTML='<div class="meta" style="margin-top:10px">🔎 검색·분석 중…</div>';
+    try{
+      const vids=await searchShorts(kw,ytk);
+      if(!vids.length){ out.innerHTML='<div class="meta" style="margin-top:10px">검색 결과가 없습니다.</div>'; return; }
+      const map=Object.fromEntries(vids.map(v=>[v.video_id,v]));
+      const res=await deepSearch(kw,vids,gmk,model);
+      const g=grounding([{evidence_ids:res.evidence_ids}], vids.map(v=>v.video_id));
+      const evid=(res.evidence_ids||[]).map(id=>map[id]).filter(Boolean).map(v=>`
+        <div class="evid">${v.thumb?`<img src="${v.thumb}">`:`<div class="thumb"></div>`}
+          <div class="info"><div class="t"><a href="https://youtu.be/${v.video_id}" target="_blank">${esc(v.title)}</a></div>
+            <div class="m">${esc(v.channel)} · ${v.published_at} · ${v.video_id}</div></div></div>`).join("");
+      out.innerHTML=`<div style="margin-top:12px">
+        <div class="meta-line"><b>키워드</b> · ${esc(res.keyword)}</div>
+        <div class="tsum">${esc(res.summary)}</div>
+        <div class="tangle">💡 <b>브랜드 방향</b> — ${esc(res.brand_angle)}</div>
+        <div style="margin:8px 0 2px">${g.passed?`<span class="badge ok">✅ 인용 ID ${g.grounded}/${g.total} 그라운딩 통과</span>`:g.total?`<span class="badge bad">❌ 미검증: ${esc(g.ungrounded.join(", "))}</span>`:`<span class="meta">인용 ID 없음</span>`}</div>
+        ${evid}</div>`;
+    }catch(e){ out.innerHTML=`<div class="err">⚠️ ${esc(e.message)}</div>`; }
+    finally{ btn.disabled=false; }
+  });
+
+  $("fitBtn").addEventListener("click",async()=>{
+    const slogan=$("slogan").value.trim(); if(!slogan) return;
+    const out=$("fitOut"); const btn=$("fitBtn"); btn.disabled=true; out.innerHTML='<div class="meta" style="margin-top:10px">🎯 분석 중…</div>';
+    try{
+      const f=await fitCheck(slogan,report,gmk,model);
+      const chips=(f.hashtags||[]).map(h=>`<span class="chip">#${esc(String(h).replace(/^#/,""))}</span>`).join("");
+      out.innerHTML=`<div style="margin-top:12px">
+        ${dots(f.fit_score)}<div class="verdict">“${esc(slogan)}” → ${esc(f.verdict)}</div>
+        <div class="tsum">${esc(f.reasoning)}</div>
+        <div class="tangle">💡 <b>캠페인 아이디어</b> — ${esc(f.campaign_idea)}</div>
+        <div class="chips" style="margin-top:8px">${chips}</div></div>`;
+    }catch(e){ out.innerHTML=`<div class="err">⚠️ ${esc(e.message)}</div>`; }
+    finally{ btn.disabled=false; }
+  });
+
+  $("copyBtn").addEventListener("click",()=>{
+    const lines=[`[TrendSetter] ${report.category} · ${report.date}`, `시장 인사이트: ${report.market_insight}`, ""];
+    (report.cards||[]).forEach((c,i)=>lines.push(`${i+1}. ${c.title} (${c.category}, 기회 ${c.brand_score}점) — ${c.summary} / 방향: ${c.campaign_angle}`));
+    lines.push("", `골든픽: ${report.golden_pick} — ${report.golden_reason}`);
+    navigator.clipboard.writeText(lines.join("\n")).then(()=>{ $("copyBtn").textContent="✅ 복사됨"; setTimeout(()=>$("copyBtn").textContent="📋 발표용 요약 복사",1500); });
+  });
+
+  $("dlBtn").addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download=`trendreport_${report.category}_${report.date}.json`; a.click(); URL.revokeObjectURL(a.href);
+  });
+}
+</script>
+</body>
+</html>

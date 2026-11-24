@@ -1,0 +1,35 @@
+# Environment & Secrets (중요: API 키 유출 방지)
+.env
+.env.local
+*.env
+
+# Cache & Local DB
+cache_store/
+*.db
+*.db-shm
+*.db-wal
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Agent state
+.omc/
