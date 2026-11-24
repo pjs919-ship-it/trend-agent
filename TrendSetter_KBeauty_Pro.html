@@ -425,6 +425,134 @@ function checkBriefViolations(b, prod) {
   }
   return [...new Set(v)];
 }
+const SHORT_PROD = {
+  "올리고 히알루론산 딥 토너": "딥 토너",
+  "그린 플라보노이드 2.5 패드": "그린 2.5 패드",
+  "올리고 히알루론산 워터리 스킨 마스크": "워터리 마스크"
+};
+const FIT_MAP = {
+  "속건조": ["속건조","건조","당김","푸석","히알루론산","보습"],
+  "수분 보충": ["수분","히알루론산","보습","쫀광","물광","촉촉"],
+  "토너 팩": ["토너","물토너","토너팩","화장솜","성분표","ppm"],
+  "기초 레이어링": ["기초","루틴","레이어링","화잘먹","세럼","스킨케어"],
+  "트러블 진정": ["트러블","진정","여드름","예민","뒤집어","붉은","홍조"],
+  "자극 후 진정": ["자극","진정","민감","패드","진정팩","토너패드"],
+  "열감/쿨링": ["열감","쿨링","시원","진정","홍조"],
+  "메이크업 전 진정 루틴": ["메이크업전","화잘먹","패드","진정","5분팩"],
+  "속당김": ["속당김","속건조","당김","건조","수분","히알루론산"],
+  "메이크업 전 수분 루틴": ["메이크업전","화잘먹","수분","촉촉","마스크"],
+  "1일 1팩": ["1일1팩","마스크","시트팩","팩"],
+  "시트팩 루틴": ["시트","마스크","마스크팩","시트팩","팩"]
+};
+const FORM_BONUS = {
+  "올리고 히알루론산 딥 토너": ["토너","물토너","토너팩","성분표","ppm","히알루론산"],
+  "그린 플라보노이드 2.5 패드": ["패드","토너패드","진정패드","트러블","진정","쿨링","열감"],
+  "올리고 히알루론산 워터리 스킨 마스크": ["마스크","시트팩","마스크팩","1일1팩","시트"]
+};
+
+function buildMultiProductMatrix(videos, facts, primaryProduct, primaryJudgements) {
+  const prodNames = Object.keys(PRODUCTS);
+  const vBy = Object.fromEntries((videos || []).map(v => [v.video_id, computeMetrics(v)]));
+  const pJBy = Object.fromEntries((primaryJudgements || []).map(j => [j.video_id, j]));
+  const perProd = {};
+  for (const pn of prodNames) {
+    perProd[pn] = {};
+    if (pn === primaryProduct && primaryJudgements?.length) {
+      for (const f of facts) {
+        perProd[pn][f.video_id] = pJBy[f.video_id] || { decision: "Drop", score: 1, reason: "판정 없음" };
+      }
+      continue;
+    }
+    const prod = PRODUCTS[pn];
+    const fBonus = FORM_BONUS[pn] || [];
+    for (const f of facts) {
+      if (f.evidence_ok === false) {
+        perProd[pn][f.video_id] = { decision: "Drop", score: 1, reason: "근거 인용 검증 실패" };
+        continue;
+      }
+      if (f.domain !== "기초/스킨케어") {
+        perProd[pn][f.video_id] = { decision: "Drop", score: 1, reason: `영역 불일치(${f.domain})` };
+        continue;
+      }
+      const blob = norm(`${f.what_happens || ""} ${(f.product_types || []).join(" ")} ${f.hook_quote || ""} ${f.evidence_quote || ""}`);
+      let nonFit = false;
+      for (const terr of (prod.non_fit_territory || [])) {
+        for (const [k, kws] of Object.entries(NON_FIT_MAP)) {
+          if (terr.includes(k) && kws.some(kw => blob.includes(norm(kw)))) nonFit = true;
+        }
+      }
+      if (nonFit) {
+        perProd[pn][f.video_id] = { decision: "Drop", score: 2, reason: "부적합 영역 충돌" };
+        continue;
+      }
+      const blobCheck = pn === "올리고 히알루론산 딥 토너" ? blob.replace(/토너패드/g, "패드") : blob;
+      const matched = new Set();
+      let terrCnt = 0;
+      for (const terr of (prod.fit_territory || [])) {
+        let hit = false;
+        for (const [k, kws] of Object.entries(FIT_MAP)) {
+          if (terr.includes(k)) {
+            for (const kw of kws) {
+              if (blobCheck.includes(norm(kw))) { hit = true; matched.add(kw); }
+            }
+          }
+        }
+        if (hit) terrCnt++;
+      }
+      const fHits = fBonus.filter(kw => blobCheck.includes(norm(kw))).length;
+      const sig = matched.size + fHits;
+      let score = (fHits >= 2 || (fHits >= 1 && terrCnt >= 2) || sig >= 4) ? 5
+                : (terrCnt >= 1 && sig >= 2) ? 4
+                : (terrCnt >= 1 || fHits >= 1) ? 3 : 2;
+      if (pn.includes("마스크") && fHits === 0 && score >= 4) score = 3;
+      if (f.text_source !== "caption" && score >= 4) score = 3;
+      const decision = score >= 4 ? "Go" : score === 3 ? "Pivot" : "Drop";
+      perProd[pn][f.video_id] = { decision, score, form_hits: fHits, reason: decision === "Go" ? "적합 영역 일치" : decision === "Pivot" ? "일부 연결/제형·직접 시청 필요" : "연결 근거 부족" };
+    }
+  }
+  const rows = facts.map(f => {
+    const v = vBy[f.video_id] || {};
+    const cells = {};
+    let bestProduct = null, bestScore = 0, bestForm = -1;
+    for (const pn of prodNames) {
+      const c = perProd[pn][f.video_id] || { decision: "Drop", score: 1, form_hits: 0, reason: "" };
+      const fh = c.form_hits != null ? c.form_hits : (FORM_BONUS[pn] || []).filter(kw => norm(`${f.what_happens||""} ${(f.product_types||[]).join(" ")}`).replace(pn === "올리고 히알루론산 딥 토너" ? /토너패드/g : /$^/, "패드").includes(norm(kw))).length;
+      cells[pn] = { ...c, form_hits: fh };
+      if (c.decision === "Go" && (c.score > bestScore || (c.score === bestScore && fh > bestForm))) {
+        bestScore = c.score; bestForm = fh; bestProduct = pn;
+      }
+    }
+    return {
+      video_id: f.video_id, title: v.title || f.video_id, views: v.views || 0,
+      views_per_day: v.views_per_day || 0, text_source: f.text_source || "meta",
+      domain: f.domain || "-", cells, best_product: bestProduct, best_score: bestScore
+    };
+  });
+  const product_summary = {};
+  for (const pn of prodNames) {
+    const entries = Object.entries(perProd[pn]);
+    const goEntries = entries.filter(([, x]) => x.decision === "Go");
+    product_summary[pn] = {
+      go: goEntries.length,
+      pivot: entries.filter(([, x]) => x.decision === "Pivot").length,
+      drop: entries.filter(([, x]) => x.decision === "Drop").length,
+      total_go_score: goEntries.reduce((s, [, x]) => s + x.score, 0),
+      total_go_views_per_day: goEntries.reduce((s, [vid]) => s + (vBy[vid]?.views_per_day || 0), 0)
+    };
+  }
+  const ranked = [...prodNames].sort((a, b) =>
+    (product_summary[b].go - product_summary[a].go) ||
+    (product_summary[b].total_go_score - product_summary[a].total_go_score) ||
+    (product_summary[b].total_go_views_per_day - product_summary[a].total_go_views_per_day)
+  );
+  const top = ranked[0];
+  const recommended_product = (top && product_summary[top].go > 0) ? top : null;
+  const recommendation_reason = recommended_product
+    ? `${top} (Go ${product_summary[top].go}건·합계 ${product_summary[top].total_go_score}점 · Pivot ${product_summary[top].pivot}건 · Drop ${product_summary[top].drop}건)`
+    : "오늘은 억지 집행 금지 — 전원 보류/테스트 권장 (전 제품 Go 0건)";
+  return { products: prodNames, rows, product_summary, recommended_product, recommendation_reason };
+}
+
 function buildCopyables(res) {
   const prod = PRODUCTS[res.product] || { verified_claims: [], banned: [] };
   const vBy = Object.fromEntries((res.videos || []).map(v => [v.video_id, computeMetrics(v)]));
@@ -433,6 +561,15 @@ function buildCopyables(res) {
   const go = (res.judgements || []).filter(j => j.decision === "Go");
   const pv = (res.judgements || []).filter(j => j.decision === "Pivot");
   const dr = (res.judgements || []).filter(j => j.decision === "Drop");
+  const mat = res.multi_product_matrix || buildMultiProductMatrix(res.videos || [], res.facts || [], res.product, res.judgements || []);
+  const matLines = mat.product_summary ? [
+    "", "### 🔀 제품 3종 교차 매칭 요약",
+    ...mat.products.map(pn => {
+      const ps = mat.product_summary[pn] || {};
+      return `- **${pn}**: Go ${ps.go||0}건(합계 ${ps.total_go_score||0}점) · Pivot ${ps.pivot||0}건 · Drop ${ps.drop||0}건`;
+    }),
+    `- **${mat.recommended_product ? "🏆" : "⚠️"} 오늘의 추천 주력 제품**: ${mat.recommendation_reason}`
+  ] : [];
   const rep = [
     `# [주간 K-뷰티 쇼츠 트렌드 보고] ${res.product}`,
     `- 보고 기준일: ${res.report_date} | 최근 ${res.days_range || 30}일 | Go ${go.length} · Pivot ${pv.length} · Drop ${dr.length}`,
@@ -445,7 +582,8 @@ function buildCopyables(res) {
       return `### Go #${i+1}. ${v.title || j.video_id}\n${warnLine}- https://youtube.com/shorts/${j.video_id} | 조회수 ${(v.views||0).toLocaleString()}회 · 일평균 ${(v.views_per_day||0).toLocaleString()}회/일 | 포맷: ${f.format_tag || "기타"}\n- 근거(${j.score}점): ${j.reason}\n- 인용: "${f.hook_quote || f.evidence_quote || "-"}"`;
     }),
     "", `## 3. Drop 제외 요약 (${dr.length}건)`,
-    ...dr.map(j => `- [${(fBy[j.video_id]||{}).domain || "-"}] ${(vBy[j.video_id]||{}).title || j.video_id}: ${j.reason}`)
+    ...dr.map(j => `- [${(fBy[j.video_id]||{}).domain || "-"}] ${(vBy[j.video_id]||{}).title || j.video_id}: ${j.reason}`),
+    ...matLines
   ].join("\n");
 
   const flagged = (res.briefs || []).filter(b => b.needs_review);
@@ -821,6 +959,40 @@ function renderDashboard(res, opts = {}) {
     </tr>`;
   }).join("");
 
+  const matrix = res.multi_product_matrix || buildMultiProductMatrix(videos, facts, res.product, judgements);
+  const matRecBanner = matrix.recommended_product
+    ? `<div class="alert-banner" style="background:var(--go-soft);color:var(--go);border:1px solid #99F6E4;border-left:4px solid var(--go);margin-top:10px;">🏆 <b>오늘의 추천 주력 제품:</b> ${esc(matrix.recommendation_reason)}</div>`
+    : `<div class="alert-banner alert-warn" style="margin-top:10px;">⚠️ <b>오늘은 억지 집행 금지 — 전원 보류/테스트 권장</b> (${esc(matrix.recommendation_reason)})</div>`;
+  const matThs = (matrix.products || []).map(pn => `<th>${esc(SHORT_PROD[pn] || pn)}</th>`).join("");
+  const matRowsHtml = (matrix.rows || []).map(r => {
+    const cells = (matrix.products || []).map(pn => {
+      const c = r.cells[pn] || { decision: "Drop", score: 1 };
+      const cls = c.decision === "Go" ? "pill-go" : c.decision === "Pivot" ? "pill-warn" : "pill-drop";
+      const ico = c.decision === "Go" ? "🎯" : c.decision === "Pivot" ? "⚠️" : "❌";
+      return `<td><span class="pill ${cls}">${ico} ${esc(c.decision)} ${c.score}점</span></td>`;
+    }).join("");
+    const bestCell = r.best_product
+      ? `<span class="pill pill-gold">👑 ${esc(SHORT_PROD[r.best_product] || r.best_product)}</span>`
+      : `<span class="pill pill-drop">보류/제외</span>`;
+    return `<tr>
+      <td><a href="https://youtube.com/shorts/${esc(r.video_id)}" target="_blank" rel="noopener">${esc((r.title||r.video_id).slice(0,38))} ↗</a>
+      <div style="font-size:0.75rem;color:var(--muted);">👀 ${(r.views||0).toLocaleString()}회 · 🔥 ${(r.views_per_day||0).toLocaleString()}회/일</div></td>
+      ${cells}
+      <td>${bestCell}</td>
+    </tr>`;
+  }).join("");
+  const matrixSectionHtml = (matrix.rows || []).length ? `
+    ${matRecBanner}
+    <details class="b2b-details" style="margin-bottom:18px;">
+      <summary>▶ 🔀 더랩바이블랑두 3종 교차 매칭 매트릭스 상세 보기 (추가 YouTube 쿼터 0 · 기본 접힘)</summary>
+      <div style="overflow-x:auto;">
+        <table class="b2b-table">
+          <thead><tr><th>영상 (조회수 · 일평균🔥)</th>${matThs}<th>최적 추천</th></tr></thead>
+          <tbody>${matRowsHtml}</tbody>
+        </table>
+      </div>
+    </details>` : "";
+
   document.getElementById("dashboard").innerHTML = `
     ${confBanner}
     ${lowViewsBanner}
@@ -858,6 +1030,8 @@ function renderDashboard(res, opts = {}) {
       </div>
       ${patternsHtml}
     </div>
+
+    ${matrixSectionHtml}
 
     <div class="sec-heading">🎯 Go 판정 캠페인 컨셉 (${goItems.length}건)</div>
     ${goHtml}

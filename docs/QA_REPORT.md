@@ -286,3 +286,40 @@
 ### 3. 최종 출고 전 남은 필수 검증 (외부 API 권한 확보 후)
 1. [ ] `python qa/benchmark_days.py` 실측 실행 → 7/14/30일 + `mostPopular` 데이터로 최적 기본 기간 확정 (PRD 수용 기준 5)
 2. [ ] `python qa/run_once.py` 라이브 E2E 1회 실행 → 실제 `gemini-2.5-flash-lite`가 생성한 콘티의 구체성(절대 기준 4) 최종 육안 검수
+
+
+---
+
+## Sprint 6 레드팀 QA 검수 — B2B-08 제품 3종 교차 매칭 매트릭스
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `pipeline.py` (`build_multi_product_matrix`, `_deterministic_judgements_for_product`, `format_copyable_outputs`), `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`** (`B2B-08 Multi-Product Matrix` 포함)
+  - 골든셋 15건 기준 `build_multi_product_matrix()` 실행 + `internal_report_md`의 `### 🔀 제품 3종 교차 매칭 요약` 전문 출력 및 모순 점검
+- **최종 판정**: **✅ PASS**
+
+> **마케터 총평**:  
+> 추가 YouTube 쿼터 0·추가 LLM 비용 0으로 더랩바이블랑두 3개 시그니처 제품 중 **"오늘 어떤 제품을 주력으로 밀어야 하는지"**를 한눈에 보여주는 B2B 핵심 차별화 기능이다. 1차 분석(`primary_judgements`)과 매트릭스 집계가 100% 일치하고, `jfsweQpxqsY`(색조)가 3종 전부 `Drop(1점)`, `RdXhzcCVtsw`(자막 미확인 `meta`)가 3종 전부 `Go` 차단되는 등 하드 가드레일 모순이 0건으로 확인되어 **PASS** 판정한다. 다만 아래 3가지 변별력·보고서 가독성 개선 포인트를 후속 백로그로 제안한다.
+
+---
+
+### 1. 핵심 무결성 검증 결과
+- **1차 분석 vs 매트릭스 정합성**: `primary_product`에 `primary_judgements`를 직접 재사용(`pipeline.py` L548-549) → **불일치 0건**.
+- **색조/무관 전 제품 차단**: `jfsweQpxqsY` → 딥 토너 `Drop(1)` · 그린 패드 `Drop(1)` · 워터리 마스크 `Drop(1)`, `best_product=None`.
+- **자막 미확인(`meta`) 전 제품 Go 차단**: `RdXhzcCVtsw` → 딥 토너 `Pivot(3)` · 그린 패드 `Drop(2)` · 워터리 마스크 `Pivot(3)`, `best_product=None`.
+- **전 제품 Go 0건 방어**: `"오늘은 억지 집행 금지 — 전원 보류/테스트 권장 (전 제품 Go 0건)"` 정직 출력 확인(`pipeline.py` L609).
+
+---
+
+### 2. 발견된 개선 포인트 / 약점 3가지 (증거 포함)
+
+1. **[Medium] `워터리 스킨 마스크`의 제형 미일치 영상 고득점 경향 (`pipeline.py` L435-436, L496-503)**
+   - **증거**: 시트팩과 무관한 세럼/수분크림 영상(`Zl5CPQxmWFE` 수지 세럼 3%, `rFgfkV4GZRQ` 수분크림 보습 3대장)이 `히알루론산`/`수분`/`건조` 일반 키워드만으로 `워터리 스킨 마스크`에서 `Go 4점`, `Go 5점`을 받는다.
+   - **개선 제안**: 시트팩/패드처럼 제형 특성이 뚜렷한 제품은 `form_hits == 0`일 때 점수를 최대 4점(또는 3점)으로 캡핑해 **토너 vs 마스크의 주력 제품 변별력**을 높일 것.
+2. **[Medium] 동점 시 `products.json` 키 순서 편향 (`pipeline.py` L572, L597-601)**
+   - **증거**: `brKNpouibqo`·`rFgfkV4GZRQ`에서 딥 토너(5점)와 워터리 마스크(5점)가 동점일 때 L572 조건상 항상 첫 번째 키인 `딥 토너`가 `best_product`로 선정된다.
+   - **개선 제안**: 동점 타이브레이커에 `form_hits`(제형 직접 일치 수) 및 Go 영상의 `views_per_day` 합계를 반영.
+3. **[Low] `internal_report_md` 교차 매칭 요약에서 동률 Go 건수 시 추천 근거 불명확 (`pipeline.py` L876-886)**
+   - **증거**: 실제 출력에서 `딥 토너`와 `워터리 마스크` 모두 `Go 3건 · Pivot 1건 · Drop 11건`으로 동일하게 표시되는데, 추천 사유에도 `(Go 3건 · Pivot 1건 · Drop 11건)`만 표기되어 팀장이 "둘 다 3건인데 왜 토너가 1등이지?"라고 되물을 수 있음(실제는 `total_go_score` 15 vs 14 차이).
+   - **개선 제안**: 각 제품 요약 줄과 추천 사유에 `Go 총점` (예: `Go 3건(15점)`)을 함께 표기해 의사결정 투명성 확보.

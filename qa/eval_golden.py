@@ -411,6 +411,118 @@ def test_redteam_rt1_to_rt4(products):
     return "PASS (RT1 timecodes/1초컷, RT2 화장품법 제13조 9종, RT3 [음악]태그, RT4 각질부각 Go 유지)"
 
 
+def test_multi_product_matrix(products):
+    golden_path = os.path.join(ROOT, "qa", "golden_set.json")
+    with open(golden_path, encoding="utf-8") as f:
+        items = json.load(f)["items"]
+
+    videos = [pipeline._ensure_video_metrics(it) for it in items]
+    raw_facts = [pipeline.Fact(video_id=it["video_id"], **it["sample_fact"]) for it in items]
+    facts = pipeline.audit_facts(raw_facts, videos)
+
+    mat = pipeline.build_multi_product_matrix(videos, facts, products=products)
+    _assert(len(mat["products"]) == 3, f"3종 제품 수 불일치: {mat['products']}")
+    _assert(len(mat["rows"]) == len(items), f"매트릭스 행 수 불일치: {len(mat['rows'])}")
+
+    row_by_id = {r["video_id"]: r for r in mat["rows"]}
+    # 1) jfsweQpxqsY(틴트 블러셔)가 3개 제품 모두 Drop인지 확인
+    jf = row_by_id["jfsweQpxqsY"]
+    for pname in mat["products"]:
+        _assert(jf["cells"][pname]["decision"] == "Drop", f"jfsweQpxqsY가 {pname}에서 Drop 아님: {jf['cells'][pname]}")
+    _assert(jf["best_product"] is None, f"jfsweQpxqsY에 best_product 부여됨: {jf}")
+
+    # 2) 수분세럼 영상(brKNpouibqo, 마스크/시트 언급 없음) → 딥 토너 Go, 워터리 마스크는 제형 키워드 부재로 Pivot 상한
+    hyd = row_by_id["brKNpouibqo"]
+    _assert(hyd["cells"]["올리고 히알루론산 딥 토너"]["decision"] == "Go", f"수분 영상 토너 Go 실패: {hyd['cells']}")
+    _assert(hyd["cells"]["올리고 히알루론산 워터리 스킨 마스크"]["decision"] == "Pivot", f"제형 없는 수분 영상 마스크 Pivot 캡 실패: {hyd['cells']}")
+
+    # 2-B) 시트 마스크 1일 1팩 영상 → 워터리 스킨 마스크 Go & best_product
+    mask_vid = {
+        "video_id": "mask_sheet_1",
+        "title": "메이크업 전 속당김 잡는 1일 1팩 대나무 시트 마스크 루틴",
+        "views": 65000,
+        "likes": 2200,
+        "published_at": "2026-11-22T00:00:00Z",
+        "text_source": "caption",
+        "source_text": "메이크업 전 속당김 잡는 1일 1팩 시트 마스크 루틴 10분만 올려두면 촉촉",
+    }
+    mask_fact = pipeline.audit_facts([
+        pipeline.Fact(
+            video_id="mask_sheet_1",
+            domain="기초/스킨케어",
+            format_tag="응급처치 루틴형",
+            what_happens="메이크업 전 속당김 완화를 위한 1일 1팩 시트 마스크 수분 루틴",
+            product_types=["시트 마스크팩"],
+            hook_quote="메이크업 전 속당김 잡는 1일 1팩 시트 마스크 루틴",
+            evidence_quote="10분만 올려두면 촉촉",
+        )
+    ], [mask_vid])
+    mask_mat = pipeline.build_multi_product_matrix([mask_vid], mask_fact, products=products)
+    _assert(
+        mask_mat["rows"][0]["best_product"] == "올리고 히알루론산 워터리 스킨 마스크",
+        f"시트 마스크 영상 best_product 오류: {mask_mat['rows'][0]}",
+    )
+
+    # 3) 자막 미확인(RdXhzcCVtsw, meta)은 3종 모두 Go 불가(최대 Pivot 3점)
+    rd = row_by_id["RdXhzcCVtsw"]
+    for pname in mat["products"]:
+        _assert(rd["cells"][pname]["decision"] != "Go", f"meta 영상이 {pname}에서 Go 통과: {rd['cells'][pname]}")
+
+    # 4) 트러블 진정·쿨링 패드 영상 → 그린 플라보노이드 2.5 패드가 best_product로 선정
+    pad_vid = {
+        "video_id": "pad_calm_1",
+        "title": "트러블 열감 올라왔을 때 쿨링 진정 패드 5분 팩 루틴",
+        "views": 88000,
+        "likes": 3100,
+        "published_at": "2026-11-22T00:00:00Z",
+        "text_source": "caption",
+        "source_text": "트러블 열감 올라왔을 때 쿨링 진정 패드 5분 팩으로 예민해진 피부 진정 루틴",
+    }
+    pad_fact = pipeline.audit_facts([
+        pipeline.Fact(
+            video_id="pad_calm_1",
+            domain="기초/스킨케어",
+            format_tag="응급처치 루틴형",
+            what_happens="트러블 열감과 자극으로 예민해진 피부에 쿨링 진정 패드 5분 팩 시연",
+            product_types=["진정 토너 패드"],
+            hook_quote="트러블 열감 올라왔을 때 쿨링 진정 패드 5분 팩",
+            evidence_quote="예민해진 피부 진정 루틴",
+        )
+    ], [pad_vid])
+    pad_mat = pipeline.build_multi_product_matrix([pad_vid], pad_fact, products=products)
+    pad_row = pad_mat["rows"][0]
+    _assert(
+        pad_row["best_product"] == "그린 플라보노이드 2.5 패드",
+        f"트러블 쿨링 패드 영상 best_product 오류: {pad_row}",
+    )
+
+    # 5) 전원 색조(Go 0건) 시 recommended_product=None 및 억지 집행 금지 문구 확인
+    only_color_v = [videos[0]]
+    only_color_f = [facts[0]]
+    zero_mat = pipeline.build_multi_product_matrix(only_color_v, only_color_f, products=products)
+    _assert(zero_mat["recommended_product"] is None and "억지 집행 금지" in zero_mat["recommendation_reason"], f"전원 Drop 추천 배너 오류: {zero_mat}")
+
+    # 6) internal_report_md에 3종 교차 매칭 요약 포함 확인
+    rep_md = pipeline.format_copyable_outputs({
+        "product": "올리고 히알루론산 딥 토너",
+        "report_date": "2026-11-25",
+        "days_range": 30,
+        "videos": videos,
+        "facts": facts,
+        "judgements": [],
+        "briefs": [],
+        "multi_product_matrix": mat,
+        "stats": {"videos": len(videos), "transcript_caption": 4},
+        "product_confidence": "medium",
+    })["internal_report_md"]
+    _assert(
+        "제품 3종 교차 매칭 요약" in rep_md and "오늘의 추천 주력 제품" in rep_md and "합계 " in rep_md,
+        "internal_report_md에 3종 교차 매칭 요약/합계 점수 병기 누락",
+    )
+
+    return f"PASS (jfsweQpxqsY=3종 Drop, 수분->토너/마스크 Go, 트러블쿨링->패드 best_product, 추천={mat['recommended_product']})"
+
+
 def main():
     products = pipeline.load_products()
     print("=== [1] QA 6대 결함 회귀 테스트 ===")
@@ -419,6 +531,7 @@ def main():
     print("  Defect 3 & 4 (meta/non_fit/linked_claim/합계):", test_defect_3_and_4_step2_guardrails(products))
     print("  Defect 5 & 6 (2종 복사 산출물/DM 정화/go_ids):", test_defect_5_and_6_outputs_and_brief_ids(products))
     print("  Red-Team RT1~RT4:", test_redteam_rt1_to_rt4(products))
+    print("  B2B-08 Multi-Product Matrix:", test_multi_product_matrix(products))
 
     print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
     summary = eval_golden_set(products)

@@ -352,6 +352,10 @@ def build_offline_rehearsal_result(product_name: str, days_range: int = 30) -> D
         "briefs": len(briefs),
         "briefs_need_review": sum(1 for b in briefs if b["needs_review"]),
     }
+    matrix = pipeline.build_multi_product_matrix(
+        videos, facts, products=products,
+        primary_product=product_name, primary_judgements=judgements,
+    )
     res: Dict[str, Any] = {
         "product": product_name,
         "report_date": date.today().isoformat(),
@@ -365,6 +369,7 @@ def build_offline_rehearsal_result(product_name: str, days_range: int = 30) -> D
         ],
         "judgements": judgements,
         "briefs": briefs,
+        "multi_product_matrix": matrix,
         "stats": stats,
         "product_confidence": prod.get("confidence", "medium"),
         "_mode": "offline_rehearsal",
@@ -555,6 +560,76 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# Section 2-2 (B2B-08): Multi-Product Triage Matrix
+matrix = res.get("multi_product_matrix")
+if not matrix and videos and facts:
+    matrix = pipeline.build_multi_product_matrix(
+        videos, facts, products=products_map,
+        primary_product=product_name, primary_judgements=judgements,
+    )
+
+SHORT_PROD_LABELS = {
+    "올리고 히알루론산 딥 토너": "딥 토너",
+    "그린 플라보노이드 2.5 패드": "그린 2.5 패드",
+    "올리고 히알루론산 워터리 스킨 마스크": "워터리 마스크",
+}
+
+if matrix and matrix.get("rows"):
+    rec_p = matrix.get("recommended_product")
+    rec_reason = matrix.get("recommendation_reason", "")
+    if rec_p:
+        rec_banner = (
+            f'<div class="alert-banner" style="background:var(--go-soft);color:var(--go);border:1px solid #99F6E4;border-left:4px solid var(--go);">'
+            f'🏆 <b>오늘의 추천 주력 제품:</b> {_esc(rec_reason)}</div>'
+        )
+    else:
+        rec_banner = (
+            f'<div class="alert-banner alert-warn">'
+            f'⚠️ <b>오늘은 억지 집행 금지 — 전원 보류/테스트 권장</b> ({_esc(rec_reason)})</div>'
+        )
+
+    m_prods = matrix.get("products", [])
+    th_prods = "".join(f"<th>{_esc(SHORT_PROD_LABELS.get(pn, pn))}</th>" for pn in m_prods)
+    m_rows_html = []
+    for row in matrix["rows"]:
+        vid = row["video_id"]
+        cells_html = []
+        for pn in m_prods:
+            c = row["cells"].get(pn, {"decision": "Drop", "score": 1})
+            dec = c["decision"]
+            sc = c["score"]
+            p_cls = "pill-go" if dec == "Go" else "pill-warn" if dec == "Pivot" else "pill-drop"
+            ico = "🎯" if dec == "Go" else "⚠️" if dec == "Pivot" else "❌"
+            cells_html.append(f'<td><span class="pill {p_cls}">{ico} {_esc(dec)} {sc}점</span></td>')
+        best_p = row.get("best_product")
+        best_cell = (
+            f'<span class="pill pill-gold">👑 {_esc(SHORT_PROD_LABELS.get(best_p, best_p))}</span>'
+            if best_p
+            else '<span class="pill pill-drop">보류/제외</span>'
+        )
+        m_rows_html.append(
+            f"<tr>"
+            f"<td><a href='https://youtube.com/shorts/{_esc(vid)}' target='_blank' rel='noopener'>{_esc(row['title'][:38])} ↗</a>"
+            f"<div style='font-size:0.75rem;color:var(--muted);'>👀 {row['views']:,}회 · 🔥 {row['views_per_day']:,}회/일</div></td>"
+            f"{''.join(cells_html)}"
+            f"<td>{best_cell}</td>"
+            f"</tr>"
+        )
+
+    st.markdown(rec_banner, unsafe_allow_html=True)
+    with st.expander("🔀 더랩바이블랑두 3종 교차 매칭 매트릭스 상세 보기 (추가 YouTube 쿼터 0 · 기본 접힘)", expanded=False):
+        st.markdown(
+            f"""
+            <div style="overflow-x:auto;">
+              <table class="b2b-table">
+                <thead><tr><th>영상 (조회수 · 일평균🔥)</th>{th_prods}<th>최적 추천</th></tr></thead>
+                <tbody>{''.join(m_rows_html)}</tbody>
+              </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 # Section 3 (P2 + P3): Go Campaign Cards
 st.markdown(f'<div class="sec-heading">🎯 Go 판정 캠페인 컨셉 ({len(go_items)}건)</div>', unsafe_allow_html=True)

@@ -422,6 +422,225 @@ def judge_fit(llm, facts: List[Dict[str, Any]], product_name: str, products: Dic
     return apply_judgement_rules(js, facts, p)
 
 
+# ───────────────────────── Step 2-2. 제품 3종 교차 매칭 매트릭스 (Multi-Product Triage) ─────────────────────────
+FIT_KEYWORD_MAP: Dict[str, List[str]] = {
+    "속건조": ["속건조", "건조", "당김", "푸석", "히알루론산", "보습"],
+    "수분 보충": ["수분", "히알루론산", "보습", "쫀광", "물광", "촉촉"],
+    "토너 팩": ["토너", "물토너", "토너팩", "화장솜", "성분표", "ppm"],
+    "기초 레이어링": ["기초", "루틴", "레이어링", "화잘먹", "세럼", "스킨케어"],
+    "트러블 진정": ["트러블", "진정", "여드름", "예민", "뒤집어", "붉은", "홍조"],
+    "자극 후 진정": ["자극", "진정", "민감", "패드", "진정팩", "토너패드"],
+    "열감/쿨링": ["열감", "쿨링", "시원", "진정", "홍조"],
+    "메이크업 전 진정 루틴": ["메이크업전", "화잘먹", "패드", "진정", "5분팩"],
+    "속당김": ["속당김", "속건조", "당김", "건조", "수분", "히알루론산"],
+    "메이크업 전 수분 루틴": ["메이크업전", "화잘먹", "수분", "촉촉", "마스크"],
+    "1일 1팩": ["1일1팩", "마스크", "시트팩", "팩"],
+    "시트팩 루틴": ["시트", "마스크", "마스크팩", "시트팩", "팩"],
+}
+
+PRODUCT_FORM_BONUS: Dict[str, List[str]] = {
+    "올리고 히알루론산 딥 토너": ["토너", "물토너", "토너팩", "성분표", "ppm", "히알루론산"],
+    "그린 플라보노이드 2.5 패드": ["패드", "토너패드", "진정패드", "트러블", "진정", "쿨링", "열감"],
+    "올리고 히알루론산 워터리 스킨 마스크": ["마스크", "시트팩", "마스크팩", "1일1팩", "시트"],
+}
+
+
+def _deterministic_judgements_for_product(
+    facts: List[Dict[str, Any]],
+    product_name: str,
+    product: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """오프라인/저비용 교차 매칭용 결정론적 스코어링 (apply_judgement_rules와 100% 동일 가드레일 적용)."""
+    fit_territory = product.get("fit_territory", [])
+    claims = product.get("verified_claims", [])
+    form_kws = PRODUCT_FORM_BONUS.get(product_name, [])
+    raw_js: List[Judgement] = []
+
+    for f in facts:
+        vid = f["video_id"]
+        if not f.get("evidence_ok"):
+            continue
+        blob = _norm(
+            f"{f.get('what_happens', '')} {' '.join(f.get('product_types', []))} "
+            f"{f.get('hook_quote', '')} {f.get('evidence_quote', '')}"
+        )
+        if f.get("domain") != DOMAIN_BASE:
+            raw_js.append(Judgement(
+                video_id=vid, decision="Drop", score=1,
+                reason=f"영상 영역({f.get('domain')}) 불일치로 제외", linked_claim="",
+            ))
+            continue
+
+        # '토너패드'가 물토너로 오인되지 않도록 패드 복합어를 분리한 텍스트로 물토너 키워드 검사
+        blob_check = blob.replace("토너패드", "패드") if product_name == "올리고 히알루론산 딥 토너" else blob
+
+        matched_terrs: List[str] = []
+        matched_kws = set()
+        for terr in fit_territory:
+            t_hit = False
+            if _norm(terr) and _norm(terr) in blob_check:
+                t_hit = True
+                matched_kws.add(terr)
+            for key, kws in FIT_KEYWORD_MAP.items():
+                if key in terr:
+                    for kw in kws:
+                        if _norm(kw) in blob_check:
+                            t_hit = True
+                            matched_kws.add(kw)
+            if t_hit:
+                matched_terrs.append(terr)
+
+        form_hits = [kw for kw in form_kws if _norm(kw) in blob_check]
+        total_signal = len(matched_kws) + len(form_hits)
+
+        if len(form_hits) >= 2 or (len(form_hits) >= 1 and len(matched_terrs) >= 2) or total_signal >= 4:
+            score = 5
+            reason = f"적합 영역({', '.join(matched_terrs[:2]) or product_name}) 및 핵심 키워드({', '.join(list(matched_kws)[:3])})와 강하게 일치"
+            lc = claims[0] if claims else ""
+        elif len(matched_terrs) >= 1 and total_signal >= 2:
+            score = 4
+            reason = f"적합 영역({', '.join(matched_terrs[:2])})과 직접 연결 가능"
+            lc = claims[0] if claims else ""
+        elif len(matched_terrs) >= 1 or len(form_hits) >= 1:
+            score = 3
+            reason = f"일부 키워드({', '.join(list(matched_kws | set(form_hits))[:2])})만 연결되어 서브 테스트(Pivot) 수준"
+            lc = claims[0] if claims else ""
+        else:
+            score = 2
+            reason = f"'{product_name}' 적합 영역과 직접적 연결 근거 부족"
+            lc = ""
+
+        # QA #1: 시트/마스크 제형 제품(워터리 스킨 마스크)은 제형 키워드(마스크/시트팩/1일1팩 등)가 전혀 없으면 최대 Pivot(3점)으로 캡핑
+        if "마스크" in product_name and len(form_hits) == 0 and score >= 4:
+            score = 3
+            reason = f"시트/마스크 제형 언급 없어 일반 수분 키워드만으로 Go 불가 → Pivot(3점) 제한. " + reason
+
+        # 가장 잘 맞는 verified_claim 선택
+        if score >= 4 and claims:
+            best_c = claims[0]
+            best_overlap = -1
+            for c in claims:
+                nc = _norm(c)
+                ov = sum(1 for kw in (matched_kws | set(form_hits)) if _norm(kw) in nc)
+                if ov > best_overlap:
+                    best_overlap = ov
+                    best_c = c
+            lc = best_c
+
+        raw_js.append(Judgement(
+            video_id=vid, decision=_decision_from_score(score), score=score,
+            reason=reason, linked_claim=lc,
+        ))
+
+    return apply_judgement_rules(raw_js, facts, product)
+
+
+def build_multi_product_matrix(
+    videos: List[Dict[str, Any]],
+    facts: List[Dict[str, Any]],
+    products: Optional[Dict[str, Any]] = None,
+    primary_product: Optional[str] = None,
+    primary_judgements: Optional[List[Dict[str, Any]]] = None,
+    llm=None,
+) -> Dict[str, Any]:
+    """한 번의 클리핑(추가 YouTube 쿼터 0)으로 products.json 전체 제품 교차 매칭 매트릭스를 생성합니다."""
+    products = products or load_products()
+    prod_names = list(products.keys())
+    v_by_id = {v["video_id"]: _ensure_video_metrics(v) for v in videos}
+
+    per_product: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    for pname in prod_names:
+        if pname == primary_product and primary_judgements is not None:
+            js = primary_judgements
+        elif llm is not None:
+            js = judge_fit(llm, facts, pname, products)
+        else:
+            js = _deterministic_judgements_for_product(facts, pname, products[pname])
+        per_product[pname] = {j["video_id"]: j for j in js}
+
+    def _count_form_hits(fact: Dict[str, Any], pname: str) -> int:
+        blob = _norm(
+            f"{fact.get('what_happens', '')} {' '.join(fact.get('product_types', []))} "
+            f"{fact.get('hook_quote', '')} {fact.get('evidence_quote', '')}"
+        )
+        blob_check = blob.replace("토너패드", "패드") if pname == "올리고 히알루론산 딥 토너" else blob
+        return sum(1 for kw in PRODUCT_FORM_BONUS.get(pname, []) if _norm(kw) in blob_check)
+
+    rows: List[Dict[str, Any]] = []
+    for f in facts:
+        vid = f["video_id"]
+        v = v_by_id.get(vid, {})
+        cells: Dict[str, Dict[str, Any]] = {}
+        best_product: Optional[str] = None
+        best_rank = (-1, -1)  # (score, form_hits)
+        best_score = 0
+        for pname in prod_names:
+            j = per_product[pname].get(vid, {"decision": "Drop", "score": 1, "reason": "판정 없음"})
+            f_hits = _count_form_hits(f, pname)
+            cells[pname] = {
+                "decision": j["decision"],
+                "score": int(j["score"]),
+                "reason": j["reason"],
+                "form_hits": f_hits,
+            }
+            if j["decision"] == "Go":
+                sc = int(j["score"])
+                rank_tuple = (sc, f_hits)
+                if rank_tuple > best_rank:
+                    best_rank = rank_tuple
+                    best_score = sc
+                    best_product = pname
+        rows.append({
+            "video_id": vid,
+            "title": v.get("title", vid),
+            "views": int(v.get("views", 0)),
+            "views_per_day": int(v.get("views_per_day", 0)),
+            "text_source": f.get("text_source", v.get("text_source", "meta")),
+            "domain": f.get("domain", "기타/뷰티무관"),
+            "cells": cells,
+            "best_product": best_product,
+            "best_score": best_score,
+        })
+
+    product_summary: Dict[str, Dict[str, int]] = {}
+    for pname in prod_names:
+        js_vals = list(per_product[pname].values())
+        go_js = [j for j in js_vals if j["decision"] == "Go"]
+        product_summary[pname] = {
+            "go": len(go_js),
+            "pivot": sum(1 for j in js_vals if j["decision"] == "Pivot"),
+            "drop": sum(1 for j in js_vals if j["decision"] == "Drop"),
+            "total_go_score": sum(int(j["score"]) for j in go_js),
+            "total_go_views_per_day": sum(int(v_by_id.get(j["video_id"], {}).get("views_per_day", 0)) for j in go_js),
+        }
+
+    ranked = sorted(
+        prod_names,
+        key=lambda pn: (
+            product_summary[pn]["go"],
+            product_summary[pn]["total_go_score"],
+            product_summary[pn]["total_go_views_per_day"],
+        ),
+        reverse=True,
+    )
+    top_p = ranked[0] if ranked else None
+    if top_p and product_summary[top_p]["go"] > 0:
+        s = product_summary[top_p]
+        recommended_product = top_p
+        recommendation_reason = f"{top_p} (Go {s['go']}건·합계 {s['total_go_score']}점 · Pivot {s['pivot']}건 · Drop {s['drop']}건)"
+    else:
+        recommended_product = None
+        recommendation_reason = "오늘은 억지 집행 금지 — 전원 보류/테스트 권장 (전 제품 Go 0건)"
+
+    return {
+        "products": prod_names,
+        "rows": rows,
+        "product_summary": product_summary,
+        "recommended_product": recommended_product,
+        "recommendation_reason": recommendation_reason,
+    }
+
+
 # ───────────────────────── Step 3. 브리프 (Go만) ─────────────────────────
 NUM_TOKEN = re.compile(r"\d[\d,\.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시간|초|분|일|만\s*개?|억|개)")
 # 촬영/편집 연출 타임코드 화이트리스트 (효능 과장 '3초 만에', '1초 컷' 등은 제외)
@@ -675,6 +894,22 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
     else:
         rep.append("- Drop 제외 항목 없음")
 
+    matrix = result.get("multi_product_matrix")
+    if matrix and matrix.get("product_summary"):
+        rep.extend(["", "### 🔀 제품 3종 교차 매칭 요약"])
+        for pname in matrix.get("products", []):
+            ps = matrix["product_summary"].get(pname, {})
+            rep.append(
+                f"- **{pname}**: Go {ps.get('go', 0)}건(합계 {ps.get('total_go_score', 0)}점) · "
+                f"Pivot {ps.get('pivot', 0)}건 · Drop {ps.get('drop', 0)}건"
+            )
+        rec_p = matrix.get("recommended_product")
+        rec_reason = matrix.get("recommendation_reason", "")
+        if rec_p:
+            rep.append(f"- **🏆 오늘의 추천 주력 제품**: {rec_reason}")
+        else:
+            rep.append(f"- **⚠️ 오늘의 추천 주력 제품**: {rec_reason}")
+
     internal_report_md = "\n".join(rep).strip()
 
     # 2) 인플루언서/대행사 전달용 촬영 가이드 (2단 분리: 마케터 내부 확인 블록 + 순수 DM 본문)
@@ -752,7 +987,9 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
 def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
                  api_key: Optional[str] = None, model: str = "gemini-2.5-flash-lite",
                  max_videos: int = 10, max_briefs: int = 3,
-                 days_range: Optional[int] = None) -> Dict[str, Any]:
+                 days_range: Optional[int] = None,
+                 include_matrix: bool = True,
+                 matrix_use_llm: bool = False) -> Dict[str, Any]:
     products = load_products()
     llm = llm or make_llm(api_key, model)
     vids = enrich_with_transcripts(videos[:max_videos])
@@ -779,6 +1016,15 @@ def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
         "briefs": len(briefs),
         "briefs_need_review": sum(1 for b in briefs if b["needs_review"]),
     }
+    matrix = (
+        build_multi_product_matrix(
+            vids, facts, products=products,
+            primary_product=product_name, primary_judgements=judgements,
+            llm=(llm if matrix_use_llm else None),
+        )
+        if include_matrix
+        else None
+    )
     result: Dict[str, Any] = {
         "product": product_name,
         "report_date": date.today().isoformat(),
@@ -788,6 +1034,7 @@ def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
         "market_patterns": market_patterns,
         "judgements": judgements,
         "briefs": briefs,
+        "multi_product_matrix": matrix,
         "stats": stats,
         "product_confidence": products[product_name].get("confidence", "unknown"),
     }
