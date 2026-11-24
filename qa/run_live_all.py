@@ -23,7 +23,7 @@ import pipeline
 
 
 def pick_best_period(summary_rows: List[Dict[str, Any]], samples: Dict[str, List[Dict[str, Any]]]) -> Tuple[str, int, List[Dict[str, Any]]]:
-    """기초/스킨케어 관련 영상 수와 조회수 중앙값을 종합해 가장 균형 잡힌 기간을 선택합니다 (기본 30일 폴백)."""
+    """기초 관련 영상 5건 이상을 충족하는 후보 중 조회수 중앙값·일평균 상승속도가 가장 높은 기간을 선택합니다 (기본 30일 폴백)."""
     candidates = []
     for row in summary_rows:
         key = row.get("strategy", "")
@@ -33,12 +33,20 @@ def pick_best_period(summary_rows: List[Dict[str, Any]], samples: Dict[str, List
         if not vids:
             continue
         days_num = int(key.replace("search_", "").replace("d", ""))
-        score = (row.get("skincare_count", 0) * 1000) + min(row.get("median_views", 0) / 1000.0, 500.0)
-        candidates.append((score, days_num, key, vids))
+        meets_min_skincare = 1 if row.get("skincare_count", 0) >= 5 else 0
+        candidates.append((
+            meets_min_skincare,
+            row.get("median_views", 0),
+            row.get("avg_views_per_day", 0),
+            row.get("skincare_count", 0),
+            days_num,
+            key,
+            vids,
+        ))
     if not candidates:
         return "search_30d", 30, samples.get("search_30d", [])
-    candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    _, best_days, best_key, best_vids = candidates[0]
+    candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3], x[4]), reverse=True)
+    _, _, _, _, best_days, best_key, best_vids = candidates[0]
     return best_key, best_days, best_vids
 
 
