@@ -197,12 +197,22 @@ def test_defect_5_and_6_outputs_and_brief_ids(products):
     outs = pipeline.format_copyable_outputs(dummy_result)
     rep = outs["internal_report_md"]
     guide = outs["creator_guide_md"]
+    dm_clean = outs["creator_dm_clean_md"]
 
-    _assert("products.json" not in guide, "creator_guide_md에 개발자 파일명(products.json) 노출")
+    _assert("products.json" not in guide and "products.json" not in dm_clean, "개발자 파일명(products.json) 노출")
     _assert("제품 정보 확인 필요" in rep and "제품 정보 확인 필요" in guide, "confidence=medium 경고 누락")
     _assert("발송 보류 — 검수 필요" in rep and "발송 보류 — 검수 필요" in guide, "needs_review 상단 경고 누락")
     _assert("2026-11-25" in rep and "최근 30일" in rep and "2026-11-19" in rep, "기준일/수집기간/업로드일 누락")
     _assert("자막 확인 완료" in guide and "자막 확보(caption)" in rep, "자막 출처 표기 누락")
+    _assert("<!-- 마케터 내부 확인용 (발송 시 제외) -->" in guide, "creator_guide_md 내부 확인 블록 누락")
+    _assert("--- [아래부터 복사해서 인플루언서에게 전달] ---" in guide, "creator_guide_md 본문 구분선 누락")
+
+    # 순수 DM 본문(creator_dm_clean_md)에 내부 출처 주석·경고·리서치 어투 0건 검증
+    for forbidden_in_dm in [
+        "products.json", "요약", "kurly", "glowpick", "costco", "blancdoux.com",
+        "내세움", "제품 정보 확인 필요", "발송 보류", "마케터 내부 확인용",
+    ]:
+        _assert(forbidden_in_dm not in dm_clean, f"creator_dm_clean_md에 내부 문구 노출('{forbidden_in_dm}')")
 
     # 6: write_briefs가 go_ids 밖의 ID를 필터링하는지 검증 (Mock LLM)
     class MockStructuredLLM:
@@ -310,13 +320,98 @@ def eval_golden_set(products):
     }
 
 
+def test_redteam_rt1_to_rt4(products):
+    toner = products["올리고 히알루론산 딥 토너"]
+    pad = products["그린 플라보노이드 2.5 패드"]
+
+    # RT1: 정상 숏폼 연출 타임코드('첫 3초', '초반 3초', '3초 훅', '5초 컷', '10초 이내') → 오탐 0건
+    rt1_ok = pipeline.Storyboard(
+        video_id="Zl5CPQxmWFE",
+        hook="첫 3초: 화장솜에 토너를 듬뿍 적시는 클로즈업 (3초 훅)",
+        before="초반 3초 컷 전환 후 10초 이내 속건조 고민 공감, 5초 컷으로 피부 결 표현",
+        product_moment="저분자 히알루론산 워터 제형 토너로 15분~20분 토너 팩 연출",
+        cta="올리브영에서 확인해보세요",
+        creator_note="과대광고 금지",
+    )
+    v_rt1_ok = pipeline._brief_violations(rt1_ok, toner)
+    _assert(v_rt1_ok == [], f"RT1 정상 연출 타임코드 오탐: {v_rt1_ok}")
+
+    # RT1-B: 효능 과장 수치('1초 컷', '3초 만에') → 반드시 적발
+    rt1_bad = pipeline.Storyboard(
+        video_id="Zl5CPQxmWFE",
+        hook="속건조 1초 컷! 3초 만에 촉촉해지는 물토너",
+        before="건조한 피부",
+        product_moment="저분자 히알루론산 워터 제형 토너",
+        cta="확인해보세요",
+        creator_note="메모",
+    )
+    v_rt1_bad = " | ".join(pipeline._brief_violations(rt1_bad, toner))
+    _assert("1초" in v_rt1_bad and "3초" in v_rt1_bad, f"RT1 효능 과장 수치 미탐: {v_rt1_bad}")
+
+    # RT2: 화장품법 제13조 의약품/미인증 기능성/과장 표현 → 전부 적발
+    rt2_bad = pipeline.Storyboard(
+        video_id="Zl5CPQxmWFE",
+        hook="올영 랭킹 1등! 여드름 완치 수준으로 가라앉는 토너",
+        before="아토피 피부염으로 붉어진 얼굴",
+        product_moment="피부과 시술 없이 모공 축소, 주름 개선, 미백 효과 확실",
+        cta="품절 대란 베스트셀러 지금 구매",
+        creator_note="메모",
+    )
+    v_rt2 = " | ".join(pipeline._brief_violations(rt2_bad, toner))
+    for kw in ["여드름 완치", "아토피", "피부염", "피부과 시술", "모공 축소", "주름 개선", "미백", "품절 대란", "베스트셀러"]:
+        _assert(kw in v_rt2, f"RT2 화장품법 제13조 표현 미탐('{kw}'): {v_rt2}")
+
+    # RT3: 유튜브 자동자막 비음성 태그([음악], [박수], >>) 제거 후 정상 인용 통과
+    rt3_video = {
+        "video_id": "rt3_vid",
+        "title": "속건조 토너팩",
+        "views": 50000,
+        "likes": 1000,
+        "published_at": "2026-11-20T00:00:00Z",
+        "text_source": "caption",
+        "source_text": ">> 오늘 피부가 [음악] 너무 당겨서 [박수] 토너팩 해봤어요",
+    }
+    rt3_fact = pipeline.Fact(
+        video_id="rt3_vid",
+        domain="기초/스킨케어",
+        format_tag="응급처치 루틴형",
+        what_happens="피부가 당겨서 토너팩 진행",
+        product_types=["토너"],
+        hook_quote="오늘 피부가 너무 당겨서 토너팩 해봤어요",
+        evidence_quote="오늘 피부가 너무 당겨서 토너팩 해봤어요",
+    )
+    rt3_audited = pipeline.audit_facts([rt3_fact], [rt3_video])[0]
+    _assert(rt3_audited["evidence_ok"] is True and rt3_audited["hook_quote"] != "", f"RT3 자막 태그 오탐: {rt3_audited}")
+
+    # RT4: '각질 부각될 때 패드로 5분 팩' → 정상 Go 유지 (오탐 Drop 방지)
+    rt4_fact = {
+        "video_id": "rt4_vid",
+        "domain": "기초/스킨케어",
+        "format_tag": "응급처치 루틴형",
+        "what_happens": "화장 전 건조해서 각질 부각될 때 진정 패드로 5분 팩하기",
+        "product_types": ["진정 패드"],
+        "evidence_ok": True,
+        "text_source": "caption",
+    }
+    rt4_raw = [pipeline.Judgement(
+        video_id="rt4_vid", decision="Go", score=5,
+        reason="메이크업 전 진정 5~10분 팩 루틴과 직접 일치",
+        linked_claim=pad["verified_claims"][5],
+    )]
+    rt4_out = pipeline.apply_judgement_rules(rt4_raw, [rt4_fact], pad)[0]
+    _assert(rt4_out["decision"] == "Go" and rt4_out["score"] == 5, f"RT4 각질 부각 오탐 Drop 발생: {rt4_out}")
+
+    return "PASS (RT1 timecodes/1초컷, RT2 화장품법 제13조 9종, RT3 [음악]태그, RT4 각질부각 Go 유지)"
+
+
 def main():
     products = pipeline.load_products()
     print("=== [1] QA 6대 결함 회귀 테스트 ===")
     print("  Defect 1 (Step 4 감사/과대광고):", test_defect_1_brief_violations(products))
     print("  Defect 2 & 6 (P0 키워드/지표/유닛가드/import):", test_defect_2_agent_core_p0())
     print("  Defect 3 & 4 (meta/non_fit/linked_claim/합계):", test_defect_3_and_4_step2_guardrails(products))
-    print("  Defect 5 & 6 (2종 복사 산출물/go_ids 필터):", test_defect_5_and_6_outputs_and_brief_ids(products))
+    print("  Defect 5 & 6 (2종 복사 산출물/DM 정화/go_ids):", test_defect_5_and_6_outputs_and_brief_ids(products))
+    print("  Red-Team RT1~RT4:", test_redteam_rt1_to_rt4(products))
 
     print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
     summary = eval_golden_set(products)

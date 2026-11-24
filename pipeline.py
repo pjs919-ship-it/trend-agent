@@ -38,8 +38,12 @@ def load_products() -> Dict[str, Any]:
         return json.load(f)["products"]
 
 
+_CAPTION_NOISE_RE = re.compile(r"\[[^\]]{1,15}\]|>>")
+
+
 def _norm(s: str) -> str:
-    return re.sub(r"[\s\W_]+", "", s or "").lower()
+    cleaned = _CAPTION_NOISE_RE.sub(" ", s or "")
+    return re.sub(r"[\s\W_]+", "", cleaned).lower()
 
 
 # ───────────────────────── 자막 수집 ─────────────────────────
@@ -256,9 +260,9 @@ NON_FIT_KEYWORD_MAP: Dict[str, List[str]] = {
     "틴트": ["틴트", "립틴트", "립스틱"],
     "헤어": ["헤어", "샴푸", "트리트먼트", "두피", "탈모"],
     "바디": ["바디워시", "바디로션", "바디미스트", "바디스크럽"],
-    "각질": ["각질", "필링", "스크럽", "바하", "아하", "bha", "aha"],
+    "각질": ["각질 제거", "각질제거", "필링", "스크럽", "필링젤", "aha", "bha", "pha", "아하", "바하", "파하", "피지 녹이", "블랙헤드 제거"],
     "미백": ["미백", "기미", "잡티", "화이트닝", "톤업"],
-    "모공": ["모공", "블랙헤드", "화이트헤드", "피지", "클렌징오일", "클렌징밤"],
+    "모공": ["모공", "블랙헤드", "화이트헤드", "피지 녹이", "블랙헤드 제거", "클렌징오일", "클렌징밤"],
     "피지": ["피지", "블랙헤드", "모공"],
 }
 
@@ -420,24 +424,35 @@ def judge_fit(llm, facts: List[Dict[str, Any]], product_name: str, products: Dic
 
 # ───────────────────────── Step 3. 브리프 (Go만) ─────────────────────────
 NUM_TOKEN = re.compile(r"\d[\d,\.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시간|초|분|일|만\s*개?|억|개)")
+# 촬영/편집 연출 타임코드 화이트리스트 (효능 과장 '3초 만에', '1초 컷' 등은 제외)
+DIRECTION_TIME_RE = re.compile(
+    r"(?:첫|초반)\s*\d+\s*초(?!\s*만에)"
+    r"|\b\d+\s*초\s*(?:훅|이내|후|오프닝|클립|분량|연출|촬영)"
+    r"|\b(?:[3-9]|\d{2,})\s*초\s*컷"
+)
 COSMETIC_LAW_BANNED_TERMS = [
     "1위", "1등", "최고", "즉각", "완벽", "100%", "기적",
     "치료", "재생", "염증 완화", "염증완화", "피부과 치료",
     "완벽 차단", "붉은기 즉각", "즉각 진정", "즉각 완화",
+    "여드름 완치", "완치", "아토피", "피부염", "피부과 시술", "시술",
+    "모공 축소", "주름 개선", "미백 효과", "미백",
+    "품절 대란", "베스트셀러", "랭킹",
 ]
 
 
 def _token_in_claims(tok: str, claims_text: str) -> bool:
-    """수치 토큰이 확인된 제품 문구(범위 표기 포함)에 존재하는지 검사합니다."""
+    """수치 토큰이 확인된 제품 문구(범위 표기 양끝 포함)에 존재하는지 검사합니다."""
     norm_tok = _norm(tok)
     norm_claims = _norm(claims_text)
     if norm_tok in norm_claims:
         return True
-    # 범위 표기 지원 (예: claims에 '15~20분'이 있을 때 '15분' 또는 '20분' 허용)
+    # 범위 표기 지원 (예: claims에 '15~20분'이 있을 때 '15분'과 '20분' 모두 허용)
     m = re.match(r"(\d[\d,\.]*)\s*(분|시간|ml|ppm|%)", tok.strip())
     if m:
         num, unit = m.group(1), m.group(2)
         if re.search(rf"{re.escape(num)}\s*~\s*\d[\d,\.]*\s*{re.escape(unit)}", claims_text):
+            return True
+        if re.search(rf"\d[\d,\.]*\s*~\s*{re.escape(num)}\s*{re.escape(unit)}", claims_text):
             return True
     return False
 
@@ -459,7 +474,9 @@ def _brief_violations(b: Storyboard, product: Dict[str, Any]) -> List[str]:
         if nt and nt in norm_text and nt not in norm_claims:
             v.append(f"화장품법 과대광고/금지 표현 의심: {term}")
 
-    for tok in NUM_TOKEN.findall(text):
+    # 연출 타임코드('첫 3초', '3초 훅', '5초 컷', '10초 이내' 등)를 제외한 텍스트에서만 효능 수치 검사
+    num_scan_text = DIRECTION_TIME_RE.sub(" ", text)
+    for tok in NUM_TOKEN.findall(num_scan_text):
         if not _token_in_claims(tok, claims):
             v.append(f"출처 없는 수치 표현: {tok.strip()}")
 
@@ -512,6 +529,21 @@ def write_briefs(llm, go_items: List[Dict[str, Any]], facts: Dict[str, Dict[str,
 
 
 # ───────────────────────── Step 3-2. 즉시 복사 가능한 2종 마크다운 ─────────────────────────
+_INTERNAL_SOURCE_PAREN_RE = re.compile(
+    r"\s*\([^)]*(?:요약|blancdoux|kurly|glowpick|costco|hwahae|gsshop|koreadepart|미확인)[^)]*\)",
+    re.IGNORECASE,
+)
+
+
+def _clean_claim_for_creator(claim: str) -> str:
+    """대외 발송용 크리에이터 가이드에서 내부 출처 괄호 주석과 제3자 리서치 어투를 제거합니다."""
+    c = _INTERNAL_SOURCE_PAREN_RE.sub("", claim or "").strip()
+    c = re.sub(r"케어를\s*내세움$", "케어", c)
+    c = re.sub(r"를\s*내세움$", "", c)
+    c = re.sub(r"(?:으)?로\s*소개$", "", c)
+    return c.strip()
+
+
 def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
     """팀장/슬랙 보고용 1페이지 요약 + 인플루언서/대행사 전달용 촬영 가이드 생성."""
     product_name = result.get("product", "")
@@ -631,15 +663,33 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
 
     internal_report_md = "\n".join(rep).strip()
 
-    # 2) 인플루언서/대행사 전달용 촬영 가이드 (creator_guide_md) — 내부 파일명/개발자 용어 완전 제거
-    guide: List[str] = [
+    # 2) 인플루언서/대행사 전달용 촬영 가이드 (2단 분리: 마케터 내부 확인 블록 + 순수 DM 본문)
+    internal_notes: List[str] = ["<!-- 마케터 내부 확인용 (발송 시 제외) -->"]
+    if confidence != "high":
+        internal_notes.append(
+            f"- ⚠️ **[제품 정보 확인 필요]** 현재 제품 문구는 요약 기반(신뢰도: {confidence})입니다. "
+            "최종 광고·시딩 집행 전 공식 상세페이지 원문 및 임상 시험 조건을 반드시 확인하세요."
+        )
+    flagged_briefs = [b for b in briefs if b.get("needs_review")]
+    if flagged_briefs:
+        for b in flagged_briefs:
+            internal_notes.append(
+                f"- 🚨 **[발송 보류 — 검수 필요 (`{b['video_id']}`)]**: {'; '.join(b.get('violations', []))}"
+            )
+    else:
+        internal_notes.append("- ✅ **브리프 자동 검수**: 위반 사항 없음")
+    for idx, b in enumerate(briefs, 1):
+        vid = b["video_id"]
+        f = f_by_id.get(vid, {})
+        src_note = "자막 확인 완료(caption)" if f.get("text_source") == "caption" else "⚠️ 자막 미확인(meta — 발송 전 영상 직접 시청 필수)"
+        internal_notes.append(f"- **컨셉 #{idx} (`{vid}`) 출처 상태**: {src_note}")
+
+    clean_guide: List[str] = [
         f"# [크리에이터 촬영 가이드] {product_name}",
         f"- **배포 기준일**: {report_date} | **권장 규격**: 세로형 9:16 숏폼 (20~45초) | **필수 표기**: `#광고` 또는 `#협찬`",
         "> 아래 가이드는 최근 실제 바이럴 쇼츠 포맷과 공식 확인된 제품 정보만을 기반으로 작성되었습니다.",
+        "",
     ]
-    if conf_banner:
-        guide.extend(["", conf_banner])
-    guide.append("")
 
     if briefs:
         for idx, b in enumerate(briefs, 1):
@@ -647,14 +697,9 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
             v = v_by_id.get(vid, {})
             f = f_by_id.get(vid, {})
             pub_date = (v.get("published_at") or "-")[:10]
-            is_caption = f.get("text_source") == "caption"
-            src_label = "자막 확인 완료" if is_caption else "⚠️ 자막 미확인 — 레퍼런스 영상 직접 시청 후 촬영 필수"
-
-            guide.append(f"## 컨셉 #{idx}. [{f.get('format_tag', '기타')}] {v.get('title', vid)}")
-            if b.get("needs_review"):
-                guide.append(f"> 🚨 **[발송 보류 — 검수 필요]**: {'; '.join(b.get('violations', []))}")
-            guide.extend([
-                f"- **참고 레퍼런스**: https://youtube.com/shorts/{vid} (업로드 {pub_date} | 조회수 {v.get('views', 0):,}회 · 일평균 {v.get('views_per_day', 0):,}회 | {src_label})",
+            clean_guide.extend([
+                f"## 컨셉 #{idx}. [{f.get('format_tag', '기타')}] {v.get('title', vid)}",
+                f"- **참고 레퍼런스**: https://youtube.com/shorts/{vid} (업로드 {pub_date} | 조회수 {v.get('views', 0):,}회 · 일평균 {v.get('views_per_day', 0):,}회)",
                 f"- **첫 3초 훅**: {b['hook']}",
                 f"- **비포 상황**: {b['before']}",
                 f"- **제품 침투 시점**: {b['product_moment']}",
@@ -662,22 +707,30 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
                 f"- **촬영 주의사항**: {b['creator_note']}",
             ])
             if banned_list:
-                guide.append(f"- **절대 사용 금지 문구 (과대광고/미확인 표현 방지)**: {', '.join(banned_list)}")
-            guide.append("")
+                clean_guide.append(f"- **절대 사용 금지 문구 (과대광고/미확인 표현 방지)**: {', '.join(banned_list)}")
+            clean_guide.append("")
     else:
-        guide.append("- 이번 수집 배치에서 Go 판정 컨셉이 없어 촬영 가이드가 생성되지 않았습니다.")
+        clean_guide.append("- 이번 수집 배치에서 Go 판정 컨셉이 없어 촬영 가이드가 생성되지 않았습니다.")
         if banned_list:
-            guide.append(f"- **참고 금지 표현**: {', '.join(banned_list)}")
+            clean_guide.append(f"- **참고 금지 표현**: {', '.join(banned_list)}")
 
     if verified_claims:
-        guide.append("### [참고] 공식 확인된 제품 소구 포인트")
+        clean_guide.append("### [참고] 공식 확인된 제품 소구 포인트")
         for c in verified_claims:
-            guide.append(f"- {c}")
+            cleaned = _clean_claim_for_creator(c)
+            if cleaned:
+                clean_guide.append(f"- {cleaned}")
 
-    creator_guide_md = "\n".join(guide).strip()
+    creator_dm_clean_md = "\n".join(clean_guide).strip()
+    creator_guide_md = (
+        "\n".join(internal_notes).strip()
+        + "\n\n--- [아래부터 복사해서 인플루언서에게 전달] ---\n\n"
+        + creator_dm_clean_md
+    )
     return {
         "internal_report_md": internal_report_md,
         "creator_guide_md": creator_guide_md,
+        "creator_dm_clean_md": creator_dm_clean_md,
     }
 
 
