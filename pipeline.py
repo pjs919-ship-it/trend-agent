@@ -533,15 +533,26 @@ _INTERNAL_SOURCE_PAREN_RE = re.compile(
     r"\s*\([^)]*(?:요약|blancdoux|kurly|glowpick|costco|hwahae|gsshop|koreadepart|미확인)[^)]*\)",
     re.IGNORECASE,
 )
+_INTERNAL_BANNED_PAREN_RE = re.compile(
+    r"\s*\([^)]*(?:정정|단정|미확인|요약)[^)]*\)",
+    re.IGNORECASE,
+)
 
 
 def _clean_claim_for_creator(claim: str) -> str:
-    """대외 발송용 크리에이터 가이드에서 내부 출처 괄호 주석과 제3자 리서치 어투를 제거합니다."""
-    c = _INTERNAL_SOURCE_PAREN_RE.sub("", claim or "").strip()
+    """대외 발송용 크리에이터 가이드에서 미확인 임상 문구와 내부 출처 괄호 주석·제3자 어투를 제거합니다."""
+    if not claim or "시험 조건은 미확인" in claim:
+        return ""
+    c = _INTERNAL_SOURCE_PAREN_RE.sub("", claim).strip()
     c = re.sub(r"케어를\s*내세움$", "케어", c)
     c = re.sub(r"를\s*내세움$", "", c)
     c = re.sub(r"(?:으)?로\s*소개$", "", c)
     return c.strip()
+
+
+def _clean_banned_for_creator(item: str) -> str:
+    """금지 표현 목록에서 내부 수정 이력 괄호((대나무 유래로 정정), (단정 표현) 등)를 제거합니다."""
+    return _INTERNAL_BANNED_PAREN_RE.sub("", item or "").strip()
 
 
 def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
@@ -563,7 +574,10 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
 
     products = load_products()
     prod_info = products.get(product_name, {})
-    banned_list = prod_info.get("unverified_removed_from_v1", [])
+    banned_list = [
+        cleaned for cleaned in (_clean_banned_for_creator(x) for x in prod_info.get("unverified_removed_from_v1", []))
+        if cleaned
+    ]
     verified_claims = prod_info.get("verified_claims", [])
     confidence = result.get("product_confidence") or prod_info.get("confidence", "unknown")
 

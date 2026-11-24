@@ -214,6 +214,13 @@ def test_defect_5_and_6_outputs_and_brief_ids(products):
     ]:
         _assert(forbidden_in_dm not in dm_clean, f"creator_dm_clean_md에 내부 문구 노출('{forbidden_in_dm}')")
 
+    # 워터리 스킨 마스크 디테일 2건 검증: 미확인 임상(111.25%) 자동 제외 + 금지 문구 내부 정정 괄호 제거
+    mask_res = {**dummy_result, "product": "올리고 히알루론산 워터리 스킨 마스크", "briefs": [], "judgements": []}
+    mask_dm = pipeline.format_copyable_outputs(mask_res)["creator_dm_clean_md"]
+    _assert("111.25%" not in mask_dm and "시험 조건" not in mask_dm, f"워터리 마스크 미확인 임상 문구 노출: {mask_dm}")
+    _assert("대나무 유래로 정정" not in mask_dm and "단정 표현" not in mask_dm, f"금지 문구 내부 정정 괄호 노출: {mask_dm}")
+    _assert("식물성 초밀착 시트" in mask_dm and "열감 내리는 효과" in mask_dm, f"정제된 금지 문구 누락: {mask_dm}")
+
     # 6: write_briefs가 go_ids 밖의 ID를 필터링하는지 검증 (Mock LLM)
     class MockStructuredLLM:
         def invoke(self, _prompt):

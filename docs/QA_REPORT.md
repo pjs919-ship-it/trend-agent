@@ -229,3 +229,60 @@
 3. **[UI 안전장치 & 라이브 E2E 필수]**
    - **UI 안전장치**: `needs_review=True`인 브리프가 포함되었을 때, Streamlit UI에서 `creator_dm_clean_md` 원클릭 복사 버튼을 비활성화하거나 빨간 경고 배너를 띄워 실수 발송을 원천 차단할 것.
    - **라이브 E2E 실증 (최종 출고 필수 조건)**: 외부 API 권한 확보 후 `qa/run_once.py`로 실제 YouTube 수집(7/14/30일 비교) + 실제 `gemini-2.5-flash-lite` E2E 1회 실행 결과를 검수해 **실제 생성 콘티의 구체성(절대 기준 4)**과 **수집 품질(PRD 기준 5)**을 최종 확정할 것.
+
+
+---
+
+## Sprint 5 통합 레드팀 QA 검수 — 블랑두 3개 제품 전체 + Streamlit/HTML UI + DM 디테일
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `pipeline.py`, `app.py`, `TrendSetter_KBeauty_Pro.html`, `qa/eval_golden.py`, `qa/benchmark_days.py`, `products.json` (3개 제품 전체)
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`**
+  - `python qa/benchmark_days.py --dry-run` → `exit code 0` / **`DRY-RUN PASS!`** (예상 904 / 1,500유닛 예산 내)
+  - 블랑두 3개 제품(`올리고 히알루론산 딥 토너`, `그린 플라보노이드 2.5 패드`, `올리고 히알루론산 워터리 스킨 마스크`) 전체 `creator_dm_clean_md` 생성 및 전수 육안 검수
+- **최종 판정**: **✅ PASS — 오프라인 통합 게이트 PASS (라이브 E2E & 7/14/30일 실측 벤치마크 대기 조건부)**
+
+> **마케터 총평**:  
+> 블랑두 3개 제품 전체의 `creator_dm_clean_md`에서 미확인 임상 수치(`111.25%`)와 내부 괄호 메모(`대나무 유래로 정정`, `단정 표현`, `요약`)가 **완벽히 0건**으로 정리되었다. `app.py`는 모든 동적 필드에 `html.escape` XSS 방어와 `needs_review` DM 복사 `confirm()` 가드를 갖췄으며, `TrendSetter_KBeauty_Pro.html`도 근거 없는 문구(7스킨·올리브영 1위·2.5mm)를 제품 소구점에서 완전 제거하고 2-Stage 분리 호출과 클라이언트 강제 Drop을 구현했다. 오프라인 제품 통합 게이트는 **PASS**로 승인한다. 단, 아래 레드팀 발견 약점 3건(특히 HTML 샘플 조회수 실측치 통일 및 HTML LIVE 수치 감사 패리티)은 다음 패치에 반영하고, 대외 출고 전 라이브 E2E 1회 실증을 완료해야 한다.
+
+---
+
+### 1. 블랑두 3개 제품 실사용 DM 리허설 검수 결과
+
+| 제품명 | 미확인 임상(`111.25%`) | 내부 괄호(`정정`/`단정 표현`/`요약`) | 금지 문구 정제 | DM 복붙 적합성 |
+|---|---|---|---|---|
+| **올리고 히알루론산 딥 토너** | 0건 | 0건 | 4종 깔끔 표기 | ✅ 즉시 발송 가능 |
+| **그린 플라보노이드 2.5 패드** | 0건 | 0건 | `3중 레이어 거즈 패드, 붉은기 즉각 완화` | ✅ 즉시 발송 가능 |
+| **올리고 히알루론산 워터리 스킨 마스크** | **0건 (제외 완료)** | 0건 | `식물성 초밀착 시트, 열감 내리는 효과` | ✅ 즉시 발송 가능 |
+
+---
+
+### 2. 레드팀 통합 감사에서 발견된 잔여 약점 3가지 (증거 포함) 및 개선 제안
+
+#### [약점 1 — Medium] `TrendSetter_KBeauty_Pro.html` LIVE 모드의 감사 패리티 부족 (`NUM_TOKEN` 누락 & `meta` 표기 부정확)
+- **위치**: `TrendSetter_KBeauty_Pro.html` L396-408 (`checkBriefViolations`), L504 & L536-550 (`runLive2Stage`), L705
+- **근거**:
+  1. `checkBriefViolations`(L396-408)가 `prod.banned`와 `COSMETIC_BANNED`만 검사하고, `pipeline.py`에 있는 `NUM_TOKEN` 출처 없는 수치 검사(`24시간 보습`, `10배 흡수`, `3초 만에 진정` 등)가 빠져 있다.
+  2. 브라우저 LIVE 모드는 CORS 제약상 모든 영상이 `text_source: "meta"`로 수집되는데(L504), `evidence_ok=False` 강제 Drop이 없고 L705에는 `meta` 영상에도 `"💬 실제 영상 원문 인용 / 100% 원문 대조 통과"`가 고정 출력된다.
+- **개선 제안**: `checkBriefViolations`에 `NUM_TOKEN` + `DIRECTION_TIME_RE` 로직을 동일 이식하고, `evidence_ok=False` 강제 Drop 및 LIVE 모드 상단에 `"브라우저 모드는 제목·설명(meta) 기반입니다. 자막 정밀 검증은 Streamlit 또는 JSON 로드를 사용하세요"` 안내 배너 추가.
+
+#### [약점 2 — Medium] `TrendSetter_KBeauty_Pro.html` 샘플 리허설 데이터의 조회수 임의 부풀림
+- **위치**: `TrendSetter_KBeauty_Pro.html` L600-602 (`loadSampleRehearsal`)
+- **근거**:
+  - 실제 `qa/golden_set.json`(로컬 캐시 실측)에서 `brKNpouibqo`=1,187회, `Zl5CPQxmWFE`=162회, `RdXhzcCVtsw`=1,009회인데, HTML 샘플에서는 각각 `118,700회`(100배), `84,200회`(520배), `62,400회`(62배)로 부풀려져 있다.
+  - `app.py`는 실측치를 정직하게 표시하는 반면 HTML 샘플만 부풀려져 있어, 마케터가 `쇼츠 보기 ↗` 링크를 클릭했을 때 실제 조회수와 100배 차이가 나면 신뢰도가 훼손된다.
+- **개선 제안**: `loadSampleRehearsal()`의 조회수·좋아요를 `qa/golden_set.json`의 실측치로 통일(또는 실제 고조회수 캐시 확보 후 교체).
+
+#### [약점 3 — Low/UX] `app.py` 사이드바 제품 변경 시 리허설 화면 미자동갱신 및 죽은 줄
+- **위치**: `app.py` L292, L405-409
+- **근거**:
+  - 사이드바에서 대상 제품을 변경해도 `🧪 스냅샷/리허설 보기` 버튼을 다시 누르기 전까지 이전 제품 결과가 그대로 유지된다.
+  - L292 `videos = [pipeline._ensure_video_metrics(it) for it in gs_items[:10]]`가 L297에서 즉시 덮어씌워지는 죽은 코드다.
+- **개선 제안**: `_mode != "live"` 상태에서 `selected_product`가 변경되면 리허설 결과를 자동 갱신하고 L292 제거.
+
+---
+
+### 3. 최종 출고 전 남은 필수 검증 (외부 API 권한 확보 후)
+1. [ ] `python qa/benchmark_days.py` 실측 실행 → 7/14/30일 + `mostPopular` 데이터로 최적 기본 기간 확정 (PRD 수용 기준 5)
+2. [ ] `python qa/run_once.py` 라이브 E2E 1회 실행 → 실제 `gemini-2.5-flash-lite`가 생성한 콘티의 구체성(절대 기준 4) 최종 육안 검수
