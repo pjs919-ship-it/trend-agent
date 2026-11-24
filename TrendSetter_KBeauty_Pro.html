@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrendSetter K-Beauty Pro | 인하우스 마케터 에이전트</title>
+<style>
+  :root {
+    --purple: #6C2BD9; --purple-soft: #f1ecfc; --purple-dark: #4c1d95;
+    --teal: #14897F; --teal-soft: #e7f4f2;
+    --ink: #1C1730; --gold: #BF8A12; --gold-soft: #fffdf6;
+    --line: #ece9f5; --muted: #6b7280; --bg: #faf9fe;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.55;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 20px 100px; }
+  
+  /* Hero */
+  .hero-tag { display: inline-block; font-size: 0.8rem; font-weight: 800; color: var(--purple); background: var(--purple-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 8px; }
+  .hero { font-size: 2.1rem; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .sub { color: var(--muted); margin-bottom: 24px; font-size: 1rem; }
+
+  /* Card */
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px 26px;
+    box-shadow: 0 2px 5px rgba(28,23,48,.04); margin-bottom: 20px;
+  }
+  .section-h { font-weight: 800; margin: 0 0 14px; font-size: 1.18rem; display: flex; align-items: center; justify-content: space-between; }
+  label { display: block; font-weight: 700; font-size: 0.9rem; margin: 12px 0 5px; }
+  input, select, textarea {
+    width: 100%; padding: 12px 14px; border: 1px solid #ddd6ee; border-radius: 10px;
+    font-size: 0.95rem; background: #fff; color: var(--ink); font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-soft); }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; } .row > div { flex: 1; min-width: 240px; }
+  .hint { font-size: 0.8rem; color: var(--muted); margin-top: 5px; } .hint a { color: var(--teal); }
+
+  /* Product Presets */
+  .preset-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .preset-btn {
+    padding: 7px 12px; border: 1px solid #d8d3e8; background: #fff; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active {
+    background: var(--purple-soft); border-color: var(--purple); color: var(--purple);
+  }
+
+  /* Buttons */
+  button.primary {
+    margin-top: 20px; width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: var(--purple); color: #fff; font-size: 1.05rem; font-weight: 800; cursor: pointer; transition: filter 0.15s;
+  }
+  button.primary:hover { filter: brightness(1.08); } button.primary:disabled { opacity: .5; cursor: not-allowed; }
+  button.sec {
+    padding: 9px 15px; border: 1px solid var(--purple); background: #fff; color: var(--purple);
+    border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.88rem;
+  }
+  button.sec:hover { background: var(--purple-soft); }
+
+  /* Hierarchy Components */
+  .insight-box {
+    background: linear-gradient(135deg, #f7f3ff 0%, #fff 100%);
+    border: 1px solid #e0d8f5; border-left: 5px solid var(--purple);
+    border-radius: 12px; padding: 16px 20px; color: #2d264d; margin-bottom: 20px; font-size: 1.02rem; line-height: 1.6;
+  }
+  .tcard {
+    border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; margin-bottom: 18px; background: #fff;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .tcard:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(28,23,48,.05); }
+  .tcard.gold { border: 2px solid var(--gold); background: var(--gold-soft); }
+  .ttitle { font-size: 1.15rem; font-weight: 800; margin: 4px 0 6px; }
+  .tsum { color: #374151; font-size: 0.98rem; margin-bottom: 10px; }
+  .cat {
+    display: inline-block; font-size: 0.75rem; font-weight: 800; color: var(--purple);
+    background: var(--purple-soft); border-radius: 999px; padding: 3px 10px; margin-bottom: 6px;
+  }
+  .score { float: right; font-weight: 800; letter-spacing: 2px; font-size: 1.1rem; }
+  .dim { color: #d8d3e8; }
+  .meta-line { font-size: 0.86rem; color: var(--muted); margin: 6px 0; }
+  .meta-line b { color: #374151; }
+  .chips { margin: 8px 0 4px; }
+  .chip {
+    display: inline-block; font-size: 0.78rem; font-weight: 600; color: var(--teal);
+    background: var(--teal-soft); border-radius: 999px; padding: 3px 10px; margin: 0 5px 5px 0;
+  }
+  .tangle {
+    color: #2b2544; font-size: 0.95rem; border-top: 1px dashed var(--line);
+    padding-top: 12px; margin-top: 12px; font-weight: 500;
+  }
+
+  /* 1:1 Video Evidence Box */
+  .evid-box {
+    background: #fbfaff; border: 1px solid #eeeaf7; border-radius: 12px; padding: 12px 14px; margin-top: 14px;
+  }
+  .evid-label { font-size: 0.8rem; font-weight: 800; color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .evid-item {
+    display: flex; gap: 12px; align-items: center; padding: 8px; border: 1px solid var(--line);
+    border-radius: 10px; background: #fff; margin-bottom: 6px; text-decoration: none; color: inherit; transition: border-color 0.15s;
+  }
+  .evid-item:hover { border-color: var(--purple); }
+  .evid-item img { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; flex: none; background: #eee; }
+  .evid-info { min-width: 0; }
+  .evid-title { font-weight: 700; font-size: 0.9rem; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .evid-meta { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+  /* 4-Step Storyboard */
+  .storyboard-box {
+    background: #fcfaff; border: 1px solid #e5def5; border-radius: 14px; padding: 16px 18px; margin-top: 14px;
+  }
+  .sb-title { font-size: 0.95rem; font-weight: 800; color: var(--purple); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 700px){ .sb-grid { grid-template-columns: 1fr; } }
+  .sb-step { background: #fff; border: 1px solid #ebe5f5; border-radius: 10px; padding: 12px; }
+  .sb-step-name { font-size: 0.78rem; font-weight: 800; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+  .sb-step-desc { font-size: 0.9rem; color: var(--ink); line-height: 1.45; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .keystatus { font-size: 0.8rem; font-weight: 700; margin-left: 6px; }
+  .ok { color: var(--teal); } .bad { color: #dc2626; }
+  .log { font-size: 0.86rem; color: var(--muted); margin-top: 12px; white-space: pre-wrap; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero-tag">K-BEAUTY IN-HOUSE AGENT</div>
+  <div class="hero">💄 TrendSetter K-Beauty Pro</div>
+  <div class="sub">한국 유튜브 Shorts 메가 트렌드(조회수 10만+) 분석 & 더랩바이블랑두 숏폼 캠페인 기획기</div>
+
+  <!-- Config Card -->
+  <div class="card" id="configCard">
+    <div class="section-h">
+      <span>⚙️ 트렌드 탐색 & 브랜드 설정</span>
+      <span class="hint">YouTube Data API v3 + Gemini</span>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>YouTube Data API v3 키 <span id="ytStatus" class="keystatus"></span></label>
+        <input id="ytKey" type="password" placeholder="AIzaSy... (YouTube)" autocomplete="off" />
+      </div>
+      <div>
+        <label>Gemini API 키 <span id="gmStatus" class="keystatus"></span></label>
+        <input id="gmKey" type="password" placeholder="AIzaSy... (Gemini)" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:6px;">
+      <div>
+        <label>트렌드 수집 기간 (최근 N일)</label>
+        <select id="daysRange">
+          <option value="3">🔥 최근 3일 이내 (초단기 급상승 밈/바이럴)</option>
+          <option value="7" selected>📈 최근 7일 이내 (1주일간 검증된 인기 쇼츠)</option>
+          <option value="10">🏆 최근 10일 이내 (누적 메가 바이럴)</option>
+        </select>
+      </div>
+      <div>
+        <label>Gemini 모델</label>
+        <select id="modelSel">
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (무료 티어 최적 · 초고속)</option>
+          <option value="gemini-flash-latest">gemini-flash-latest</option>
+          <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>🏢 더랩바이블랑두(THE LAB by blanc doux) 제품 원클릭 선택</label>
+      <div class="preset-btns">
+        <button type="button" class="preset-btn active" data-prod="올리고 히알루론산 딥 토너">💧 올리고 히알루론산 딥 토너 (속건조·물토너)</button>
+        <button type="button" class="preset-btn" data-prod="그린 플라보노이드 2.5 패드">🌿 그린 플라보노이드 2.5 패드 (트러블 쿨링 진정)</button>
+        <button type="button" class="preset-btn" data-prod="올리고 히알루론산 워터리 스킨 마스크">🧊 올리고 히알루론산 워터리 마스크 (급속 수분 부스팅)</button>
+        <button type="button" class="preset-btn" data-prod="custom">✏️ 직접 입력</button>
+      </div>
+      <textarea id="brandContext" rows="2" style="margin-top:8px;" placeholder="우리 제품 소구점...">[더랩바이블랑두] 올리고 히알루론산 딥 토너: 속건조 1초 잡는 저분자 히알루론산 100% 흡수 물토너 / 올리브영 1위 토너 / 끈적임 없는 7스킨 레이어링</textarea>
+    </div>
+
+    <button class="primary" id="runBtn" disabled>🚀 메가 트렌드 쇼츠 분석 & 콘티 기획 시작</button>
+    <div class="log" id="logBox"></div>
+  </div>
+
+  <!-- Results Area -->
+  <div id="resultsArea" class="hidden"></div>
+</div>
+
+<script>
+const BLANCDOUX_DATA = {
+  "올리고 히알루론산 딥 토너": "[더랩바이블랑두] 올리고 히알루론산 딥 토너: 속건조 1초 잡는 저분자 히알루론산 100% 흡수 물토너 / 올리브영 1위 토너 / 끈적임 없는 7스킨 레이어링",
+  "그린 플라보노이드 2.5 패드": "[더랩바이블랑두] 그린 플라보노이드 2.5 패드: 트러블 피부 붉은기 급속 진정 비건 쿨링 패드 / 3중 레이어 초밀착 거즈 / 여드름성 피부 적합",
+  "올리고 히알루론산 워터리 스킨 마스크": "[더랩바이블랑두] 올리고 히알루론산 워터리 스킨 마스크: 피부 열감 내리는 밀착 수분 충전 급속 부스팅 마스크 / 화잘먹 치트키 / 초밀착 식물성 시트",
+  "custom": ""
+};
+
+const KBEAUTY_SEARCH_KEYWORDS = ["올리브영 추천템", "스킨케어 꿀조합", "메이크업 꿀팁", "인생템 추천", "화잘먹 기초 루틴"];
+const HANGUL = /[가-힣]/g;
+
+const $ = id => document.getElementById(id);
+const ytKey = $("ytKey"), gmKey = $("gmKey"), daysRange = $("daysRange"), modelSel = $("modelSel"),
+      brandContext = $("brandContext"), runBtn = $("runBtn"), logBox = $("logBox"), resultsArea = $("resultsArea");
+
+let CTX = { rows: [], byId: {}, report: null };
+
+// Preset Buttons
+document.querySelectorAll(".preset-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const key = btn.dataset.prod;
+    brandContext.value = BLANCDOUX_DATA[key] || "";
+    if (key === "custom") brandContext.focus();
+  });
+});
+
+const log = m => { logBox.textContent += (logBox.textContent ? "\n" : "") + m; };
+const clearLog = () => { logBox.textContent = ""; };
+const setStatus = (el, ok) => { el.className = "keystatus " + (ok ? "ok" : "bad"); el.textContent = ok ? "🟢" : "🔴"; };
+
+function refreshRun() {
+  runBtn.disabled = !(ytKey.value.trim().length > 20 && gmKey.value.trim().length > 20);
+}
+ytKey.addEventListener("input", () => { setStatus($("ytStatus"), ytKey.value.trim().length > 20); refreshRun(); });
+gmKey.addEventListener("input", () => { setStatus($("gmStatus"), gmKey.value.trim().length > 20); refreshRun(); });
+
+const isoSec = d => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d||""); return m ? (+(m[1]||0))*3600 + (+(m[2]||0))*60 + (+(m[3]||0)) : 0; };
+const recentAfter = days => new Date(Date.now() - days * 86400 * 1000).toISOString().split(".")[0] + "Z";
+const esc = s => String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+async function fetchMegaShorts(ytk, days) {
+  const publishedAfter = recentAfter(days);
+  let candidateIds = [];
+
+  for (const kw of KBEAUTY_SEARCH_KEYWORDS.slice(0, 3)) {
+    log(`  🔎 유튜브 메가 트렌드 탐색: "${kw}" (최근 ${days}일 이내)`);
+    const u = new URL("https://www.googleapis.com/youtube/v3/search");
+    u.search = new URLSearchParams({
+      part: "snippet", q: `${kw} shorts`, type: "video", videoDuration: "short",
+      videoCategoryId: "26", order: "viewCount", regionCode: "KR", relevanceLanguage: "ko",
+      maxResults: "10", publishedAfter, key: ytk
+    }).toString();
+
+    let r = await fetch(u);
+    if (!r.ok) {
+      // 카테고리 필터 미지원 시 일반 검색 폴백
+      u.searchParams.delete("videoCategoryId");
+      r = await fetch(u);
+    }
+    if (r.ok) {
+      const d = await r.json();
+      candidateIds.push(...(d.items || []).map(it => it.id.videoId).filter(Boolean));
+    }
+  }
+
+  candidateIds = [...new Set(candidateIds)];
+  if (!candidateIds.length) return [];
+
+  log(`  📊 수집된 ${candidateIds.length}개 후보 영상 상세 데이터(조회수/썸네일) 일괄 조회…`);
+  const vu = new URL("https://www.googleapis.com/youtube/v3/videos");
+  vu.search = new URLSearchParams({
+    part: "snippet,contentDetails,statistics",
+    id: candidateIds.slice(0, 50).join(","),
+    key: ytk
+  }).toString();
+
+  const vr = await fetch(vu);
+  if (!vr.ok) throw new Error("영상 상세 조회 실패");
+  const vd = await vr.json();
+
+  let rows = [];
+  for (const it of (vd.items || [])) {
+    const secs = isoSec(it.contentDetails?.duration);
+    if (secs === 0 || secs > 120) continue; // 쇼츠 규격
+    const sn = it.snippet || {};
+    const views = +(it.statistics?.viewCount || 0);
+
+    rows.push({
+      video_id: it.id,
+      title: sn.title || "",
+      channel: sn.channelTitle || "",
+      views: views,
+      published_at: (sn.publishedAt || "").slice(0, 10),
+      thumb: (sn.thumbnails?.medium?.url) || (sn.thumbnails?.default?.url) || "",
+      duration_s: secs
+    });
+  }
+
+  // 저유입 영상(조회수 5,000회 미만) 필터링 (메가 바이럴 엄선)
+  const highImpact = rows.filter(r => r.views >= 5000);
+  if (highImpact.length >= 5) rows = highImpact;
+
+  // 한글 필터
+  const korean = rows.filter(r => ((r.title + " " + r.channel).match(HANGUL) || []).length >= 2);
+  if (korean.length >= 3) rows = korean;
+
+  // 조회수 순 정렬 (메가 바이럴 우선)
+  rows.sort((a, b) => b.views - a.views);
+  return rows.slice(0, 10);
+}
+
+const REPORT_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    date: { type: "STRING" },
+    market_insight: { type: "STRING" },
+    cards: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          category: { type: "STRING" },
+          summary: { type: "STRING" },
+          brand_score: { type: "INTEGER" },
+          score_reason: { type: "STRING" },
+          target_audience: { type: "STRING" },
+          hashtags: { type: "ARRAY", items: { type: "STRING" } },
+          campaign_angle: { type: "STRING" },
+          evidence_ids: { type: "ARRAY", items: { type: "STRING" } },
+          storyboard: {
+            type: "OBJECT",
+            properties: {
+              hook_scene: { type: "STRING" },
+              setup_scene: { type: "STRING" },
+              solution_scene: { type: "STRING" },
+              cta_scene: { type: "STRING" }
+            },
+            required: ["hook_scene", "setup_scene", "solution_scene", "cta_scene"]
+          }
+        },
+        required: ["title", "category", "summary", "brand_score", "score_reason", "target_audience", "hashtags", "campaign_angle", "evidence_ids", "storyboard"]
+      }
+    },
+    golden_pick: { type: "STRING" },
+    golden_reason: { type: "STRING" }
+  },
+  required: ["date", "market_insight", "cards", "golden_pick", "golden_reason"]
+};
+
+async function analyzeWithGemini(rows, gmk, model, brandText) {
+  const today = new Date().toISOString().slice(0, 10);
+  const dataList = rows.map(r => `- video_id:${r.video_id} | 제목:${r.title} | 채널:${r.channel} | 조회수:${r.views.toLocaleString()}회 | 업로드:${r.published_at}`).join("\n");
+
+  const systemPrompt = `당신은 대한민국 최정상 K-뷰티 숏폼 바이럴 총괄 디렉터 AI입니다.
+한국 유튜브 Shorts 실시간 메가 트렌드 데이터(수십만~수백만 조회수)를 분석하고, 브랜드 제품에 최적화된 4단 숏폼 콘티([첫 3초 훅] - [비포 공감대] - [제품 소구점 연출] - [CTA])를 작성합니다.
+규칙: 반드시 한국어. evidence_ids에는 제공된 목록의 실제 video_id만 넣고 절대 가짜 ID를 만들지 마세요.`;
+
+  const userText = `오늘(${today}) 수집된 한국 유튜브 Shorts 메가 트렌드 목록입니다.
+이 목록만 근거로 분석하세요.
+
+[우리 브랜드 제품 정보]
+${brandText || "더랩바이블랑두 올리고 히알루론산 딥 토너 (속건조 해결, 물토너)"}
+
+[수집된 실제 메가 쇼츠 영상]
+${dataList}
+
+요구사항:
+1. market_insight: 오늘 뷰티 쇼츠를 관통하는 핵심 2~3줄 시장 인사이트
+2. cards (3~5개):
+   - title / category(루틴·챌린지·성분제형·리뷰) / summary(30자 내외)
+   - brand_score (1~5점) / score_reason (점수 이유)
+   - target_audience / hashtags (3~5개)
+   - campaign_angle (캠페인 기획 방향 1~2문장)
+   - evidence_ids (위 목록의 video_id 중 가장 적합한 1~2개)
+   - storyboard: 우리 브랜드 제품과 트렌드를 접목한 구체적인 4단 콘티 (hook_scene, setup_scene, solution_scene, cta_scene)
+3. golden_pick: 지금 당장 올라타야 할 1등 트렌드 제목 + golden_reason`;
+
+  const body = {
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: userText }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: REPORT_SCHEMA,
+      temperature: 0.3
+    }
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${gmk}`;
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(`Gemini 호출 실패 (HTTP ${r.status})`);
+  const d = await r.json();
+  const text = d.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "";
+  return JSON.parse(text);
+}
+
+runBtn.addEventListener("click", async () => {
+  const ytk = ytKey.value.trim(), gmk = gmKey.value.trim(),
+        days = +daysRange.value, model = modelSel.value,
+        brandText = brandContext.value.trim();
+
+  runBtn.disabled = true;
+  resultsArea.classList.add("hidden");
+  resultsArea.innerHTML = "";
+  clearLog();
+
+  try {
+    log(`▶ K-뷰티 메가 트렌드 Shorts 수집 시작 (최근 ${days}일)…`);
+    const rows = await fetchMegaShorts(ytk, days);
+    if (!rows.length) throw new Error("수집된 Shorts가 없습니다. (API 쿼터를 확인하세요)");
+
+    log(`  ✅ ${rows.length}개 메가 쇼츠 수집 완료 (평균 조회수: ${Math.round(rows.reduce((a,b)=>a+b.views,0)/rows.length).toLocaleString()}회)`);
+    log(`  🤖 Gemini AI (${model}) 기반 브랜드 맞춤 분석 & 4단 콘티 생성 중…`);
+
+    const report = await analyzeWithGemini(rows, gmk, model, brandText);
+    log(`  ✅ 분석 및 콘티 기획 완료!`);
+
+    CTX = { rows, byId: Object.fromEntries(rows.map(r => [r.video_id, r])), report };
+    renderResults(report, rows);
+
+  } catch (e) {
+    resultsArea.classList.remove("hidden");
+    resultsArea.innerHTML = `<div class="card"><div style="color:#dc2626; font-weight:700;">⚠️ 오류 발생: ${esc(e.message)}</div><div class="hint" style="margin-top:6px;">API 키 유효성 및 유튜브 일일 쿼터를 확인해 주세요.</div></div>`;
+  } finally {
+    runBtn.disabled = false;
+  }
+});
+
+const dots = n => {
+  n = Math.max(1, Math.min(5, n | 0));
+  const c = n === 5 ? "var(--gold)" : "var(--purple)";
+  return `<span class="score" style="color:${c}">${"●".repeat(n)}<span class="dim">${"○".repeat(5-n)}</span> ${n}점</span>`;
+};
+
+function renderEvidBox(ids) {
+  const found = (ids || []).map(id => CTX.byId[id]).filter(Boolean);
+  if (!found.length) return "";
+  return `
+    <div class="evid-box">
+      <div class="evid-label">🎬 근거 메가 쇼츠 (${found.length}건 직결)</div>
+      ${found.map(v => `
+        <a class="evid-item" href="https://youtu.be/${v.video_id}" target="_blank">
+          <img src="${v.thumb}" alt="" />
+          <div class="evid-info">
+            <div class="evid-title">${esc(v.title)}</div>
+            <div class="evid-meta">📺 ${esc(v.channel)} · 👀 <b>${v.views.toLocaleString()}회</b> · 📅 ${v.published_at}</div>
+          </div>
+        </a>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderStoryboardBox(sb) {
+  if (!sb) return "";
+  return `
+    <div class="storyboard-box">
+      <div class="sb-title">🎬 [더랩바이블랑두 맞춤 4단 숏폼 콘티]</div>
+      <div class="sb-grid">
+        <div class="sb-step">
+          <div class="sb-step-name">⚡ 1. 첫 3초 바이럴 훅</div>
+          <div class="sb-step-desc">${esc(sb.hook_scene)}</div>
+        </div>
+        <div class="sb-step">
+          <div class="sb-step-name">👀 2. 비포 공감대 형성</div>
+          <div class="sb-step-desc">${esc(sb.setup_scene)}</div>
+        </div>
+        <div class="sb-step">
+          <div class="sb-step-name">💧 3. 제품 소구점 & 텍스처 연출</div>
+          <div class="sb-step-desc">${esc(sb.solution_scene)}</div>
+        </div>
+        <div class="sb-step">
+          <div class="sb-step-name">🛒 4. 마켓 타이밍 CTA</div>
+          <div class="sb-step-desc">${esc(sb.cta_scene)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderResults(report, rows) {
+  const golden = (report.golden_pick || "").trim();
+
+  // Cards
+  const cardsHtml = (report.cards || []).map(c => {
+    const isGold = golden && (c.title.includes(golden) || golden.includes(c.title));
+    const chips = (c.hashtags || []).map(h => `<span class="chip">#${esc(String(h).replace(/^#/,""))}</span>`).join("");
+
+    return `
+      <div class="tcard ${isGold ? "gold" : ""}">
+        ${dots(c.brand_score)}
+        <span class="cat">${esc(c.category)}</span>
+        <div class="ttitle">${isGold ? "👑 " : ""}${esc(c.title)}</div>
+        <div class="tsum">${esc(c.summary)}</div>
+        <div class="meta-line"><b>점수 근거</b> · ${esc(c.score_reason || "-")}</div>
+        <div class="meta-line"><b>핵심 타깃</b> · ${esc(c.target_audience || "-")}</div>
+        <div class="chips">${chips}</div>
+        <div class="tangle">💡 <b>캠페인 기획 방향</b> — ${esc(c.campaign_angle)}</div>
+        ${renderEvidBox(c.evidence_ids)}
+        ${renderStoryboardBox(c.storyboard)}
+      </div>
+    `;
+  }).join("");
+
+  // Verification Badge
+  const allIds = new Set(rows.map(r => r.video_id));
+  const citedIds = [...new Set((report.cards || []).flatMap(c => c.evidence_ids || []))];
+  const passed = citedIds.length > 0 && citedIds.every(id => allIds.has(id));
+
+  resultsArea.classList.remove("hidden");
+  resultsArea.innerHTML = `
+    <!-- 1. Market Insight -->
+    <div class="insight-box">
+      <div style="font-weight:800; font-size:1.05rem; margin-bottom:4px; color:var(--purple);">🧭 오늘 K-뷰티 숏폼 시장 관통 인사이트</div>
+      ${esc(report.market_insight)}
+    </div>
+
+    <!-- 2. Trend Cards -->
+    <div class="card">
+      <div class="section-h">
+        <span>🗂️ 실시간 메가 트렌드 카드 (${report.cards?.length || 0}개)</span>
+        <span class="hint">평균 조회수 ${Math.round(rows.reduce((a,b)=>a+b.views,0)/rows.length).toLocaleString()}회 기반</span>
+      </div>
+      ${cardsHtml}
+
+      <!-- Golden Pick -->
+      <div class="tcard gold" style="margin-top:10px;">
+        <div class="cat" style="color:var(--gold); background:#fbf3dc;">GOLDEN PICK OF THE DAY</div>
+        <div class="ttitle">👑 ${esc(report.golden_pick)}</div>
+        <div class="tangle" style="border:0; padding-top:4px;">${esc(report.golden_reason)}</div>
+      </div>
+    </div>
+
+    <!-- 3. Grounding Verification -->
+    <div class="card">
+      <div class="section-h">
+        <span>🧾 환각 제로(Grounding) 실증 검증</span>
+        <span class="keystatus ${passed ? "ok" : "bad"}">${passed ? "✅ 100% 실존 영상 기반" : "⚠️ 검증 주의"}</span>
+      </div>
+      <div class="hint">인용된 모든 video_id가 실제로 유튜브에서 수집된 상위 ${rows.length}개 영상 목록에 존재하는지 교차 검증을 마쳤습니다.</div>
+    </div>
+
+    <!-- 4. Toolbar -->
+    <div class="toolbar">
+      <button class="sec" id="copyBtn">📋 노션/슬랙 보고용 요약 복사</button>
+      <button class="sec" id="dlBtn">⬇️ JSON 리포트 다운로드</button>
+    </div>
+  `;
+
+  // Wire buttons
+  $("copyBtn").addEventListener("click", () => {
+    const lines = [
+      `[K-Beauty TrendSetter Pro] ${report.date}`,
+      `🧭 시장 인사이트: ${report.market_insight}`,
+      "",
+      ...((report.cards || []).map((c, i) => `${i+1}. ${c.title} (${c.category}, ${c.brand_score}점)\n- 요약: ${c.summary}\n- 방향: ${c.campaign_angle}\n- 3초 훅: ${c.storyboard?.hook_scene || "-"}`)),
+      "",
+      `👑 골든픽: ${report.golden_pick} (${report.golden_reason})`
+    ];
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      $("copyBtn").textContent = "✅ 복사 완료!";
+      setTimeout(() => $("copyBtn").textContent = "📋 노션/슬랙 보고용 요약 복사", 1500);
+    });
+  });
+
+  $("dlBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `kbeauty_trend_report_${report.date}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  resultsArea.scrollIntoView({ behavior: "smooth" });
+}
+</script>
+</body>
+</html>
