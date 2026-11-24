@@ -27,6 +27,6 @@
   - ② **자사 제품 상세페이지 원문 온보딩**: `confidence: medium → high` 승격 + 금지어 격리/거부 + 의약품 오인 절대 하드 가드 + Flash 경고 유지 (QA PASS)
 - [x] **B2B-11 (04:35 Iteration 3 — 기상 후 1클릭 라이브 E2E 런처 & 실무 `README.md`)**:
   - `qa/run_live_all.py` (`--dry-run` PASS, 904/1,500유닛, 오염 0건) + `README.md` (10/10 링크 실존, 과장 0건, QA PASS)
-- [ ] **B2B-12 (05:35 Iteration 4 — 팀장/임원 보고용 1페이지 독립 HTML 리포트 내보내기)**:
-  - `pipeline.py`에 `export_shareable_html_report(result)` 추가 + `app.py` / `TrendSetter_KBeauty_Pro.html`에 `[📄 1페이지 보고서 HTML 저장]` 원클릭 버튼 추가 (API 키 없이 열람·이메일 첨부 가능, 내부 경고/출처 노출 정책 준수)
+- [x] **B2B-12 (06:16 Iteration 4 — 팀장/임원 보고용 1페이지 독립 HTML 리포트 내보내기)**:
+  - `pipeline.py`(`export_shareable_html_report`) + `app.py` / `TrendSetter_KBeauty_Pro.html` 원클릭 저장 + `qa/run_live_all.py` 자동 생성 (XSS·`<script>`·API 키·내부 주석 0건, QA PASS)
 - [ ] **B2B-09 (라이브 E2E 대기)**: 사용자 기상 후 외부 네트워크 허용 시 `python qa/run_live_all.py` 1회 실행으로 라이브 실측 확정

@@ -149,10 +149,11 @@ def run_dry_run(product_name: str):
     ]
     best_key, best_days, _ = pick_best_period(dry_bench, {"search_30d": videos})
     summary_md = format_live_summary_md(dry_bench, best_key, best_days, res, used_now)
+    exec_html = pipeline.export_shareable_html_report(res)
 
     print(f"2) Step A 최적 기간 선정 테스트: {best_key} (최근 {best_days}일)")
     print(f"3) Step B 결정론적 리허설: Go {stats['go']} / Pivot {stats['pivot']} / Drop {stats['drop']} | 추천: {mat['recommendation_reason']}")
-    print(f"4) Step C 요약 마크다운 생성 길이: {len(summary_md)} chars (DRY-RUN이므로 qa/LIVE_E2E_SUMMARY.md 미덮어쓰기)")
+    print(f"4) Step C 요약 마크다운 {len(summary_md)} chars / 1페이지 HTML 보고서 {len(exec_html)} chars (DRY-RUN이므로 라이브 파일 미덮어쓰기)")
     print("DRY-RUN PASS!")
 
 
@@ -215,6 +216,8 @@ def main():
         benchmark_days.print_table(bench_rows)
 
     best_key, best_days, selected_vids = pick_best_period(bench_rows, raw_samples)
+    if not selected_vids:
+        raise SystemExit("수집된 영상이 0건이라 라이브 E2E 실행을 조기 종료합니다. (API 키·기간·네트워크 상태를 확인하세요)")
     print(f"\n[3/4] 최적 기간 '{best_key}' ({len(selected_vids)}건) 재사용 → 4단계 파이프라인 + 3종 교차 매칭 실행 (추가 YouTube 쿼터 0)")
     res = pipeline.run_pipeline(
         selected_vids, args.product, model=args.model, days_range=best_days,
@@ -228,7 +231,10 @@ def main():
     summary_md = format_live_summary_md(bench_rows, best_key, best_days, res, used_after)
     with open(summary_path, "w", encoding="utf-8") as f:
         f.write(summary_md)
-    print(f"[4/4] 라이브 E2E 요약 리포트 생성 완료 → {summary_path}")
+    report_html_path = os.path.join(qa_dir, "LIVE_E2E_REPORT.html")
+    with open(report_html_path, "w", encoding="utf-8") as f:
+        f.write(pipeline.export_shareable_html_report(res))
+    print(f"[4/4] 라이브 E2E 요약 리포트 생성 완료 → {summary_path} / {report_html_path}")
     print(f"      누적 YouTube API 사용량: {used_after:,} / {limit:,} 유닛")
 
 

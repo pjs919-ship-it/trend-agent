@@ -629,6 +629,105 @@ def test_history_delta_and_onboarding(products):
     return "PASS (delta=+12,000, merge OK, banned quarantine/refusal, absolute medical guard)"
 
 
+def test_shareable_html_export(products):
+    dummy = {
+        "product": "올리고 히알루론산 딥 토너",
+        "report_date": "2026-11-25",
+        "days_range": 30,
+        "product_confidence": "medium",
+        "market_patterns": ["전성분 팩트체크형 쇼츠 강세", "속건조 응급처치 루틴 확산"],
+        "videos": [
+            {
+                "video_id": "xss_vid_1",
+                "title": "<script>alert(1)</script> 속건조 토너 루틴",
+                "channel_title": "<b>테스트채널</b>",
+                "views": 120000,
+                "likes": 4500,
+                "published_at": "2026-11-20T00:00:00Z",
+                "text_source": "caption",
+                "low_views_fallback": True,
+            },
+            {
+                "video_id": "jfsweQpxqsY",
+                "title": "립틴트 블러셔 믹싱",
+                "channel_title": "색조랩",
+                "views": 156361,
+                "likes": 4820,
+                "published_at": "2026-11-15T00:00:00Z",
+                "text_source": "caption",
+            },
+        ],
+        "facts": [
+            {
+                "video_id": "xss_vid_1",
+                "domain": "기초/스킨케어",
+                "format_tag": "응급처치 루틴형",
+                "what_happens": "속건조 피부에 토너팩 시연",
+                "hook_quote": "속건조 토너팩",
+                "evidence_quote": "속건조 토너팩",
+                "evidence_ok": True,
+                "text_source": "caption",
+            },
+            {
+                "video_id": "jfsweQpxqsY",
+                "domain": "색조/메이크업",
+                "format_tag": "믹싱 꿀팁형",
+                "what_happens": "립틴트와 컨실러 믹싱",
+                "hook_quote": "립틴트 믹싱",
+                "evidence_quote": "립틴트 믹싱",
+                "evidence_ok": True,
+                "text_source": "caption",
+            },
+        ],
+        "judgements": [
+            {
+                "video_id": "xss_vid_1",
+                "decision": "Go",
+                "score": 5,
+                "reason": "속건조 토너팩 포맷 직접 일치",
+                "linked_claim": products["올리고 히알루론산 딥 토너"]["verified_claims"][0],
+            },
+            {
+                "video_id": "jfsweQpxqsY",
+                "decision": "Drop",
+                "score": 1,
+                "reason": "[규칙] 색조/메이크업 영역 불일치",
+                "linked_claim": "",
+            },
+        ],
+        "briefs": [
+            {
+                "video_id": "xss_vid_1",
+                "hook": "첫 3초 토너팩 클로즈업",
+                "before": "속건조 고민",
+                "product_moment": "저분자 히알루론산 워터 제형 토너",
+                "cta": "올리브영 확인",
+                "creator_note": "과대광고 금지",
+                "violations": ["테스트 위반 항목"],
+                "needs_review": True,
+            }
+        ],
+        "multi_product_matrix": {
+            "products": list(products.keys()),
+            "recommended_product": "올리고 히알루론산 딥 토너",
+            "recommendation_reason": "올리고 히알루론산 딥 토너 (Go 1건·합계 5점)",
+            "product_summary": {},
+            "rows": [],
+        },
+    }
+    html_out = pipeline.export_shareable_html_report(dummy)
+    _assert(html_out.startswith("<!DOCTYPE html>"), "HTML5 독타입 누락")
+    _assert("@media print" in html_out, "@media print 인쇄 최적화 CSS 누락")
+    _assert("kpi-grid" in html_out and "Go 판정 캠페인 컨셉" in html_out, "KPI/Go 카드 누락")
+    _assert("색조/메이크업 영역 불일치" in html_out, "Drop 탈락 사유 누락")
+    _assert("3종 교차 매칭 추천 주력 제품" in html_out, "3종 교차 매칭 추천 배너 누락")
+    _assert("발송 보류" in html_out, "needs_review=True 발송 보류 경고 누락")
+    _assert("&lt;script&gt;alert(1)&lt;/script&gt;" in html_out, "XSS 이스케이프 누락")
+    _assert("<script>" not in html_out.lower(), "원시 <script> 태그가 보고서 HTML에 존재")
+    _assert("kurly, glowpick 요약" not in html_out, "내부 출처 괄호 주석 노출")
+    return f"PASS ({len(html_out)} chars, @media print, XSS escaped, 0 <script>, needs_review banner)"
+
+
 def main():
     products = pipeline.load_products()
     print("=== [1] QA 6대 결함 회귀 테스트 ===")
@@ -639,6 +738,7 @@ def main():
     print("  Red-Team RT1~RT4:", test_redteam_rt1_to_rt4(products))
     print("  B2B-08 Multi-Product Matrix:", test_multi_product_matrix(products))
     print("  B2B-10 History Delta & Onboarding:", test_history_delta_and_onboarding(products))
+    print("  B2B-12 Shareable HTML Report:", test_shareable_html_export(products))
 
     print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
     summary = eval_golden_set(products)

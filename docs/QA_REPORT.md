@@ -413,3 +413,26 @@
 ### 2. 잔여 개선 포인트 2가지 (Low / 추후 보강 권장)
 1. **[`qa/run_live_all.py` L217-222]** `selected_vids`가 빈 리스트(`[]`)일 때 `pipeline.run_pipeline()`을 호출하기 전에 `if not selected_vids:` 가드로 조기 종료·안내하면 불필요한 빈 LLM 호출을 방지할 수 있음.
 2. **[`README.md` L22-25]** 다른 PC에서 처음 실행하는 비개발자를 위해 `pip install -r requirements.txt` 설치 안내 1줄과 `.env` 키 설정 예시를 보강하면 온보딩 완성도가 더욱 높아짐.
+
+
+---
+
+## Sprint 9 QA 검수 — B2B-12 팀장/임원 결재용 1페이지 독립 HTML 보고서
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `pipeline.py` (`export_shareable_html_report`), `qa/run_live_all.py`, `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`** (`B2B-12 Shareable HTML Report: PASS`)
+  - `python qa/run_live_all.py --dry-run` → `exit code 0` / **`DRY-RUN PASS!`** (1페이지 HTML 보고서 15,662 chars)
+  - `--dry-run` 전후 `qa/LIVE_E2E_REPORT.html` 존재 여부: `False → False` (**오염 0건 확인**)
+  - XSS 페이로드(`<script>alert(1)</script>`) + `AIza` 더미 키 주입 레드팀 테스트 실행
+- **최종 판정**: **✅ PASS**
+
+### 1. 보안·정결성·임원 보고 품격 검증 결과
+- **원시 `<script>` 태그**: **0건** (XSS 페이로드 `&lt;script&gt;alert(1)&lt;/script&gt;`로 100% HTML 이스케이프 확인 — 사내 이메일 첨부 시 보안 필터 차단 위험도 원천 제거).
+- **API 키 노출(`AIza`)**: **0건**.
+- **내부 출처 주석(`products.json`, `kurly`, `glowpick`, `costco`, `요약)`)**: **0건**.
+- **인쇄/PDF 최적화**: `@media print` 포함, KPI 4열 + 시장 패턴 + 3종 교차 매칭 추천 + Go 카드(4단 콘티 2×2 + 금지 표현 + `needs_review` 배너) 구성으로 팀장/임원 이메일 첨부 결재용으로 손색없는 품질.
+
+### 2. 미세 개선 제안 (Optional)
+- 순수 무스크립트 정적 HTML5 설계는 이메일 보안 관점에서 우수함. 헤더 우측에 `인쇄 / PDF 저장: Ctrl+P` 작은 안내 칩을 추가하면 비개발자 임원이 PDF로 변환하기 더욱 직관적임.

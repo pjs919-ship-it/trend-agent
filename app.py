@@ -815,6 +815,16 @@ else:
             )
             st.code(dm_clean_md, language="markdown")
 
+# 팀장/임원 결재용 1페이지 독립 HTML 보고서 원클릭 저장 (Go 0건이어도 항상 제공)
+exec_html = pipeline.export_shareable_html_report(res)
+st.download_button(
+    "📄 팀장 결재용 1페이지 HTML 보고서 저장 (PDF 인쇄·이메일 첨부용)",
+    data=exec_html,
+    file_name=f"kbeauty_executive_report_{report_date}.html",
+    mime="text/html",
+    use_container_width=True,
+)
+
 # Section 4 (P2): Pivot & Drop
 if pivot_items:
     st.markdown(f'<div class="sec-heading">⚠️ Pivot — 서브 테스트 / 직접 시청 검토 ({len(pivot_items)}건)</div>', unsafe_allow_html=True)

@@ -119,3 +119,11 @@
   - **주간 트렌드 리포트 아카이브 & 팀 공유용 독립 HTML 리포트 내보내기 (Export Shareable HTML Report)**: 마케터가 슬랙 텍스트 복사뿐 아니라, 분석 결과를 **썸네일·차트·4단 콘티가 그대로 담긴 1페이지 독립 HTML 보고서 파일**로 원클릭 저장해 임원/팀장 이메일·노션에 바로 첨부할 수 있게 함 (B2B 결재 설득력 극대화).
 - 다음 규칙:
   - 비개발자 가이드 문서는 "아무것도 설치되지 않은 새 PC"를 기준으로 최소 설치 명령어를 항상 포함한다.
+
+## Sprint 9 (06:16 Iteration 4) — B2B-12 팀장/임원 결재용 1페이지 독립 HTML 보고서 (2026-11-25 06:21) — 판정: ✅ PASS
+- 성과 요약:
+  - `pipeline.py` (`export_shareable_html_report`), `app.py`, `TrendSetter_KBeauty_Pro.html`, `qa/run_live_all.py`에 API 키/외부 JS 없는 1페이지 독립 HTML 보고서 원클릭 내보내기 구현 (`@media print` 인쇄 최적화).
+- 증거 (`docs/QA_REPORT.md` Sprint 9):
+  - `qa/eval_golden.py` PASS, `qa/run_live_all.py --dry-run` PASS (오염 0건), 원시 `<script>` 0건, `AIza` 0건, 내부 출처 주석 0건.
+- 다음 예정 (06:35 Iteration 5 — 최종 종합 보고):
+  - 전체 산출물·커밋 히스토리·회귀 테스트 최종 재실행 후, 완료 항목과 미완료 항목(외부 API 라이브 실행 1줄)을 정직하게 종합 보고하고 종료.

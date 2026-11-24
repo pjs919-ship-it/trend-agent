@@ -5,6 +5,7 @@ Step2 브랜드 판정: 팩트 vs 제품(확인된 문구만) → Go / Pivot / D
 Step3 브리프     : Go 판정에만 4단 콘티 (확인된 제품 문구만 사용)
 Step4 감사       : 코드로 검증 (인용문이 실제 자막에 있는지, 점수-판정 일관성, 금지 문구)
 """
+import html as _html
 import json
 import os
 import re
@@ -1093,6 +1094,286 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
         "creator_guide_md": creator_guide_md,
         "creator_dm_clean_md": creator_dm_clean_md,
     }
+
+
+# ───────────────────────── Step 3-3. 팀장/임원 결재용 1페이지 독립 HTML 보고서 (B2B-12) ─────────────────────────
+def export_shareable_html_report(result: Dict[str, Any]) -> str:
+    """API 키·서버 없이 브라우저에서 바로 열고 PDF 인쇄/이메일 첨부 가능한 1페이지 독립 HTML5 보고서를 생성합니다."""
+    def _e(val: Any) -> str:
+        return _html.escape(str(val if val is not None else ""), quote=True)
+
+    product_name = result.get("product", "")
+    report_date = result.get("report_date") or date.today().isoformat()
+    days_range = result.get("days_range")
+    period_label = f"최근 {days_range}일" if days_range else "최근 수집 배치"
+    videos = [_ensure_video_metrics(v) for v in result.get("videos", [])]
+    facts = result.get("facts", [])
+    judgements = result.get("judgements", [])
+    briefs = result.get("briefs", [])
+    market_patterns = result.get("market_patterns", [])
+    products = load_products()
+    prod_info = products.get(product_name, {})
+    confidence = result.get("product_confidence") or prod_info.get("confidence", "unknown")
+    banned_list = [
+        x for x in (_clean_banned_for_creator(b) for b in prod_info.get("unverified_removed_from_v1", [])) if x
+    ]
+    banned_str = ", ".join(banned_list)
+
+    v_by_id = {v["video_id"]: v for v in videos}
+    f_by_id = {f["video_id"]: f for f in facts}
+    b_by_id = {b["video_id"]: b for b in briefs}
+
+    total_v = len(videos)
+    cap_v = sum(1 for v in videos if v.get("text_source") == "caption")
+    cap_pct = round(cap_v / max(1, total_v) * 100, 1)
+    avg_views = int(round(sum(v.get("views", 0) for v in videos) / max(1, total_v)))
+    avg_lr = round(sum(v.get("like_rate", 0.0) for v in videos) / max(1, total_v), 2)
+    max_vpd = max((v.get("views_per_day", 0) for v in videos), default=0)
+
+    go_items = sorted(
+        [j for j in judgements if j["decision"] == "Go"],
+        key=lambda j: (-j["score"], -v_by_id.get(j["video_id"], {}).get("views_per_day", 0)),
+    )
+    pivot_items = [j for j in judgements if j["decision"] == "Pivot"]
+    drop_items = [j for j in judgements if j["decision"] == "Drop"]
+
+    banners: List[str] = []
+    if confidence != "high":
+        banners.append(
+            f'<div class="banner warn">⚠️ <b>[제품 정보 확인 필요]</b> 현재 제품 문구는 요약 기반(신뢰도: {_e(confidence)})입니다. '
+            "최종 광고·시딩 집행 전 공식 상세페이지 원문 및 임상 시험 조건을 반드시 확인하세요.</div>"
+        )
+    if any(v.get("low_views_fallback") for v in videos):
+        banners.append(
+            '<div class="banner info">ℹ️ <b>저유입 기준 완화 포함:</b> 최소 조회수 기준을 넘는 영상이 부족해 일부 저유입 영상이 포함되었습니다.</div>'
+        )
+
+    pat_html = "".join(
+        f'<div class="pat-row"><span class="pat-num">{i}</span><div>{_e(p)}</div></div>'
+        for i, p in enumerate(market_patterns, 1)
+    ) or '<div class="pat-row">추출된 공통 시장 패턴이 없습니다.</div>'
+
+    matrix = result.get("multi_product_matrix")
+    mat_banner = ""
+    if matrix:
+        rec_p = matrix.get("recommended_product")
+        rec_reason = matrix.get("recommendation_reason", "")
+        if rec_p:
+            mat_banner = f'<div class="banner go">🏆 <b>3종 교차 매칭 추천 주력 제품:</b> {_e(rec_reason)}</div>'
+        else:
+            mat_banner = f'<div class="banner warn">⚠️ <b>3종 교차 매칭 결과:</b> {_e(rec_reason)}</div>'
+
+    def _dots(score: int, decision: str) -> str:
+        s = max(1, min(5, int(score)))
+        col = "#BF8A12" if (decision == "Go" and s == 5) else ("#0F766E" if decision == "Go" else ("#B45309" if decision == "Pivot" else "#4B5563"))
+        return f'<span class="dots" style="color:{col};">{"●"*s}{"○"*(5-s)} {s}점</span>'
+
+    go_cards: List[str] = []
+    if not go_items:
+        go_cards.append('<div class="empty">이번 수집 배치에서는 억지 연결 없이 바로 집행할 Go 컨셉이 없습니다.</div>')
+    else:
+        for idx, j in enumerate(go_items):
+            vid = j["video_id"]
+            v = v_by_id.get(vid, {})
+            f = f_by_id.get(vid, {})
+            b = b_by_id.get(vid)
+            is_top = idx == 0
+            thumb = v.get("thumbnail_url") or f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg"
+            cap_badge = (
+                '<span class="pill go">✅ 자막 검증 완료</span>'
+                if f.get("text_source") == "caption"
+                else '<span class="pill warn">⚠️ 자막 미확인 (직접 시청 필요)</span>'
+            )
+            rev_html = ""
+            if b and b.get("needs_review"):
+                rev_html = f'<div class="banner danger">🚨 <b>발송 보류 — 검수 필요:</b> {_e("; ".join(b.get("violations", [])))}</div>'
+            clean_lc = _clean_claim_for_creator(j.get("linked_claim") or "") or (j.get("linked_claim") or "-")
+            quote = f.get("hook_quote") or f.get("evidence_quote") or "-"
+            new_b = ' <span class="pill go">🆕 NEW</span>' if v.get("is_new") else ""
+            d_val = v.get("views_delta")
+            delta_b = f' <span class="pill go">+{int(d_val):,}회 ↑</span>' if isinstance(d_val, int) and d_val > 0 else ""
+
+            sb_html = ""
+            if b:
+                sb_html = f"""
+                <div class="sb-grid">
+                  <div class="sb-cell"><div class="sb-lbl">⚡ 1. 첫 3초 훅</div><div>{_e(b['hook'])}</div></div>
+                  <div class="sb-cell"><div class="sb-lbl">👀 2. 비포 공감 상황</div><div>{_e(b['before'])}</div></div>
+                  <div class="sb-cell"><div class="sb-lbl">💧 3. 제품 침투 시점</div><div>{_e(b['product_moment'])}</div></div>
+                  <div class="sb-cell"><div class="sb-lbl">🛒 4. 구매/참여 CTA</div><div>{_e(b['cta'])}</div></div>
+                </div>
+                <div class="note-strip">
+                  <b>📝 크리에이터 주의사항:</b> {_e(b['creator_note'])}
+                  {f'<br><b>🚫 절대 금지 표현:</b> {_e(banned_str)}' if banned_str else ''}
+                </div>
+                """
+
+            go_cards.append(f"""
+            <div class="card {'gold' if is_top else ''}">
+              <div class="card-top">
+                <div class="badges">
+                  {'<span class="pill gold-p">👑 TOP GO PICK</span>' if is_top else ''}
+                  <span class="pill go">🎯 Go</span>
+                  <span class="pill purple">{_e(f.get('format_tag', '기타'))}</span>
+                  {cap_badge}
+                </div>
+                {_dots(j['score'], 'Go')}
+              </div>
+              {rev_html}
+              <div class="card-title">{_e(f.get('what_happens') or v.get('title', vid))}</div>
+              <div class="reason"><b>📌 Go 근거:</b> {_e(j['reason'])}</div>
+              <div class="claim">🔗 {_e(clean_lc)}</div>
+              <div class="quote">
+                <div class="quote-lbl">💬 실제 영상 원문 인용 ({'자막 확보' if f.get('text_source')=='caption' else '제목/설명'})</div>
+                <div class="quote-txt">"{_e(quote)}"</div>
+              </div>
+              <div class="evid">
+                <img src="{_e(thumb)}" alt="thumb" class="thumb"/>
+                <div class="evid-body">
+                  <div class="evid-title">{_e(v.get('title', vid))}</div>
+                  <div class="evid-meta">
+                    📺 {_e(v.get('channel_title', '-'))} · 👀 {v.get('views', 0):,}회{new_b}{delta_b} ·
+                    <span class="pill hot">🔥 {v.get('views_per_day', 0):,}회/일</span> ·
+                    ❤️ {v.get('like_rate', 0.0):.2f}% · 📅 {_e((v.get('published_at') or '-')[:10])}
+                  </div>
+                </div>
+                <a class="evid-btn" href="https://youtube.com/shorts/{_e(vid)}" target="_blank" rel="noopener">쇼츠 보기 ↗</a>
+              </div>
+              {sb_html}
+            </div>
+            """)
+
+    triage_rows: List[str] = []
+    for j in pivot_items + drop_items:
+        vid = j["video_id"]
+        v = v_by_id.get(vid, {})
+        f = f_by_id.get(vid, {})
+        dec = j["decision"]
+        cls = "warn" if dec == "Pivot" else "drop"
+        triage_rows.append(
+            f"<tr>"
+            f"<td><span class='pill {cls}'>{_e(dec)} {int(j['score'])}점</span></td>"
+            f"<td><span class='pill drop'>{_e(f.get('domain', '-'))}</span></td>"
+            f"<td><a href='https://youtube.com/shorts/{_e(vid)}' target='_blank' rel='noopener'>{_e(v.get('title', vid)[:50])} ↗</a></td>"
+            f"<td class='tnum'>{v.get('views', 0):,}회</td>"
+            f"<td>{_e(j['reason'])}</td>"
+            f"</tr>"
+        )
+
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>[결재 보고서] {_e(product_name)} — K-Beauty TrendSetter Pro ({_e(report_date)})</title>
+<style>
+  :root {{
+    --purple:#6C2BD9; --purple-dark:#4C1D95; --purple-soft:#F3EEFD;
+    --gold:#BF8A12; --gold-soft:#FFFDF5; --ink:#1C1730; --ink2:#374151;
+    --muted:#6B7280; --bg:#FAF9FE; --surface:#FFFFFF; --line:#ECE9F5;
+    --go:#0F766E; --go-soft:#E6F6F4; --warn:#B45309; --warn-soft:#FEF3C7;
+    --drop:#4B5563; --drop-soft:#F3F4F6; --danger:#B91C1C; --danger-soft:#FEF2F2;
+    --hot:#C2410C; --hot-soft:#FFF7ED;
+  }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Malgun Gothic",sans-serif; line-height:1.5; }}
+  .wrap {{ max-width:980px; margin:0 auto; padding:24px 20px 48px; }}
+  .tnum {{ font-variant-numeric:tabular-nums; }}
+  .header {{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid var(--purple); padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:8px; }}
+  .header h1 {{ margin:0; font-size:1.55rem; font-weight:800; color:var(--ink); }}
+  .header .meta {{ font-size:0.86rem; color:var(--muted); }}
+  .banner {{ padding:10px 14px; border-radius:10px; font-size:0.84rem; font-weight:600; margin-bottom:12px; }}
+  .banner.warn {{ background:var(--warn-soft); color:var(--warn); border-left:4px solid var(--warn); }}
+  .banner.danger {{ background:var(--danger-soft); color:var(--danger); border-left:4px solid var(--danger); }}
+  .banner.go {{ background:var(--go-soft); color:var(--go); border-left:4px solid var(--go); }}
+  .banner.info {{ background:var(--drop-soft); color:var(--drop); border-left:4px solid var(--drop); }}
+  .kpi-grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }}
+  .kpi {{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }}
+  .kpi-lbl {{ font-size:0.75rem; font-weight:700; color:var(--muted); }}
+  .kpi-val {{ font-size:1.35rem; font-weight:800; color:var(--ink); margin:4px 0; font-variant-numeric:tabular-nums; }}
+  .kpi-sub {{ font-size:0.75rem; color:var(--muted); font-variant-numeric:tabular-nums; }}
+  .insight {{ background:linear-gradient(135deg,#F6F2FF 0%,#FFF 100%); border:1px solid #E0D8F5; border-left:5px solid var(--purple); border-radius:12px; padding:14px 18px; margin-bottom:14px; }}
+  .insight h2 {{ margin:0 0 10px; font-size:1rem; color:var(--purple-dark); }}
+  .pat-row {{ display:flex; gap:8px; align-items:flex-start; font-size:0.88rem; color:var(--ink2); margin-bottom:6px; }}
+  .pat-num {{ min-width:20px; height:20px; border-radius:999px; background:var(--purple); color:#FFF; font-size:0.72rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; margin-top:2px; }}
+  .sec-title {{ font-size:1.08rem; font-weight:800; margin:18px 0 10px; color:var(--ink); }}
+  .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:14px; break-inside:avoid; }}
+  .card.gold {{ border:2px solid var(--gold); background:var(--gold-soft); }}
+  .card-top {{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px; }}
+  .badges {{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }}
+  .pill {{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; }}
+  .pill.go {{ background:var(--go-soft); color:var(--go); }}
+  .pill.warn {{ background:var(--warn-soft); color:var(--warn); }}
+  .pill.drop {{ background:var(--drop-soft); color:var(--drop); }}
+  .pill.purple {{ background:var(--purple-soft); color:var(--purple); }}
+  .pill.gold-p {{ background:#FEF3C7; color:#92400E; border:1px solid #F59E0B; }}
+  .pill.hot {{ background:var(--hot-soft); color:var(--hot); }}
+  .dots {{ font-size:0.85rem; font-weight:800; letter-spacing:1px; }}
+  .card-title {{ font-size:1.05rem; font-weight:800; margin:4px 0 6px; }}
+  .reason {{ font-size:0.88rem; color:var(--ink2); margin-bottom:6px; }}
+  .claim {{ display:inline-block; background:var(--go-soft); color:var(--go); border-radius:6px; padding:3px 9px; font-size:0.8rem; font-weight:700; margin-bottom:10px; }}
+  .quote {{ background:#F4FBF9; border-left:3px solid var(--go); border-radius:6px; padding:8px 12px; margin-bottom:10px; }}
+  .quote-lbl {{ font-size:0.74rem; font-weight:700; color:var(--go); margin-bottom:3px; }}
+  .quote-txt {{ font-size:0.88rem; font-weight:600; color:var(--ink); }}
+  .evid {{ display:flex; align-items:center; gap:10px; background:#FBF9FF; border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:12px; }}
+  .thumb {{ width:88px; height:50px; border-radius:5px; object-fit:cover; flex-shrink:0; }}
+  .evid-body {{ flex:1; min-width:0; }}
+  .evid-title {{ font-size:0.85rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+  .evid-meta {{ font-size:0.76rem; color:var(--muted); margin-top:3px; font-variant-numeric:tabular-nums; }}
+  .evid-btn {{ padding:5px 10px; border-radius:6px; border:1px solid #D8D3E8; font-size:0.75rem; font-weight:700; color:var(--purple-dark); text-decoration:none; white-space:nowrap; background:#FFF; }}
+  .sb-grid {{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:8px; }}
+  .sb-cell {{ background:#FFF; border:1px solid var(--line); border-radius:8px; padding:9px 11px; font-size:0.84rem; color:var(--ink2); }}
+  .sb-lbl {{ font-size:0.74rem; font-weight:800; color:var(--purple-dark); margin-bottom:3px; }}
+  .note-strip {{ background:#FFF8F8; border:1px solid #FECACA; border-radius:8px; padding:7px 10px; font-size:0.78rem; color:var(--ink2); }}
+  .empty {{ border:1px dashed #D8D3E8; border-radius:12px; padding:18px; text-align:center; color:var(--muted); background:#FFF; }}
+  table {{ width:100%; border-collapse:collapse; font-size:0.8rem; background:#FFF; border:1px solid var(--line); }}
+  th {{ background:#FBF9FF; color:var(--muted); text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); }}
+  td {{ padding:7px 8px; border-bottom:1px solid var(--line); color:var(--ink2); vertical-align:top; }}
+  td a {{ color:var(--purple-dark); text-decoration:none; font-weight:600; }}
+  .footer {{ margin-top:20px; font-size:0.75rem; color:var(--muted); text-align:right; }}
+  @media (max-width:768px) {{ .kpi-grid {{ grid-template-columns:repeat(2,1fr); }} .sb-grid {{ grid-template-columns:1fr; }} }}
+  @media print {{
+    body {{ background:#FFF; }}
+    .wrap {{ max-width:100%; padding:0; }}
+    .card, .insight, .kpi {{ break-inside:avoid; box-shadow:none; }}
+    .evid-btn {{ border:1px solid #999; }}
+  }}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>💄 K-Beauty TrendSetter Pro — 주간 트렌드 결재 보고서</h1>
+      <div class="meta">대상 제품: <b>{_e(product_name)}</b> · 보고 기준일: {_e(report_date)} · {_e(period_label)}</div>
+    </div>
+    <span class="pill purple">B2B Executive Report</span>
+  </div>
+  {''.join(banners)}
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-lbl">🎬 클리핑 쇼츠</div><div class="kpi-val">{total_v}건</div><div class="kpi-sub">자막 확보 {cap_v}건 ({cap_pct}%)</div></div>
+    <div class="kpi"><div class="kpi-lbl">👀 평균 조회수</div><div class="kpi-val">{avg_views:,}회</div><div class="kpi-sub">평균 좋아요율 {avg_lr:.2f}%</div></div>
+    <div class="kpi"><div class="kpi-lbl">🔥 최고 상승속도</div><div class="kpi-val">{max_vpd:,}회/일</div><div class="kpi-sub">{_e(period_label)} 급상승 1위</div></div>
+    <div class="kpi"><div class="kpi-lbl">📊 판정 분포</div><div class="kpi-val">Go {len(go_items)} · Pivot {len(pivot_items)} · Drop {len(drop_items)}</div><div class="kpi-sub">총 {len(go_items)+len(pivot_items)+len(drop_items)}건 정합</div></div>
+  </div>
+  <div class="insight">
+    <h2>🧭 이번 주 K-뷰티 시장 관통 패턴 (브랜드 편향 0%)</h2>
+    {pat_html}
+  </div>
+  {mat_banner}
+  <div class="sec-title">🎯 Go 판정 캠페인 컨셉 ({len(go_items)}건)</div>
+  {''.join(go_cards)}
+  <div class="sec-title">📋 Pivot &amp; Drop 탈락 사유 요약 ({len(pivot_items)+len(drop_items)}건)</div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>판정</th><th>도메인</th><th>영상 제목 (쇼츠 링크)</th><th>조회수</th><th>판정/탈락 사유</th></tr></thead>
+      <tbody>{''.join(triage_rows) or '<tr><td colspan="5">해당 항목 없음</td></tr>'}</tbody>
+    </table>
+  </div>
+  <div class="footer">Generated by K-Beauty TrendSetter Pro (B2B v2) · 인쇄(Ctrl+P) 시 PDF로 바로 저장 가능합니다.</div>
+</div>
+</body>
+</html>"""
 
 
 # ───────────────────────── 전체 실행 ─────────────────────────
