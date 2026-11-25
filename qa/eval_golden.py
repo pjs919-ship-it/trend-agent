@@ -743,7 +743,9 @@ def test_step1_step2_kr_flow(products):
     _assert(agent_core.KR_EXPLORE_TREE["beauty"]["parent"] is None, "beauty 루트 parent가 None이 아님")
     for k, node in agent_core.KR_EXPLORE_TREE.items():
         _assert(len(node["keywords"]) == 3, f"{k} 키워드 수 != 3: {node['keywords']}")
-    _assert(len(agent_core.KR_BEAUTY_QUICK_CHIPS) == 5, f"빠른 칩 수 != 5: {agent_core.KR_BEAUTY_QUICK_CHIPS.keys()}")
+    _assert(not hasattr(agent_core, "KR_BEAUTY_QUICK_CHIPS"), "제거된 KR_BEAUTY_QUICK_CHIPS가 남아있음")
+    _assert("무료 조회 한도" in agent_core._format_youtube_api_error(Exception("HttpError 403 quotaExceeded")), "쿼터 초과 오류 안내 변환 실패")
+    _assert("올바르지 않아요" in agent_core._format_youtube_api_error(Exception("HttpError 400 API key not valid")), "키 오류 안내 변환 실패")
 
     # 1-B) get_beauty_viral_grade() S/A/B/C 기준 및 소형 채널 왜곡 방지 검증
     _assert(agent_core.get_beauty_viral_grade(120000, 4000, 1.5)["grade"] == "S", "10만 조회수 S등급 실패")

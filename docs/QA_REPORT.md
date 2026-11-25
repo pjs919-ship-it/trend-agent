@@ -458,3 +458,22 @@
 ### 2. 주의할 점 (Minor / 후속 다듬기 권장)
 - `app.py` L659 및 `TrendSetter_KBeauty_Pro.html` L877의 보류(Pivot) 카드에 `⚠️ 자막 미확인 (직접 시청 필요)` 뱃지가 `text_source` 분기 없이 고정 출력됨 (`caption` Pivot일 때 분기 권장).
 - `TrendSetter_KBeauty_Pro.html` L794 `downloadStep2Html()`에 `needs_review=True` 경고 배너 추가 시 `pipeline.export_shareable_html_report()`와 완전 패리티 달성.
+
+
+---
+
+## 숏폼레이더 3가지 UX 피드백 반영 최종 QA 검수
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `TrendSetter_KBeauty_Pro.html`, `app.py`, `agent_core.py`, `docs/POLICY.md`, `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`): `python qa/eval_golden.py` (`ALL TESTS PASSED!`) + `git diff` 전수 확인 + 잔재 키워드 스캔
+- **최종 판정**: **✅ PASS**
+
+### 1. 핵심 검증 결과
+1. **빠른 칩 전면 제거**: 4개 구현·문서 파일에서 `quickChips` / `KR_BEAUTY_QUICK_CHIPS` / `유통·피부고민` 잔재 0건 확인, 계층 탐색 단일 흐름으로 정리 완료.
+2. **정렬 4종 툴팁 & 토스 UX 라이팅**: HTML(`data-tip`, `:last-child` 우측 정렬, `:focus-visible`) + Streamlit(`help=`) 모두 마케터가 즉시 이해하는 쉬운 능동형 한국어로 작성됨.
+3. **YouTube API 오류 & 30일 0건 분기 수정**: 403 쿼터 초과 / 400 키 오류 / 403 API 미사용을 원인별 쉬운 한국어 안내로 변환 + 400/403 즉시 중단. 0건 시 7일일 때만 30일 전환 안내, 30일일 때는 상위 카테고리 안내로 정확히 분기.
+
+### 2. 미세 UX 지적사항 (Minor, PASS 미차단)
+- `TrendSetter_KBeauty_Pro.html` L257-268: `data-tip`과 네이티브 `title`이 함께 걸려 있어 마우스를 1초 이상 올리면 이중 툴팁이 겹칠 수 있음 (`title` 제거 권장).
+- 기타 미분류 API 오류 폴백 시 영문 원문(`raw`)이 노출될 수 있으므로 추후 상세 로그 영역으로 분리 권장.

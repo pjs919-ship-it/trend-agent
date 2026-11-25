@@ -226,34 +226,6 @@ KR_EXPLORE_TREE: Dict[str, Dict[str, Any]] = {
     },
 }
 
-KR_BEAUTY_QUICK_CHIPS: Dict[str, Dict[str, Any]] = {
-    "chip/oliveyoung": {
-        "label": "올리브영",
-        "mode": "search",
-        "keywords": ["올리브영 추천템", "올영 세일 추천", "올리브영 꿀템"],
-    },
-    "chip/daiso": {
-        "label": "다이소",
-        "mode": "search",
-        "keywords": ["다이소 화장품 추천", "다이소 뷰티 꿀템", "다이소 스킨케어"],
-    },
-    "chip/glowskin": {
-        "label": "속건조·화잘먹",
-        "mode": "search",
-        "keywords": ["속건조 해결", "화잘먹 기초", "속보습 스킨케어"],
-    },
-    "chip/calming": {
-        "label": "트러블·진정",
-        "mode": "search",
-        "keywords": ["트러블 진정", "피부 뒤집어졌을때", "여드름 진정 스킨케어"],
-    },
-    "chip/pore": {
-        "label": "모공·요철",
-        "mode": "search",
-        "keywords": ["모공 줄이기", "블랙헤드 제거", "요철 관리"],
-    },
-}
-
 SPAM_KEYWORDS = (
     "무료나눔",
     "이벤트 참여",
@@ -564,6 +536,19 @@ def fetch_channel_subscribers(youtube, channel_ids: List[str]) -> Dict[str, Opti
         return {}
 
 
+def _format_youtube_api_error(exc: Exception) -> str:
+    """유튜브 API 오류를 마케터가 이해할 수 있는 한국어 안내 문장으로 바꿉니다."""
+    raw = str(exc)
+    low = raw.lower()
+    if "quotaexceeded" in low or "dailylimitexceeded" in low or "quota" in low:
+        return "오늘 유튜브 API 무료 조회 한도를 모두 썼어요. 매일 오후 4~5시에 초기화되니 그때 다시 시도하거나, [예시 화면 미리보기]를 이용해 보세요."
+    if "keyinvalid" in low or "api key not valid" in low or "api_key_invalid" in low:
+        return "유튜브 API 키가 올바르지 않아요. 왼쪽 사이드바 'API 키 설정'에서 키를 다시 확인해 주세요."
+    if "accessnotconfigured" in low or "has not been used" in low:
+        return "이 구글 프로젝트에서 YouTube Data API v3가 꺼져 있어요. Google Cloud 콘솔에서 사용 설정을 켜 주세요."
+    return f"유튜브 데이터를 불러오지 못했어요: {raw}"
+
+
 def fetch_kr_step1_shorts(
     youtube,
     path_key: str = "beauty",
@@ -573,7 +558,7 @@ def fetch_kr_step1_shorts(
     use_cache: bool = True,
 ) -> List[Dict[str, Any]]:
     """한국(KR) 뷰티 전용 1단계 계층 탐색 쇼츠 수집 (당일 캐시 재사용)."""
-    node = KR_EXPLORE_TREE.get(path_key) or KR_BEAUTY_QUICK_CHIPS.get(path_key)
+    node = KR_EXPLORE_TREE.get(path_key)
     if not node:
         raise ValueError(f"지원하지 않는 탐색 경로입니다: {path_key}")
 
@@ -584,6 +569,7 @@ def fetch_kr_step1_shorts(
     now_utc = datetime.now(timezone.utc)
     published_after = recent_published_after(days=days)
     candidate_ids: List[str] = []
+    last_search_err: Optional[Exception] = None
     for kw in node["keywords"][:3]:
         try:
             # 대형 뷰티 유튜버 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
@@ -604,10 +590,16 @@ def fetch_kr_step1_shorts(
         except RuntimeError:
             raise
         except Exception as e2:
+            last_search_err = e2
             print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
+            low_err = str(e2).lower()
+            if "quotaexceeded" in low_err or "keyinvalid" in low_err or "api key not valid" in low_err:
+                break
 
     candidate_ids = list(dict.fromkeys(candidate_ids))
     if not candidate_ids:
+        if last_search_err is not None:
+            raise RuntimeError(_format_youtube_api_error(last_search_err))
         return []
 
     record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})

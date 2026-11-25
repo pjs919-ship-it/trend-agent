@@ -83,17 +83,25 @@ body {
 }
 .chip:hover { border-color: var(--purple); color: var(--purple-dark); background: var(--purple-soft); }
 .chip.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
-.quick-label { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin: 2px 0 6px; }
-.chip-quick { background: var(--surface-subtle); border-color: var(--line-strong); color: var(--purple-dark); }
-.chip-quick.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
 
 .ctrl-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
 .seg-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .seg-btn {
+  position: relative;
   padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong);
   background: #FFF; color: var(--muted); font-size: 0.8rem; font-weight: 700; cursor: pointer;
 }
 .seg-btn.active { background: var(--ink); color: #FFF; border-color: var(--ink); }
+.seg-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 240px; white-space: normal; text-align: left;
+  background: var(--ink); color: #FFF; font-size: 0.76rem; font-weight: 500; line-height: 1.45;
+  padding: 8px 11px; border-radius: 9px; box-shadow: 0 6px 18px rgba(28,23,48,0.22);
+  opacity: 0; pointer-events: none; transition: opacity 0.14s ease; z-index: 50;
+}
+.seg-btn[data-tip]:last-child::after { left: auto; right: 0; transform: none; }
+.seg-btn[data-tip]:hover::after, .seg-btn[data-tip]:focus-visible::after { opacity: 1; }
 
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .btn {
@@ -239,8 +247,6 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
     <div id="crumbBar" class="crumb-bar"></div>
     <div id="childChips" class="chip-row"></div>
-    <div class="quick-label">⚡ 유통·피부고민 바로 보기</div>
-    <div id="quickChips" class="chip-row"></div>
 
     <div class="ctrl-row">
       <div class="seg-group">
@@ -248,10 +254,18 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
         <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 최근 30일 (대세)</button>
       </div>
       <div class="seg-group">
-        <button id="sortRatio" class="seg-btn active" onclick="setSort('subscriber_ratio')">📈 확산력 순</button>
-        <button id="sortFast" class="seg-btn" onclick="setSort('fast')">🔥 하루 평균 순</button>
-        <button id="sortViews" class="seg-btn" onclick="setSort('views')">👀 조회수 순</button>
-        <button id="sortComments" class="seg-btn" onclick="setSort('comments')">💬 댓글 많은 순</button>
+        <button id="sortRatio" class="seg-btn active" onclick="setSort('subscriber_ratio')"
+          data-tip="구독자 수 대비 조회수가 몇 배나 터졌는지 순이에요. 작은 채널인데 알고리즘을 타 크게 뜬 영상을 먼저 찾아요."
+          aria-label="확산력 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순">📈 확산력 순</button>
+        <button id="sortFast" class="seg-btn" onclick="setSort('fast')"
+          data-tip="올라온 뒤 하루 평균 조회수가 높은 순이에요. 지금 가장 빠르게 치고 올라오는 영상을 먼저 봐요."
+          aria-label="하루 평균 순: 올라온 뒤 하루 평균 조회수가 높은 순">🔥 하루 평균 순</button>
+        <button id="sortViews" class="seg-btn" onclick="setSort('views')"
+          data-tip="누적 조회수가 가장 높은 영상부터 보여드려요."
+          aria-label="조회수 순: 누적 조회수가 가장 높은 영상부터 보기">👀 조회수 순</button>
+        <button id="sortComments" class="seg-btn" onclick="setSort('comments')"
+          data-tip="시청자 질문과 반응(댓글)이 가장 많이 달린 영상부터 보여드려요."
+          aria-label="댓글 많은 순: 시청자 질문과 반응이 가장 많이 달린 영상부터 보기">💬 댓글 많은 순</button>
       </div>
     </div>
 
@@ -266,7 +280,7 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   <div id="step1Area">
     <div class="welcome-box">
       <h3>어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
-      <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>이나 <b>유통·고민 칩</b>을 고르고<br>
+      <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>을 고르고<br>
       <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 먼저 둘러볼 수 있어요.</p>
     </div>
   </div>
@@ -352,16 +366,8 @@ const KR_TREE = {
   "beauty/hairbody/body": { label: "바디케어", parent: "beauty/hairbody", mode: "search", keywords: ["바디로션 추천", "바디워시 추천", "바디미스트"], children: [] }
 };
 
-const KR_QUICK_CHIPS = {
-  "chip/oliveyoung": { label: "올리브영", parent: "beauty", mode: "search", keywords: ["올리브영 추천템", "올영 세일 추천", "올리브영 꿀템"], children: [] },
-  "chip/daiso": { label: "다이소", parent: "beauty", mode: "search", keywords: ["다이소 화장품 추천", "다이소 뷰티 꿀템", "다이소 스킨케어"], children: [] },
-  "chip/glowskin": { label: "속건조·화잘먹", parent: "beauty", mode: "search", keywords: ["속건조 해결", "화잘먹 기초", "속보습 스킨케어"], children: [] },
-  "chip/calming": { label: "트러블·진정", parent: "beauty", mode: "search", keywords: ["트러블 진정", "피부 뒤집어졌을때", "여드름 진정 스킨케어"], children: [] },
-  "chip/pore": { label: "모공·요철", parent: "beauty", mode: "search", keywords: ["모공 줄이기", "블랙헤드 제거", "요철 관리"], children: [] }
-};
-
 function getNode(key) {
-  return KR_TREE[key] || KR_QUICK_CHIPS[key] || KR_TREE["beauty"];
+  return KR_TREE[key] || KR_TREE["beauty"];
 }
 
 const PRESETS = {
@@ -439,7 +445,7 @@ function fallbackCopy(txt, cb) {
 function getPathChain(key) {
   const chain = [];
   let cur = key;
-  while (cur && (KR_TREE[cur] || KR_QUICK_CHIPS[cur])) {
+  while (cur && KR_TREE[cur]) {
     chain.unshift(cur);
     cur = getNode(cur).parent;
   }
@@ -462,13 +468,6 @@ function renderExplorerNav() {
   } else {
     childEl.innerHTML = children.map(ck =>
       `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(getNode(ck).label)}</button>`
-    ).join("");
-  }
-
-  const quickEl = document.getElementById("quickChips");
-  if (quickEl) {
-    quickEl.innerHTML = Object.entries(KR_QUICK_CHIPS).map(([ck, node]) =>
-      `<button class="chip chip-quick ${currentPath === ck ? 'active' : ''}" onclick="selectPath('${ck}')"># ${esc(node.label)}</button>`
     ).join("");
   }
 }
@@ -613,6 +612,22 @@ async function callGeminiJson(apiKey, model, prompt) {
   return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
 }
 
+function formatYoutubeApiError(status, errObj) {
+  const reason = errObj?.errors?.[0]?.reason || "";
+  const rawMsg = String(errObj?.message || "");
+  const lower = `${reason} ${rawMsg}`.toLowerCase();
+  if (lower.includes("quotaexceeded") || lower.includes("dailylimitexceeded") || lower.includes("quota")) {
+    return "⚠️ 오늘 유튜브 API 무료 조회 한도를 모두 썼어요. 매일 오후 4~5시에 초기화되니 그때 다시 시도하거나, [👀 예시 화면 미리보기]를 이용해 보세요.";
+  }
+  if (status === 400 || lower.includes("keyinvalid") || lower.includes("api key")) {
+    return "⚠️ 유튜브 API 키가 올바르지 않아요. 상단 'API 키 설정'에서 키를 다시 확인해 주세요.";
+  }
+  if (status === 403 && (lower.includes("accessnotconfigured") || lower.includes("not been used"))) {
+    return "⚠️ 이 구글 프로젝트에서 YouTube Data API v3가 꺼져 있어요. Google Cloud 콘솔에서 사용 설정을 켜 주세요.";
+  }
+  return `⚠️ 유튜브 데이터를 불러오지 못했어요 (오류 ${status}${reason ? ` · ${reason}` : ""}). 잠시 후 다시 시도해 주세요.`;
+}
+
 async function runStep1Live() {
   const ytKey = document.getElementById("ytKey").value.trim();
   const ggKey = document.getElementById("ggKey").value.trim();
@@ -641,21 +656,46 @@ async function runStep1Live() {
     st.textContent = `1/2. '${getPathLabel(currentPath)}' 한국 뷰티 쇼츠를 모으고 있어요...`;
     const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
     const idSet = new Set();
+    let lastYtError = null;
     for (const kw of node.keywords.slice(0, 3)) {
       // 대형 뷰티 크리에이터 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
       // videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration=short로 순수 검색
       const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=50&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
-      const d = await (await fetch(u)).json();
+      const resp = await fetch(u);
+      const d = await resp.json().catch(() => ({}));
+      if (!resp.ok || d.error) {
+        const reason = d.error?.errors?.[0]?.reason || "";
+        addLog(`❌ 검색 '${kw}' 실패 (HTTP ${resp.status}): ${reason} ${d.error?.message || ""}`);
+        lastYtError = formatYoutubeApiError(resp.status, d.error);
+        if (resp.status === 400 || resp.status === 403) break;
+        continue;
+      }
       const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
       got.forEach(id => idSet.add(id));
       addLog(`검색 '${kw}' (쇼츠 최대 50건, ${selectedDays}일): ${got.length}건`);
     }
     const ids = [...idSet].slice(0, 50);
     addLog(`중복 제거 후 후보 영상: ${ids.length}건`);
-    if (!ids.length) { st.textContent = "조건에 맞는 쇼츠가 없어요. 기간을 30일로 늘려보세요."; return; }
+    if (!ids.length) {
+      if (lastYtError) {
+        st.textContent = lastYtError;
+      } else if (selectedDays < 30) {
+        st.textContent = "최근 7일 안에 조건에 맞는 쇼츠가 없어요. 기간을 '최근 30일 (대세)'로 바꿔 다시 찾아보세요.";
+      } else {
+        st.textContent = "최근 30일 조건에 맞는 쇼츠를 찾지 못했어요. 상위 카테고리를 골라 다시 찾아보세요.";
+      }
+      return;
+    }
 
     const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
-    const detItems = (await (await fetch(detUrl)).json()).items || [];
+    const detResp = await fetch(detUrl);
+    const detJson = await detResp.json().catch(() => ({}));
+    if (!detResp.ok || detJson.error) {
+      addLog(`❌ 상세 조회 실패 (HTTP ${detResp.status}): ${detJson.error?.message || ""}`);
+      st.textContent = formatYoutubeApiError(detResp.status, detJson.error);
+      return;
+    }
+    const detItems = detJson.items || [];
 
     // 채널 구독자 수 1회 배치 조회 (구독자 대비 배수 계산용)
     const chIds = [...new Set(detItems.map(it => it?.snippet?.channelId).filter(Boolean))].slice(0, 50);
@@ -719,7 +759,12 @@ async function runStep1Live() {
       if (tk) seenT.add(tk);
       return true;
     }).slice(0, 10);
-    if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없어요."; return; }
+    if (!videos.length) {
+      st.textContent = selectedDays < 30
+        ? "최근 7일 조건에 맞는 한국어 쇼츠가 없어요. 기간을 '최근 30일 (대세)'로 바꿔 다시 찾아보세요."
+        : "최근 30일 조건에 맞는 한국어 쇼츠가 없어요. 상위 카테고리를 골라 다시 찾아보세요.";
+      return;
+    }
     const avgV = Math.round(videos.reduce((s, v) => s + v.views, 0) / videos.length);
     const avgVpd = Math.round(videos.reduce((s, v) => s + v.views_per_day, 0) / videos.length);
     addLog(`최종 상위 ${videos.length}건 선정 | 평균 조회수 ${avgV.toLocaleString()}회 | 하루 평균 ${avgVpd.toLocaleString()}회`);

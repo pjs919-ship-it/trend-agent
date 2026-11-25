@@ -1,5 +1,5 @@
 """app.py — 숏폼레이더 (ShortformRadar) K-뷰티 유튜브 쇼츠 트렌드 분석 UI
-1단계: 한국 K-뷰티 유튜브 쇼츠 인기 흐름 탐색 (뷰티 계층 + 유통·고민 빠른 칩 + 5대 실무 지표)
+1단계: 한국 K-뷰티 유튜브 쇼츠 인기 흐름 탐색 (뷰티 계층 + 5대 실무 지표)
 2단계: 방금 본 트렌드를 홍보할 상품에 입혀 추천/보류/제외 + 카피 3종 + 4단 콘티 + 보고서 생성
 """
 import html
@@ -141,14 +141,11 @@ def _format_ko_num(n: Any) -> str:
 def _node_of(path_key: str) -> Dict[str, Any]:
     return (
         agent_core.KR_EXPLORE_TREE.get(path_key)
-        or agent_core.KR_BEAUTY_QUICK_CHIPS.get(path_key)
         or agent_core.KR_EXPLORE_TREE["beauty"]
     )
 
 
 def _path_chain(path_key: str) -> List[str]:
-    if path_key in agent_core.KR_BEAUTY_QUICK_CHIPS:
-        return ["beauty", path_key]
     chain: List[str] = []
     cur = path_key
     while cur and cur in agent_core.KR_EXPLORE_TREE:
@@ -409,7 +406,7 @@ st.markdown('<span class="step-tag">1단계 · 뷰티 트렌드 탐색</span>', 
 st.markdown("### 요즘 뜨는 K-뷰티 쇼츠 먼저 보기")
 
 cur_path = st.session_state["explore_path"]
-if cur_path not in agent_core.KR_EXPLORE_TREE and cur_path not in agent_core.KR_BEAUTY_QUICK_CHIPS:
+if cur_path not in agent_core.KR_EXPLORE_TREE:
     cur_path = "beauty"
     st.session_state["explore_path"] = "beauty"
 chain = _path_chain(cur_path)
@@ -435,16 +432,6 @@ if children:
 else:
     st.caption("위 경로 버튼을 눌러 상위 카테고리로 돌아갈 수 있어요.")
 
-# 유통·피부고민 빠른 칩
-st.caption("⚡ 유통·피부고민 바로 보기:")
-q_items = list(agent_core.KR_BEAUTY_QUICK_CHIPS.items())
-q_cols = st.columns(len(q_items))
-for col, (qk, qnode) in zip(q_cols, q_items):
-    q_type = "primary" if cur_path == qk else "secondary"
-    if col.button(f"# {qnode['label']}", key=f"qchip_{qk}", type=q_type, use_container_width=True):
-        st.session_state["explore_path"] = qk
-        st.rerun()
-
 c_days, c_sort = st.columns([1, 1.8])
 with c_days:
     days_label = st.radio("수집 기간", ["🔥 최근 7일 (급상승)", "🏆 최근 30일 (대세)"], index=1, horizontal=True)
@@ -455,6 +442,12 @@ with c_sort:
         ["📈 확산력 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
         index=0,
         horizontal=True,
+        help=(
+            "• 확산력 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순 (작은 채널인데 알고리즘을 타 크게 뜬 영상 우선)\n"
+            "• 하루 평균 순: 올라온 뒤 하루 평균 조회수가 높은 순\n"
+            "• 조회수 순: 누적 조회수가 높은 순\n"
+            "• 댓글 많은 순: 시청자 질문과 반응(댓글)이 많은 순"
+        ),
     )
     if "하루 평균" in sort_label:
         sort_key = "fast"
@@ -484,7 +477,10 @@ if run_s1_live:
                     yt_client, path_key=cur_path, days=days_val, sort_by=sort_key
                 )
             if not vids:
-                st.warning("조건에 맞는 쇼츠가 없어요. 기간을 30일로 늘리거나 상위 카테고리를 선택해보세요.")
+                if days_val < 30:
+                    st.warning("최근 7일 안에 조건에 맞는 쇼츠가 없어요. 기간을 '최근 30일 (대세)'로 바꿔 다시 찾아보세요.")
+                else:
+                    st.warning("최근 30일 조건에 맞는 쇼츠를 찾지 못했어요. 상위 카테고리를 골라 다시 찾아보세요.")
             else:
                 with st.spinner("2/2. AI가 요즘 뜨는 포맷과 핵심 흐름을 정리하고 있어요..."):
                     s1 = pipeline.run_step1_explore(
@@ -496,7 +492,7 @@ if run_s1_live:
                     st.session_state["step1_res"] = s1
                     st.session_state["step2_res"] = None
         except RuntimeError as e:
-            st.error(f"일일 검색 예산 초과 방지 차단: {e}")
+            st.error(str(e))
         except Exception as e:
             st.error(f"분석 중 오류가 발생했어요: {e}")
 
@@ -507,7 +503,7 @@ if not s1:
         """
         <div class="welcome-box">
           <h3 style="margin:0 0 8px;color:var(--ink);">어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
-          <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>이나 <b>유통·고민 칩</b>을 고르고<br>
+          <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>을 고르고<br>
           <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 먼저 둘러볼 수 있어요.</p>
         </div>
         """,
