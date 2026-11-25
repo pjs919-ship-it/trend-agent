@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>K-Beauty TrendSetter Pro — B2B Edition v2</title>
+<title>K-뷰티 쇼츠 트렌드 어시스턴트</title>
 <style>
 :root {
   --purple: #6C2BD9;
@@ -39,26 +39,60 @@ body {
 .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 18px 64px; }
 .tnum { font-variant-numeric: tabular-nums; }
 
-/* Header */
 .hero {
   display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;
   padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
 }
-.hero h1 { font-size: 1.85rem; font-weight: 800; margin: 0; line-height: 1.25; color: var(--ink); }
-.hero .sub { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
+.hero h1 { font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.25; }
+.hero .sub { font-size: 0.92rem; color: var(--muted); margin-top: 4px; }
 
-/* Control Panel */
 .panel {
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
   padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(28,23,48,0.05);
 }
-.panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
-.field input, .field select {
-  width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 10px;
-  font-size: 0.88rem; color: var(--ink); background: #FFF;
+.step-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  background: var(--purple-soft); color: var(--purple-dark); font-size: 0.76rem; font-weight: 800; margin-bottom: 6px;
 }
-.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+.step-title { font-size: 1.18rem; font-weight: 800; margin: 0 0 12px; color: var(--ink); }
+
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 10px;
+  font-size: 0.88rem; color: var(--ink); background: #FFF; font-family: inherit;
+}
+
+/* Breadcrumb & Chips */
+.crumb-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; margin-bottom: 12px;
+}
+.crumb-btn {
+  background: #FFF; border: 1px solid var(--line-strong); border-radius: 999px;
+  padding: 5px 12px; font-size: 0.84rem; font-weight: 700; color: var(--ink); cursor: pointer;
+}
+.crumb-btn.current { background: var(--purple); color: #FFF; border-color: var(--purple); }
+.crumb-sep { color: var(--muted); font-weight: 700; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.chip {
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: #FFF; color: var(--ink-secondary); font-size: 0.84rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip:hover { border-color: var(--purple); color: var(--purple-dark); background: var(--purple-soft); }
+.chip.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
+
+.ctrl-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.seg-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg-btn {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: #FFF; color: var(--muted); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+}
+.seg-btn.active { background: var(--ink); color: #FFF; border-color: var(--ink); }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .btn {
   padding: 10px 16px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
   border: 1px solid transparent; transition: all 0.15s ease;
@@ -68,129 +102,88 @@ body {
 .btn-sec { background: var(--purple-soft); color: var(--purple-dark); border-color: #C4B5FD; }
 .btn-sec:hover { background: #EDE9FE; }
 .btn-outline { background: #FFF; color: var(--ink-secondary); border-color: var(--line-strong); }
-.btn-outline:hover { background: var(--surface-subtle); }
 .btn-danger { background: var(--danger-soft); color: var(--danger); border: 1.5px solid var(--danger); }
 .status-bar { font-size: 0.84rem; color: var(--purple-dark); font-weight: 600; margin-top: 10px; min-height: 20px; }
 
-/* Banners */
-.alert-banner {
-  padding: 11px 16px; border-radius: 10px; font-size: 0.86rem; font-weight: 600; margin-bottom: 12px;
+.welcome-box {
+  border: 1.5px dashed var(--line-strong); border-radius: 16px; padding: 36px 24px;
+  text-align: center; background: #FFF; color: var(--muted); margin-bottom: 18px;
 }
-.alert-warn { background: var(--warn-soft); color: var(--warn); border: 1px solid #F59E0B; border-left: 4px solid var(--warn); }
-.alert-danger { background: var(--danger-soft); color: var(--danger); border: 1px solid #FCA5A5; border-left: 4px solid var(--danger); }
-.alert-info { background: var(--drop-soft); color: var(--drop); border: 1px solid #D1D5DB; }
+.welcome-box h3 { margin: 0 0 8px; color: var(--ink); font-size: 1.08rem; }
 
-/* KPI Strip */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
-.kpi-card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 14px 16px; box-shadow: 0 1px 3px rgba(28,23,48,0.05);
-}
-.kpi-label { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
-.kpi-val { font-size: 1.45rem; font-weight: 800; color: var(--ink); line-height: 1.2; font-variant-numeric: tabular-nums; }
-.kpi-sub { font-size: 0.78rem; color: var(--muted); margin-top: 5px; font-variant-numeric: tabular-nums; }
+.alert-banner { padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+.alert-warn { background: var(--warn-soft); color: var(--warn); border-left: 4px solid var(--warn); }
+.alert-danger { background: var(--danger-soft); color: var(--danger); border-left: 4px solid var(--danger); }
+.alert-info { background: var(--drop-soft); color: var(--drop); border-left: 4px solid var(--drop); }
 
-/* Pills & Badges */
-.pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; }
+.pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
 .pill-go { background: var(--go-soft); color: var(--go); }
 .pill-warn { background: var(--warn-soft); color: var(--warn); }
 .pill-drop { background: var(--drop-soft); color: var(--drop); }
 .pill-purple { background: var(--purple-soft); color: var(--purple); }
 .pill-gold { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
 .pill-hot { background: var(--hot-soft); color: var(--hot); }
-.badge-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
-/* Market Patterns Box */
 .insight-box {
   background: linear-gradient(135deg, #F6F2FF 0%, #FFFFFF 100%);
   border: 1px solid #E0D8F5; border-left: 5px solid var(--purple);
-  border-radius: 14px; padding: 18px 22px; margin-bottom: 22px;
+  border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
 }
-.insight-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.insight-title { font-size: 1.08rem; font-weight: 800; color: var(--purple-dark); margin: 0; }
-.pattern-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; font-size: 0.92rem; color: var(--ink-secondary); }
+.pattern-row { display: flex; gap: 10px; align-items: flex-start; font-size: 0.91rem; color: var(--ink-secondary); margin-bottom: 7px; }
 .pattern-num {
   min-width: 22px; height: 22px; border-radius: 999px; background: var(--purple); color: #FFF;
-  font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px;
+  font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px;
 }
 
-/* Go Campaign Cards */
-.sec-heading { font-size: 1.15rem; font-weight: 800; color: var(--ink); margin: 20px 0 12px; }
+/* Step 1 Shorts Grid */
+.shorts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
+.short-card {
+  display: flex; gap: 12px; background: #FFF; border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+}
+.short-thumb { width: 104px; height: 60px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
+.short-body { flex: 1; min-width: 0; }
+.short-title { font-size: 0.88rem; font-weight: 700; color: var(--ink); text-decoration: none; display: block; margin-bottom: 4px; }
+.short-meta { font-size: 0.77rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; }
+.short-fact { font-size: 0.8rem; color: var(--ink-secondary); margin-top: 5px; }
+
+/* Step 2 Cards */
 .tcard {
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
   padding: 20px 22px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(28,23,48,0.05);
 }
 .tcard.gold { border: 2px solid var(--gold); background: var(--gold-soft); }
 .tcard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-.dots { font-size: 0.88rem; font-weight: 800; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
-.tcard-title { font-size: 1.12rem; font-weight: 800; color: var(--ink); margin: 6px 0 8px; }
-.tcard-reason { font-size: 0.91rem; color: var(--ink-secondary); margin-bottom: 8px; }
-.claim-chip {
-  display: inline-block; background: var(--go-soft); color: var(--go); border-radius: 8px;
-  padding: 4px 10px; font-size: 0.82rem; font-weight: 700; margin-bottom: 12px;
-}
-.quote-box {
-  background: #F4FBF9; border-left: 3px solid var(--go); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
-}
-.quote-meta { display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 700; color: var(--go); margin-bottom: 4px; }
-.quote-text { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.badge-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.dots { font-size: 0.88rem; font-weight: 800; letter-spacing: 1px; }
+.tcard-title { font-size: 1.1rem; font-weight: 800; margin: 6px 0 8px; }
+.quote-box { background: #F4FBF9; border-left: 3px solid var(--go); border-radius: 8px; padding: 9px 13px; margin: 10px 0; font-size: 0.88rem; }
+.copy-box { background: #F6F2FF; border-left: 3px solid var(--purple); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+.copy-box b { color: var(--purple-dark); font-size: 0.8rem; display: block; margin-bottom: 4px; }
+.copy-item { font-size: 0.89rem; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.sb-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0; }
+.sb-cell { background: #FFF; border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; font-size: 0.87rem; color: var(--ink-secondary); }
+.sb-label { font-size: 0.77rem; font-weight: 800; color: var(--purple-dark); margin-bottom: 4px; }
+.note-strip { background: #FFF8F8; border: 1px solid #FECACA; border-radius: 10px; padding: 9px 12px; font-size: 0.8rem; color: var(--ink-secondary); }
 
-.evid-item {
-  display: flex; align-items: center; gap: 12px; background: var(--surface-subtle);
-  border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;
-}
-.evid-thumb { width: 96px; height: 54px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
-.evid-body { flex: 1; min-width: 0; }
-.evid-title { font-size: 0.88rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.evid-meta { font-size: 0.78rem; color: var(--muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-variant-numeric: tabular-nums; }
-.evid-link {
-  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line-strong);
-  font-size: 0.78rem; font-weight: 700; color: var(--purple-dark); text-decoration: none; white-space: nowrap; background: #FFF;
-}
-.evid-link:hover { background: var(--purple-soft); }
-
-.sb-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
-.sb-cell { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
-.sb-label { font-size: 0.78rem; font-weight: 800; color: var(--purple-dark); margin-bottom: 5px; }
-.sb-text { font-size: 0.88rem; color: var(--ink-secondary); }
-.note-strip {
-  background: #FFF8F8; border: 1px solid #FECACA; border-radius: 10px;
-  padding: 9px 12px; font-size: 0.81rem; color: var(--ink-secondary); margin-bottom: 12px;
-}
-.action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
-.action-bar .btn { flex: 1; min-width: 220px; text-align: center; }
-
-/* Pivot & Collapsible Details */
 .pivot-card {
-  display: flex; align-items: center; gap: 12px; background: var(--surface);
+  display: flex; align-items: center; gap: 12px; background: #FFF;
   border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 12px;
   padding: 12px 14px; margin-bottom: 10px;
 }
-.pivot-thumb { width: 72px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
+.pivot-thumb { width: 72px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 
 details.b2b-details {
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 12px 16px; margin-top: 14px;
+  padding: 12px 16px; margin-bottom: 14px;
 }
-details.b2b-details summary {
-  font-size: 0.94rem; font-weight: 800; color: var(--ink); cursor: pointer; list-style: none;
-}
-details.b2b-details summary::-webkit-details-marker { display: none; }
-.sort-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.sort-btn {
-  padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
-  border: 1px solid var(--line-strong); background: #FFF; color: var(--muted); cursor: pointer;
-}
-.sort-btn.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
-
+details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(--ink); cursor: pointer; }
 .b2b-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 10px; }
-.b2b-table th { background: var(--surface-subtle); color: var(--muted); font-weight: 700; text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
-.b2b-table td { padding: 9px 8px; border-bottom: 1px solid var(--line); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+.b2b-table th { background: var(--surface-subtle); color: var(--muted); text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
+.b2b-table td { padding: 8px; border-bottom: 1px solid var(--line); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
 .b2b-table a { color: var(--purple-dark); font-weight: 600; text-decoration: none; }
-.empty-box {
-  border: 1px dashed var(--line-strong); border-radius: 14px; padding: 24px;
-  text-align: center; color: var(--muted); background: #FFF; font-size: 0.92rem;
-}
+
+.action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.action-bar .btn { flex: 1; min-width: 200px; text-align: center; }
 
 .toast {
   position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #FFF;
@@ -200,10 +193,7 @@ details.b2b-details summary::-webkit-details-marker { display: none; }
 .toast.show { opacity: 1; }
 
 @media (max-width: 768px) {
-  .panel-grid { grid-template-columns: 1fr; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .sb-grid { grid-template-columns: 1fr; }
-  .evid-item { flex-direction: column; align-items: flex-start; }
+  .grid-3, .shorts-grid, .sb-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -211,188 +201,191 @@ details.b2b-details summary::-webkit-details-marker { display: none; }
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>💄 K-Beauty TrendSetter</h1>
-      <div class="sub">한국 유튜브 쇼츠 트렌드 파악부터 우리 제품 캠페인 기획까지 10분 안에</div>
+      <h1>💄 K-뷰티 쇼츠 트렌드 어시스턴트</h1>
+      <div class="sub">한국 유튜브 쇼츠 인기 흐름을 먼저 보고, 우리 제품에 맞는 캠페인과 카피를 바로 만듭니다.</div>
     </div>
-    <span id="modeBadge" class="pill pill-purple">분석 대기</span>
+    <span id="topStatusBadge" class="pill pill-purple">한국(KR) 전용</span>
   </div>
 
-  <!-- Control Panel (인간 마케터 기준 2단 심플 구조) -->
+  <!-- API 키 설정 (접기 가능) -->
+  <details id="apiDetails" class="b2b-details" open>
+    <summary>🔑 API 키 설정 (입력 후 접어두실 수 있습니다)</summary>
+    <div class="grid-3" style="margin-top:12px;">
+      <div class="field">
+        <label>유튜브 API 키</label>
+        <input id="ytKey" type="password" placeholder="AIza..." />
+      </div>
+      <div class="field">
+        <label>제미나이 AI API 키</label>
+        <input id="ggKey" type="password" placeholder="AIza..." />
+      </div>
+      <div class="field">
+        <label>AI 분석 모델</label>
+        <select id="modelSel">
+          <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델 (추천)</option>
+          <option value="gemini-flash-latest">표준 무료 모델</option>
+        </select>
+      </div>
+    </div>
+  </details>
+
+  <!-- Step 1: 요즘 유튜브 쇼츠 트렌드 먼저 보기 -->
   <div class="panel">
-    <div class="panel-grid">
-      <div class="field">
-        <label>우리 제품 선택</label>
-        <select id="productSel"></select>
+    <span class="step-badge">1단계 · 시장 탐색</span>
+    <h2 class="step-title">요즘 유튜브 쇼츠 트렌드 먼저 보기</h2>
+
+    <div id="crumbBar" class="crumb-bar"></div>
+    <div id="childChips" class="chip-row"></div>
+
+    <div class="ctrl-row">
+      <div class="seg-group">
+        <button id="days7" class="seg-btn" onclick="setDays(7)">🔥 최근 7일 (급상승)</button>
+        <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 최근 30일 (대세)</button>
       </div>
+      <div class="seg-group">
+        <button id="sortFast" class="seg-btn active" onclick="setSort('fast')">🔥 빠르게 뜨는 순</button>
+        <button id="sortViews" class="seg-btn" onclick="setSort('views')">👀 총 조회수 순</button>
+        <button id="sortLikes" class="seg-btn" onclick="setSort('like_rate')">❤️ 좋아요율 순</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runStep1Live()">🚀 이 카테고리 트렌드 보기</button>
+      <button class="btn btn-sec" onclick="runStep1Preview()">👀 예시 화면 미리보기</button>
+    </div>
+    <div id="step1Status" class="status-bar"></div>
+  </div>
+
+  <!-- 초기 대기 화면 또는 Step 1 결과 영역 -->
+  <div id="step1Area">
+    <div class="welcome-box">
+      <h3>어느 카테고리의 쇼츠 트렌드를 먼저 볼까요?</h3>
+      <p style="margin:0;">위에서 <b>전체 → 뷰티 → 기초화장품 / 색조메이크업 → 세부 품목</b>을 한 단계씩 고르고<br>
+      <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 바로 체험할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- Step 2: 우리 제품에 입히기 (Step 1 결과 후 활성화) -->
+  <div id="step2Panel" class="panel" style="display:none;">
+    <span class="step-badge">2단계 · 우리 제품 맞춤 기획 (추가 유튜브 검색 없음)</span>
+    <h2 class="step-title">방금 본 트렌드를 우리 제품에 입히기</h2>
+
+    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:6px;">⚡ 원클릭 예시 제품 채우기</div>
+    <div class="chip-row">
+      <button class="chip" onclick="applyPreset('toner')">💧 딥 토너</button>
+      <button class="chip" onclick="applyPreset('pad')">🌿 그린 2.5 패드</button>
+      <button class="chip" onclick="applyPreset('mask')">🧊 워터리 마스크</button>
+      <button class="chip" onclick="applyPreset('lip')">💄 촉촉한 립틴트 (색조 예시)</button>
+    </div>
+
+    <div class="grid-3">
       <div class="field">
-        <label>분석 기간</label>
-        <select id="daysSel">
-          <option value="7">최근 7일</option>
-          <option value="14">최근 14일</option>
-          <option value="30" selected>최근 30일 (추천)</option>
+        <label>제품 카테고리</label>
+        <select id="prodCat">
+          <option value="기초 > 토너·패드">기초 &gt; 토너·패드</option>
+          <option value="기초 > 세럼·앰플">기초 &gt; 세럼·앰플</option>
+          <option value="기초 > 크림·로션">기초 &gt; 크림·로션</option>
+          <option value="기초 > 선크림">기초 &gt; 선크림</option>
+          <option value="기초 > 마스크팩">기초 &gt; 마스크팩</option>
+          <option value="색조 > 립·틴트">색조 &gt; 립·틴트</option>
+          <option value="색조 > 블러셔">색조 &gt; 블러셔</option>
+          <option value="색조 > 쿠션·파데">색조 &gt; 쿠션·파데</option>
+          <option value="색조 > 아이메이크업">색조 &gt; 아이메이크업</option>
         </select>
       </div>
       <div class="field">
-        <label>정렬 기준</label>
-        <select id="sortSel">
-          <option value="velocity" selected>🔥 요즘 빠르게 뜨는 순</option>
-          <option value="views">👀 총 조회수 높은 순</option>
-        </select>
+        <label>제품명</label>
+        <input id="prodName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
+      </div>
+      <div class="field">
+        <label>강조하고 싶은 키워드 / 특징</label>
+        <input id="prodKeywords" type="text" placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어" />
       </div>
     </div>
 
-    <div class="btn-row" style="align-items:center;">
-      <button class="btn btn-primary" onclick="runLive2Stage()" style="padding:12px 22px;font-size:0.95rem;">🚀 오늘의 뷰티 트렌드 분석 시작</button>
-      <button class="btn btn-outline" onclick="loadSampleRehearsal()">👀 예시 화면 미리보기</button>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="runStep2Match()">✨ 이 트렌드로 우리 캠페인·카피 만들기</button>
     </div>
-    <div id="statusBar" class="status-bar"></div>
-
-    <details id="apiKeyDetails" class="b2b-details" open style="margin-top:14px;">
-      <summary>🔑 API 키 설정 (처음 1회 입력)</summary>
-      <div class="panel-grid" style="margin-top:12px;">
-        <div class="field">
-          <label>YouTube API 키</label>
-          <input id="ytKey" type="password" placeholder="AIza..." />
-        </div>
-        <div class="field">
-          <label>Gemini API 키</label>
-          <input id="ggKey" type="password" placeholder="AIza..." />
-        </div>
-        <div class="field">
-          <label>AI 모델</label>
-          <select id="modelSel">
-            <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델 (추천)</option>
-            <option value="gemini-flash-latest">표준 무료 모델</option>
-          </select>
-        </div>
-      </div>
-    </details>
-
-    <details class="b2b-details" style="margin-top:10px;">
-      <summary>➕ 우리 제품 추가 / 공식 설명 수정 · 저장된 결과 열기</summary>
-      <div class="panel-grid" style="margin-top:12px;">
-        <div class="field">
-          <label>제품명</label>
-          <input id="obName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
-        </div>
-        <div class="field">
-          <label>어울리는 고민/상황 (쉼표 구분)</label>
-          <input id="obFit" type="text" placeholder="속건조, 수분 보충, 토너 팩" />
-        </div>
-        <div class="field">
-          <label>어울리지 않는 영역 (쉼표 구분)</label>
-          <input id="obNonFit" type="text" placeholder="색조 메이크업, 헤어/바디" />
-        </div>
-      </div>
-      <div class="field" style="margin-top:10px;">
-        <label>공식 상세페이지 핵심 문구 (한 줄에 하나씩)</label>
-        <textarea id="obClaims" rows="3" style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:10px;font-size:0.86rem;" placeholder="저분자 히알루론산 워터 제형 토너&#10;소듐하이알루로네이트 2,700ppm"></textarea>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-sec" onclick="saveCustomProduct()">💾 제품 정보 저장</button>
-        <label class="btn btn-outline" style="margin:0;">
-          📂 저장된 분석 파일(.json) 열기
-          <input type="file" accept=".json" style="display:none;" onchange="loadLocalJson(event)" />
-        </label>
-      </div>
-    </details>
+    <div id="step2Status" class="status-bar"></div>
   </div>
 
-  <div id="dashboard">
-    <div style="text-align:center;padding:56px 20px;color:var(--muted);background:#fff;border:1px dashed var(--line-strong);border-radius:16px;">
-      <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;">아직 분석 전입니다</div>
-      <div style="font-size:0.9rem;">위에서 우리 제품을 고르고 <b>[오늘의 뷰티 트렌드 분석 시작]</b>을 누르거나, <b>[예시 화면 미리보기]</b>로 결과 화면을 먼저 확인해 보세요.</div>
-    </div>
-  </div>
+  <div id="step2Area"></div>
 </div>
 <div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
 
 <script>
-// products.json 단일 출처 확인 문구만 탑재 (미확인 7스킨·올리브영1위·2.5mm 완전 제거)
-const PRODUCTS = {
-  "올리고 히알루론산 딥 토너": {
-    confidence: "medium",
-    verified_claims: [
-      "저분자 히알루론산 워터 제형 토너",
-      "소듐하이알루로네이트 2,700ppm",
-      "끈적임·겉도는 느낌이 적고 속건조 케어",
-      "화장솜에 적셔 15~20분 올리는 '토너 팩'으로 활용 가능",
-      "민감성 포함 모든 피부 타입 사용 가능",
-      "용량: 200ml / 300ml / 500ml 등 채널별 상이"
-    ],
-    banned: ["7스킨 레이어링", "올리브영 1위 토너", "피부 속 2.5mm 보습 개선", "100% 흡수"],
-    fit_territory: ["속건조", "수분 보충", "토너 팩/화장솜 팩", "기초 레이어링(루틴)"],
-    non_fit_territory: ["색조 메이크업", "블러셔/틴트 믹싱", "헤어/바디"]
+const KR_TREE = {
+  "all": { label: "전체", parent: null, mode: "mostPopular", keywords: [], children: ["beauty"] },
+  "beauty": { label: "뷰티", parent: "all", mode: "search", keywords: ["올리브영", "화장품 추천", "메이크업"], children: ["beauty/skincare", "beauty/makeup"] },
+  "beauty/skincare": { label: "기초화장품", parent: "beauty", mode: "search", keywords: ["스킨케어", "기초 루틴", "속건조"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask"] },
+  "beauty/makeup": { label: "색조메이크업", parent: "beauty", mode: "search", keywords: ["메이크업", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
+  "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너 추천", "토너패드", "닦토"], children: [] },
+  "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "앰플 추천", "진정세럼"], children: [] },
+  "beauty/skincare/cream": { label: "크림·로션", parent: "beauty/skincare", mode: "search", keywords: ["수분크림", "장벽크림", "로션 추천"], children: [] },
+  "beauty/skincare/sun": { label: "선크림", parent: "beauty/skincare", mode: "search", keywords: ["선크림 추천", "무기자차", "선세럼"], children: [] },
+  "beauty/skincare/mask": { label: "마스크팩", parent: "beauty/skincare", mode: "search", keywords: ["마스크팩 추천", "1일1팩", "수분팩"], children: [] },
+  "beauty/makeup/lip": { label: "립·틴트", parent: "beauty/makeup", mode: "search", keywords: ["립틴트 추천", "립조합", "글로우립"], children: [] },
+  "beauty/makeup/blush": { label: "블러셔", parent: "beauty/makeup", mode: "search", keywords: ["블러셔 추천", "치크 꿀팁", "쿨톤 블러셔"], children: [] },
+  "beauty/makeup/cushion": { label: "쿠션·파데", parent: "beauty/makeup", mode: "search", keywords: ["쿠션 추천", "파데 추천", "화잘먹"], children: [] },
+  "beauty/makeup/eye": { label: "아이메이크업", parent: "beauty/makeup", mode: "search", keywords: ["아이섀도우", "속눈썹 꿀팁", "아이라인"], children: [] }
+};
+
+const PRESETS = {
+  toner: {
+    cat: "기초 > 토너·패드",
+    name: "올리고 히알루론산 딥 토너",
+    keywords: "저분자 히알루론산 워터 제형 토너, 소듐하이알루로네이트 2,700ppm, 속건조 케어, 화장솜 15~20분 토너 팩",
+    banned: ["7스킨 레이어링", "올리브영 1위 토너", "피부 속 2.5mm 보습 개선", "100% 흡수"]
   },
-  "그린 플라보노이드 2.5 패드": {
-    confidence: "medium",
-    verified_claims: [
-      "비건 진정 토너 패드",
-      "'2.5'는 이오시딘(Eosidin) 2.5% 함유를 뜻함",
-      "그린 플라보노이드™ 성분, 외부 자극·트러블로 예민해진 피부 진정",
-      "은은한 쿨링감과 수분, 끈적임 없는 마무리",
-      "여드름성 피부 자극 테스트 완료",
-      "얇고 부드러운 고밀착 패드, 5~10분 팩처럼 얹어 사용"
-    ],
-    banned: ["3중 레이어 거즈 패드", "붉은기 즉각 완화"],
-    fit_territory: ["트러블 진정", "자극 후 진정", "열감/쿨링", "메이크업 전 진정 루틴"],
-    non_fit_territory: ["색조 메이크업", "미백 광고성 표현", "각질 제거"]
+  pad: {
+    cat: "기초 > 토너·패드",
+    name: "그린 플라보노이드 2.5 패드",
+    keywords: "비건 진정 토너 패드, 이오시딘 2.5% 함유, 외부 자극·트러블 진정, 5~10분 고밀착 패드 팩",
+    banned: ["3중 레이어 거즈 패드", "붉은기 즉각 완화"]
   },
-  "올리고 히알루론산 워터리 스킨 마스크": {
-    confidence: "medium",
-    verified_claims: [
-      "저분자 올리고 히알루론산 1,000ppm",
-      "대나무 유래 비건 시트",
-      "자극 테스트 0.00(비자극) 판정",
-      "메이크업 전 사용 / 1일 1팩 용도",
-      "사용: 10~20분"
-    ],
-    banned: ["식물성 초밀착 시트", "열감 내리는 효과"],
-    fit_territory: ["속당김", "메이크업 전 수분 루틴", "1일 1팩", "시트팩 루틴"],
-    non_fit_territory: ["색조 메이크업 믹싱", "모공/피지 집중 케어"]
+  mask: {
+    cat: "기초 > 마스크팩",
+    name: "올리고 히알루론산 워터리 스킨 마스크",
+    keywords: "저분자 올리고 히알루론산 1,000ppm, 대나무 유래 비건 시트, 메이크업 전 1일 1팩, 10~20분 사용",
+    banned: ["식물성 초밀착 시트", "열감 내리는 효과"]
+  },
+  lip: {
+    cat: "색조 > 립·틴트",
+    name: "촉촉한 탕후루 립틴트",
+    keywords: "맑은 과즙 광택 글로우 립틴트, 볼에 톡톡 블러셔 겸용, 촉촉한 데일리 립 컬러",
+    banned: ["올리브영 1위", "24시간 지속"]
   }
 };
 
-const SKINCARE_ANCHORS = ["올리브영 스킨케어 추천", "피부 뒤집어졌을때", "화잘먹 기초 루틴"];
-const COSMETIC_BANNED = [
-  "1위","1등","최고","즉각","완벽","100%","기적","치료","재생","염증 완화",
-  "여드름 완치","완치","아토피","피부염","피부과 시술","시술","모공 축소","주름 개선","미백","품절 대란","베스트셀러"
-];
-const NON_FIT_MAP = {
-  "색조": ["색조","립틴트","틴트","블러셔","립스틱","섀도","아이라이너","속눈썹","쉐딩","컨실러","퍼스널컬러"],
-  "블러셔": ["블러셔","틴트","믹싱"],
-  "헤어": ["헤어","샴푸","트리트먼트","두피"],
-  "바디": ["바디워시","바디로션"],
-  "각질": ["각질 제거","각질제거","필링","스크럽","필링젤","aha","bha","pha"],
-  "미백": ["미백","기미","잡티","화이트닝"],
-  "모공": ["모공","블랙헤드","화이트헤드","클렌징오일"]
-};
+const SPAM_KWS = ["무료나눔", "이벤트 참여", "쿠팡파트너스 링크", "구독 좋아요 알람", "댓글 이벤트 참여"];
+const ABS_MED_BANNED = ["완치", "여드름 완치", "아토피", "피부염", "치료", "피부과 치료", "염증 완화", "피부과 시술", "기적"];
+const LAW_BANNED = ["1위", "1등", "최고", "즉각", "완벽", "100%", "재생", "모공 축소", "주름 개선", "미백", "품절 대란", "베스트셀러"];
+const NUM_RE = /\d[\d,.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시간|초|분|일|만\s*개?|억|개)/g;
+const DIR_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:훅|이내|후|오프닝|클립|분량|연출|촬영)|\b(?:[3-9]|\d{2,})\s*초\s*컷/g;
 
-let currentResult = null;
-let rawSortKey = "views_per_day";
+let currentPath = "beauty/skincare";
+let selectedDays = 30;
+let selectedSort = "fast";
+let step1Data = null;
+let step2Data = null;
 
 function esc(s) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 function norm(s) {
   return String(s ?? "").replace(/\[[^\]]{1,15}\]|>>/g, " ").replace(/[\s\W_]+/g, "").toLowerCase();
 }
 function showToast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2000);
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
 }
 function copyText(txt, needsReview) {
   if (needsReview && !confirm("검수 필요 항목이 포함되어 있습니다. 내용을 확인 후 복사할까요?")) return;
   const done = () => showToast("✅ 클립보드에 복사되었습니다!");
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
-  } else {
-    fallbackCopy(txt, done);
-  }
+  } else { fallbackCopy(txt, done); }
 }
 function fallbackCopy(txt, cb) {
   const ta = document.createElement("textarea");
@@ -401,632 +394,196 @@ function fallbackCopy(txt, cb) {
   try { document.execCommand("copy"); } catch (e) {}
   document.body.removeChild(ta); cb();
 }
-function dotGauge(score, decision) {
-  const s = Math.max(1, Math.min(5, Number(score) || 1));
-  const dots = "●".repeat(s) + "○".repeat(5 - s);
-  const col = decision === "Go" ? (s === 5 ? "var(--gold)" : "var(--go)") : decision === "Pivot" ? "var(--warn)" : "var(--drop)";
-  return `<span class="dots" style="color:${col};">${dots} ${s}점</span>`;
+
+function getPathChain(key) {
+  const chain = [];
+  let cur = key;
+  while (cur && KR_TREE[cur]) { chain.unshift(cur); cur = KR_TREE[cur].parent; }
+  return chain;
 }
+function getPathLabel(key) {
+  return getPathChain(key).map(k => KR_TREE[k].label).join(" > ");
+}
+function renderExplorerNav() {
+  const chain = getPathChain(currentPath);
+  document.getElementById("crumbBar").innerHTML = chain.map((k, idx) => {
+    const isCur = idx === chain.length - 1;
+    return `${idx > 0 ? '<span class="crumb-sep">›</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(KR_TREE[k].label)}</button>`;
+  }).join("");
+
+  const children = KR_TREE[currentPath].children || [];
+  const childEl = document.getElementById("childChips");
+  if (!children.length) {
+    childEl.innerHTML = `<span style="font-size:0.8rem;color:var(--muted);">✅ 최하위 세부 품목입니다. 위 경로를 누르면 상위 카테고리로 돌아갈 수 있습니다.</span>`;
+  } else {
+    childEl.innerHTML = children.map(ck =>
+      `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(KR_TREE[ck].label)}</button>`
+    ).join("");
+  }
+}
+function selectPath(key) {
+  currentPath = key;
+  renderExplorerNav();
+}
+function setDays(d) {
+  selectedDays = d;
+  document.getElementById("days7").classList.toggle("active", d === 7);
+  document.getElementById("days30").classList.toggle("active", d === 30);
+}
+function setSort(s) {
+  selectedSort = s;
+  document.getElementById("sortFast").classList.toggle("active", s === "fast");
+  document.getElementById("sortViews").classList.toggle("active", s === "views");
+  document.getElementById("sortLikes").classList.toggle("active", s === "like_rate");
+  if (step1Data) renderStep1Result(step1Data);
+}
+function applyPreset(key) {
+  const p = PRESETS[key];
+  if (!p) return;
+  document.getElementById("prodCat").value = p.cat;
+  document.getElementById("prodName").value = p.name;
+  document.getElementById("prodKeywords").value = p.keywords;
+}
+
 function isoToSec(dur) {
   const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(dur || "");
   if (!m) return 0;
   return (Number(m[1]||0)*3600) + (Number(m[2]||0)*60) + Number(m[3]||0);
 }
+function isSpam(row) {
+  if (Number(row.views || 0) <= 0) return true;
+  if (((row.title || "").match(/#/g) || []).length >= 8) return true;
+  const blob = `${row.title || ""} ${row.description || ""}`;
+  return SPAM_KWS.some(k => blob.includes(k));
+}
+function isKorean(row) {
+  return ((`${row.title || ""} ${row.description || ""}`).match(/[가-힣]/g) || []).length >= 2;
+}
 function computeMetrics(v) {
-  const views = Number(v.views || 0);
-  const likes = Number(v.likes || 0);
+  const views = Number(v.views || 0), likes = Number(v.likes || 0);
   let days = Number(v.days_since_published || 0);
   if (!days && v.published_at) {
-    const dt = new Date(v.published_at);
-    const hrs = Math.max(0, (Date.now() - dt.getTime()) / 3600000);
+    const hrs = Math.max(0, (Date.now() - new Date(v.published_at).getTime()) / 3600000);
     days = Math.max(0.25, Math.round((hrs / 24) * 100) / 100);
   }
   if (!days) days = 1;
   return {
-    ...v,
-    views, likes,
-    days_since_published: days,
+    ...v, views, likes, days_since_published: days,
     views_per_day: Number(v.views_per_day || Math.round(views / days)),
     like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100
   };
 }
-const NUM_TOKEN_RE = /\d[\d,.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시간|초|분|일|만\s*개?|억|개)/g;
-const DIRECTION_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:훅|이내|후|오프닝|클립|분량|연출|촬영)|\b(?:[3-9]|\d{2,})\s*초\s*컷/g;
-const INTERNAL_PAREN_RE = /\s*\([^)]*(?:요약|blancdoux|kurly|glowpick|costco|hwahae|gsshop|koreadepart|미확인)[^)]*\)/gi;
-
-function cleanClaim(s) {
-  if (!s || String(s).includes("시험 조건은 미확인")) return "";
-  return String(s)
-    .replace(INTERNAL_PAREN_RE, "")
-    .replace(/케어를\s*내세움$/, "케어")
-    .replace(/를\s*내세움$/, "")
-    .replace(/(?:으)?로\s*소개$/, "")
-    .trim();
+function sortVideos(vids) {
+  const arr = [...vids];
+  if (selectedSort === "views") arr.sort((a, b) => b.views - a.views);
+  else if (selectedSort === "like_rate") arr.sort((a, b) => b.like_rate - a.like_rate);
+  else arr.sort((a, b) => (b.views_per_day * 0.6 + b.views * 0.4) - (a.views_per_day * 0.6 + a.views * 0.4));
+  return arr;
 }
-const ABSOLUTE_MEDICAL_BANNED = [
-  "완치","여드름 완치","아토피","피부염","치료","피부과 치료","염증 완화","염증완화","피부과 시술","기적"
-];
-function checkBriefViolations(b, prod) {
-  const text = `${b.hook || ""} ${b.before || ""} ${b.product_moment || ""} ${b.cta || ""}`;
-  const nt = norm(text);
-  const claimsStr = (prod.verified_claims || []).join(" ");
-  const nc = norm(claimsStr);
-  const v = [];
-  for (const bad of (prod.banned || [])) {
-    if (norm(bad) && nt.includes(norm(bad))) v.push(`확인되지 않은 문구: ${bad}`);
-  }
-  for (const med of ABSOLUTE_MEDICAL_BANNED) {
-    if (norm(med) && nt.includes(norm(med))) v.push(`의약품 오인 절대 금지 표현: ${med}`);
-  }
-  for (const term of COSMETIC_BANNED) {
-    if (norm(term) && nt.includes(norm(term)) && !nc.includes(norm(term))) v.push(`과대광고 의심: ${term}`);
-  }
-  const scanText = text.replace(DIRECTION_TIME_RE, " ");
-  const toks = scanText.match(NUM_TOKEN_RE) || [];
-  for (const tok of toks) {
-    if (!nc.includes(norm(tok))) v.push(`출처 없는 수치 표현: ${tok.trim()}`);
-  }
-  return [...new Set(v)];
-}
-const SHORT_PROD = {
-  "올리고 히알루론산 딥 토너": "딥 토너",
-  "그린 플라보노이드 2.5 패드": "그린 2.5 패드",
-  "올리고 히알루론산 워터리 스킨 마스크": "워터리 마스크"
-};
-const FIT_MAP = {
-  "속건조": ["속건조","건조","당김","푸석","히알루론산","보습"],
-  "수분 보충": ["수분","히알루론산","보습","쫀광","물광","촉촉"],
-  "토너 팩": ["토너","물토너","토너팩","화장솜","성분표","ppm"],
-  "기초 레이어링": ["기초","루틴","레이어링","화잘먹","세럼","스킨케어"],
-  "트러블 진정": ["트러블","진정","여드름","예민","뒤집어","붉은","홍조"],
-  "자극 후 진정": ["자극","진정","민감","패드","진정팩","토너패드"],
-  "열감/쿨링": ["열감","쿨링","시원","진정","홍조"],
-  "메이크업 전 진정 루틴": ["메이크업전","화잘먹","패드","진정","5분팩"],
-  "속당김": ["속당김","속건조","당김","건조","수분","히알루론산"],
-  "메이크업 전 수분 루틴": ["메이크업전","화잘먹","수분","촉촉","마스크"],
-  "1일 1팩": ["1일1팩","마스크","시트팩","팩"],
-  "시트팩 루틴": ["시트","마스크","마스크팩","시트팩","팩"]
-};
-const FORM_BONUS = {
-  "올리고 히알루론산 딥 토너": ["토너","물토너","토너팩","성분표","ppm","히알루론산"],
-  "그린 플라보노이드 2.5 패드": ["패드","토너패드","진정패드","트러블","진정","쿨링","열감"],
-  "올리고 히알루론산 워터리 스킨 마스크": ["마스크","시트팩","마스크팩","1일1팩","시트"]
-};
-
-function buildMultiProductMatrix(videos, facts, primaryProduct, primaryJudgements) {
-  const prodNames = Object.keys(PRODUCTS);
-  const vBy = Object.fromEntries((videos || []).map(v => [v.video_id, computeMetrics(v)]));
-  const pJBy = Object.fromEntries((primaryJudgements || []).map(j => [j.video_id, j]));
-  const perProd = {};
-  for (const pn of prodNames) {
-    perProd[pn] = {};
-    if (pn === primaryProduct && primaryJudgements?.length) {
-      for (const f of facts) {
-        perProd[pn][f.video_id] = pJBy[f.video_id] || { decision: "Drop", score: 1, reason: "판정 없음" };
-      }
-      continue;
-    }
-    const prod = PRODUCTS[pn];
-    const fBonus = FORM_BONUS[pn] || [];
-    for (const f of facts) {
-      if (f.evidence_ok === false) {
-        perProd[pn][f.video_id] = { decision: "Drop", score: 1, reason: "근거 인용 검증 실패" };
-        continue;
-      }
-      if (f.domain !== "기초/스킨케어") {
-        perProd[pn][f.video_id] = { decision: "Drop", score: 1, reason: `영역 불일치(${f.domain})` };
-        continue;
-      }
-      const blob = norm(`${f.what_happens || ""} ${(f.product_types || []).join(" ")} ${f.hook_quote || ""} ${f.evidence_quote || ""}`);
-      let nonFit = false;
-      for (const terr of (prod.non_fit_territory || [])) {
-        for (const [k, kws] of Object.entries(NON_FIT_MAP)) {
-          if (terr.includes(k) && kws.some(kw => blob.includes(norm(kw)))) nonFit = true;
-        }
-      }
-      if (nonFit) {
-        perProd[pn][f.video_id] = { decision: "Drop", score: 2, reason: "부적합 영역 충돌" };
-        continue;
-      }
-      const blobCheck = pn === "올리고 히알루론산 딥 토너" ? blob.replace(/토너패드/g, "패드") : blob;
-      const matched = new Set();
-      let terrCnt = 0;
-      for (const terr of (prod.fit_territory || [])) {
-        let hit = false;
-        for (const [k, kws] of Object.entries(FIT_MAP)) {
-          if (terr.includes(k)) {
-            for (const kw of kws) {
-              if (blobCheck.includes(norm(kw))) { hit = true; matched.add(kw); }
-            }
-          }
-        }
-        if (hit) terrCnt++;
-      }
-      const fHits = fBonus.filter(kw => blobCheck.includes(norm(kw))).length;
-      const sig = matched.size + fHits;
-      let score = (fHits >= 2 || (fHits >= 1 && terrCnt >= 2) || sig >= 4) ? 5
-                : (terrCnt >= 1 && sig >= 2) ? 4
-                : (terrCnt >= 1 || fHits >= 1) ? 3 : 2;
-      if (pn.includes("마스크") && fHits === 0 && score >= 4) score = 3;
-      if (f.text_source !== "caption" && score >= 4) score = 3;
-      const decision = score >= 4 ? "Go" : score === 3 ? "Pivot" : "Drop";
-      perProd[pn][f.video_id] = { decision, score, form_hits: fHits, reason: decision === "Go" ? "적합 영역 일치" : decision === "Pivot" ? "일부 연결/제형·직접 시청 필요" : "연결 근거 부족" };
-    }
-  }
-  const rows = facts.map(f => {
-    const v = vBy[f.video_id] || {};
-    const cells = {};
-    let bestProduct = null, bestScore = 0, bestForm = -1;
-    for (const pn of prodNames) {
-      const c = perProd[pn][f.video_id] || { decision: "Drop", score: 1, form_hits: 0, reason: "" };
-      const fh = c.form_hits != null ? c.form_hits : (FORM_BONUS[pn] || []).filter(kw => norm(`${f.what_happens||""} ${(f.product_types||[]).join(" ")}`).replace(pn === "올리고 히알루론산 딥 토너" ? /토너패드/g : /$^/, "패드").includes(norm(kw))).length;
-      cells[pn] = { ...c, form_hits: fh };
-      if (c.decision === "Go" && (c.score > bestScore || (c.score === bestScore && fh > bestForm))) {
-        bestScore = c.score; bestForm = fh; bestProduct = pn;
-      }
-    }
-    return {
-      video_id: f.video_id, title: v.title || f.video_id, views: v.views || 0,
-      views_per_day: v.views_per_day || 0, text_source: f.text_source || "meta",
-      domain: f.domain || "-", cells, best_product: bestProduct, best_score: bestScore
-    };
-  });
-  const product_summary = {};
-  for (const pn of prodNames) {
-    const entries = Object.entries(perProd[pn]);
-    const goEntries = entries.filter(([, x]) => x.decision === "Go");
-    product_summary[pn] = {
-      go: goEntries.length,
-      pivot: entries.filter(([, x]) => x.decision === "Pivot").length,
-      drop: entries.filter(([, x]) => x.decision === "Drop").length,
-      total_go_score: goEntries.reduce((s, [, x]) => s + x.score, 0),
-      total_go_views_per_day: goEntries.reduce((s, [vid]) => s + (vBy[vid]?.views_per_day || 0), 0)
-    };
-  }
-  const ranked = [...prodNames].sort((a, b) =>
-    (product_summary[b].go - product_summary[a].go) ||
-    (product_summary[b].total_go_score - product_summary[a].total_go_score) ||
-    (product_summary[b].total_go_views_per_day - product_summary[a].total_go_views_per_day)
-  );
-  const top = ranked[0];
-  const recommended_product = (top && product_summary[top].go > 0) ? top : null;
-  const recommendation_reason = recommended_product
-    ? `${top} (Go ${product_summary[top].go}건·합계 ${product_summary[top].total_go_score}점 · Pivot ${product_summary[top].pivot}건 · Drop ${product_summary[top].drop}건)`
-    : "오늘은 억지 집행 금지 — 전원 보류/테스트 권장 (전 제품 Go 0건)";
-  return { products: prodNames, rows, product_summary, recommended_product, recommendation_reason };
-}
-
-const CUSTOM_PROD_KEY = "ts_custom_products_v2";
-const HISTORY_KEY = "ts_history_snapshot_v2";
-
-function loadCustomProducts() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CUSTOM_PROD_KEY) || "{}");
-    Object.assign(PRODUCTS, saved);
-  } catch (e) {}
-}
-function refreshProductDropdown(selectName) {
-  const sel = document.getElementById("productSel");
-  sel.innerHTML = "";
-  Object.keys(PRODUCTS).forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = PRODUCTS[name].confidence === "high" ? `${name} (✅ high)` : name;
-    sel.appendChild(opt);
-  });
-  if (selectName && PRODUCTS[selectName]) sel.value = selectName;
-}
-function saveCustomProduct() {
-  const name = document.getElementById("obName").value.trim();
-  const rawClaims = document.getElementById("obClaims").value;
-  const fit = document.getElementById("obFit").value.split(",").map(s => s.trim()).filter(Boolean);
-  const nonFit = document.getElementById("obNonFit").value.split(",").map(s => s.trim()).filter(Boolean);
-  const lines = rawClaims.split(/\r?\n/).map(l => l.replace(/^\s*[-•*·]\s*/, "").trim()).filter(Boolean);
-  if (!name || !lines.length) { showToast("⚠️ 제품명과 공식 확인 문구를 입력하세요."); return; }
-
-  const existing = PRODUCTS[name] || {};
-  const existingBanned = existing.banned || [];
-  const accepted = [], rejected = [], warns = [];
-  for (const c of lines) {
-    const nc = norm(c);
-    const hits = [];
-    for (const term of COSMETIC_BANNED) {
-      if (norm(term) && nc.includes(norm(term))) hits.push(term);
-    }
-    for (const bad of existingBanned) {
-      if (norm(bad) && nc.includes(norm(bad))) hits.push(bad);
-    }
-    if (hits.length) {
-      rejected.push(c);
-      warns.push(`격리(${[...new Set(hits)].join(",")}): ${c.slice(0, 30)}`);
-    } else {
-      accepted.push(c);
-    }
-  }
-  if (!accepted.length) {
-    document.getElementById("statusBar").textContent = "🚨 저장 거부: 화장품법 금지 표현만 포함되어 저장할 수 없습니다.";
-    showToast("🚨 금지 표현으로 저장이 거부되었습니다.");
-    return;
-  }
-
-  const conf = rejected.length ? "medium" : "high";
-  const entry = {
-    confidence: conf,
-    verified_claims: accepted,
-    banned: existingBanned,
-    fit_territory: fit.length ? fit : (existing.fit_territory || ["기초 스킨케어"]),
-    non_fit_territory: nonFit.length ? nonFit : (existing.non_fit_territory || ["색조 메이크업", "헤어/바디"])
-  };
-  PRODUCTS[name] = entry;
-  try {
-    const prev = JSON.parse(localStorage.getItem(CUSTOM_PROD_KEY) || "{}");
-    prev[name] = entry;
-    localStorage.setItem(CUSTOM_PROD_KEY, JSON.stringify(prev));
-  } catch (e) {}
-  refreshProductDropdown(name);
-  const msg = rejected.length
-    ? `⚠️ '${name}' 저장 완료 (금지어 ${rejected.length}건 격리 → confidence=medium 유지): ${warns.join(" / ")}`
-    : `✅ '${name}' 저장 완료 (confidence=high 승격)!`;
-  loadSampleRehearsal();
-  document.getElementById("statusBar").textContent = msg;
-}
-function annotateHistoryLocal(videos, save = true) {
-  let prev = null;
-  try { prev = JSON.parse(localStorage.getItem(HISTORY_KEY) || "null"); } catch (e) {}
-  const hasPrev = !!(prev && prev.videos && Object.keys(prev.videos).length);
-  const prevV = hasPrev ? prev.videos : {};
-  const out = videos.map(v => {
-    const item = { ...v };
-    if (!hasPrev) {
-      item.has_prev_snapshot = false; item.is_new = false; item.views_delta = null;
-    } else if (!prevV[v.video_id]) {
-      item.has_prev_snapshot = true; item.is_new = true; item.views_delta = null;
-    } else {
-      item.has_prev_snapshot = true; item.is_new = false;
-      item.views_delta = Math.max(0, Number(v.views || 0) - Number(prevV[v.video_id].views || 0));
-    }
-    return item;
-  });
-  if (save && videos.length) {
-    try {
-      const nowIso = new Date().toISOString();
-      const merged = { ...prevV };
-      videos.forEach(v => { merged[v.video_id] = { views: Number(v.views || 0), likes: Number(v.likes || 0), captured_at: nowIso }; });
-      const entries = Object.entries(merged)
-        .sort((a, b) => String(b[1].captured_at || "").localeCompare(String(a[1].captured_at || "")))
-        .slice(0, 200);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ last_captured_at: nowIso, videos: Object.fromEntries(entries) }));
-    } catch (e) {}
-  }
-  return out;
-}
-
-function buildShareableHtmlReport(res) {
-  const videos = (res.videos || []).map(computeMetrics);
-  const facts = res.facts || [];
-  const judgements = res.judgements || [];
-  const briefs = res.briefs || [];
-  const vBy = Object.fromEntries(videos.map(v => [v.video_id, v]));
-  const fBy = Object.fromEntries(facts.map(f => [f.video_id, f]));
-  const bBy = Object.fromEntries(briefs.map(b => [b.video_id, b]));
-  const prod = PRODUCTS[res.product] || { banned: [] };
-  const mat = res.multi_product_matrix || buildMultiProductMatrix(videos, facts, res.product, judgements);
-
-  const totalV = videos.length;
-  const capV = videos.filter(v => v.text_source === "caption").length;
-  const capPct = totalV ? Math.round((capV / totalV) * 1000) / 10 : 0;
-  const avgViews = totalV ? Math.round(videos.reduce((s, v) => s + v.views, 0) / totalV) : 0;
-  const avgLr = totalV ? (videos.reduce((s, v) => s + v.like_rate, 0) / totalV).toFixed(2) : "0.00";
-  const maxVpd = videos.reduce((m, v) => Math.max(m, v.views_per_day), 0);
-  const goItems = judgements.filter(j => j.decision === "Go");
-  const pvItems = judgements.filter(j => j.decision === "Pivot");
-  const drItems = judgements.filter(j => j.decision === "Drop");
-
-  const confB = res.product_confidence && res.product_confidence !== "high"
-    ? `<div class="banner warn">⚠️ <b>[제품 정보 확인 필요]</b> 요약 기반(신뢰도: ${esc(res.product_confidence)}) — 최종 집행 전 공식 상세페이지 원문을 확인하세요.</div>` : "";
-  const lowB = videos.some(v => v.low_views_fallback)
-    ? `<div class="banner info">ℹ️ 저유입 기준 완화 포함: 일부 저유입 영상이 포함되었습니다.</div>` : "";
-  const matB = mat.recommended_product
-    ? `<div class="banner go">🏆 <b>3종 교차 매칭 추천 주력 제품:</b> ${esc(mat.recommendation_reason)}</div>`
-    : `<div class="banner warn">⚠️ <b>3종 교차 매칭 결과:</b> ${esc(mat.recommendation_reason)}</div>`;
-
-  const goCards = !goItems.length
-    ? `<div class="empty">이번 수집 배치에서 Go 판정 컨셉이 없습니다.</div>`
-    : goItems.map((j, idx) => {
-        const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {}, b = bBy[j.video_id];
-        const rev = (b && b.needs_review) ? `<div class="banner danger">🚨 <b>발송 보류 — 검수 필요:</b> ${esc((b.violations||[]).join("; "))}</div>` : "";
-        const sb = b ? `<div class="sb-grid">
-          <div class="sb-cell"><div class="sb-lbl">⚡ 1. 첫 3초 훅</div><div>${esc(b.hook)}</div></div>
-          <div class="sb-cell"><div class="sb-lbl">👀 2. 비포 공감 상황</div><div>${esc(b.before)}</div></div>
-          <div class="sb-cell"><div class="sb-lbl">💧 3. 제품 침투 시점</div><div>${esc(b.product_moment)}</div></div>
-          <div class="sb-cell"><div class="sb-lbl">🛒 4. 구매/참여 CTA</div><div>${esc(b.cta)}</div></div>
-        </div><div class="note-strip"><b>📝 주의사항:</b> ${esc(b.creator_note)}${prod.banned?.length ? ` · <b>🚫 금지:</b> ${esc(prod.banned.join(", "))}` : ""}</div>` : "";
-        return `<div class="card ${idx===0?"gold":""}">
-          <div class="card-top"><div><span class="pill go">🎯 Go ${j.score}점</span> <span class="pill purple">${esc(f.format_tag||"기타")}</span></div></div>
-          ${rev}
-          <div class="card-title">${esc(f.what_happens || v.title || j.video_id)}</div>
-          <div class="reason"><b>📌 Go 근거:</b> ${esc(j.reason)}</div>
-          <div class="claim">🔗 ${esc(cleanClaim(j.linked_claim) || j.linked_claim || "-")}</div>
-          <div class="quote">💬 "${esc(f.hook_quote || f.evidence_quote || "-")}"</div>
-          <div class="evid">📺 ${esc(v.channel_title||"-")} · 👀 ${(v.views||0).toLocaleString()}회 · 🔥 ${(v.views_per_day||0).toLocaleString()}회/일 · <a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank">쇼츠 보기 ↗</a></div>
-          ${sb}
-        </div>`;
-      }).join("");
-
-  const triageRows = [...pvItems, ...drItems].map(j => {
-    const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {};
-    return `<tr><td><span class="pill ${j.decision==="Pivot"?"warn":"drop"}">${esc(j.decision)} ${j.score}점</span></td><td>${esc(f.domain||"-")}</td><td><a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank">${esc((v.title||j.video_id).slice(0,50))} ↗</a></td><td>${(v.views||0).toLocaleString()}회</td><td>${esc(j.reason)}</td></tr>`;
-  }).join("");
-
-  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>[결재 보고서] ${esc(res.product)} (${esc(res.report_date)})</title>
-<style>
-  body{margin:0;background:#FAF9FE;color:#1C1730;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Malgun Gothic",sans-serif;line-height:1.5;}
-  .wrap{max-width:960px;margin:0 auto;padding:24px 18px 40px;}
-  .header{border-bottom:2px solid #6C2BD9;padding-bottom:10px;margin-bottom:14px;}
-  .header h1{margin:0;font-size:1.45rem;} .meta{font-size:.85rem;color:#6B7280;}
-  .banner{padding:9px 12px;border-radius:8px;font-size:.83rem;font-weight:600;margin-bottom:10px;}
-  .warn{background:#FEF3C7;color:#B45309;border-left:4px solid #B45309;} .go{background:#E6F6F4;color:#0F766E;border-left:4px solid #0F766E;}
-  .danger{background:#FEF2F2;color:#B91C1C;border-left:4px solid #B91C1C;} .info{background:#F3F4F6;color:#4B5563;border-left:4px solid #4B5563;}
-  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
-  .kpi{background:#FFF;border:1px solid #ECE9F5;border-radius:10px;padding:10px 12px;}
-  .kpi-val{font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums;} .kpi-lbl,.kpi-sub{font-size:.75rem;color:#6B7280;}
-  .insight{background:#F6F2FF;border-left:4px solid #6C2BD9;border-radius:10px;padding:12px 16px;margin-bottom:12px;}
-  .card{background:#FFF;border:1px solid #ECE9F5;border-radius:12px;padding:14px 16px;margin-bottom:12px;break-inside:avoid;}
-  .card.gold{border:2px solid #BF8A12;background:#FFFDF5;}
-  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.73rem;font-weight:700;}
-  .pill.go{background:#E6F6F4;color:#0F766E;} .pill.warn{background:#FEF3C7;color:#B45309;} .pill.drop{background:#F3F4F6;color:#4B5563;} .pill.purple{background:#F3EEFD;color:#6C2BD9;}
-  .card-title{font-size:1.02rem;font-weight:800;margin:6px 0;} .reason,.evid{font-size:.84rem;color:#374151;margin-bottom:6px;}
-  .claim{display:inline-block;background:#E6F6F4;color:#0F766E;padding:2px 8px;border-radius:6px;font-size:.78rem;font-weight:700;margin-bottom:8px;}
-  .quote{background:#F4FBF9;border-left:3px solid #0F766E;padding:7px 10px;font-size:.85rem;font-weight:600;margin-bottom:8px;}
-  .sb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0;}
-  .sb-cell{border:1px solid #ECE9F5;border-radius:8px;padding:8px 10px;font-size:.82rem;} .sb-lbl{font-weight:800;color:#4C1D95;font-size:.74rem;margin-bottom:3px;}
-  .note-strip{background:#FFF8F8;border:1px solid #FECACA;border-radius:6px;padding:6px 9px;font-size:.77rem;}
-  table{width:100%;border-collapse:collapse;font-size:.79rem;background:#FFF;} th,td{padding:6px 8px;border-bottom:1px solid #ECE9F5;text-align:left;}
-  @media print{body{background:#FFF;}.wrap{max-width:100%;padding:0;}.card,.insight,.kpi{break-inside:avoid;}}
-</style></head><body><div class="wrap">
-  <div class="header"><h1>💄 K-Beauty TrendSetter Pro — 주간 트렌드 결재 보고서</h1><div class="meta">대상 제품: <b>${esc(res.product)}</b> · 기준일: ${esc(res.report_date)} · 최근 ${Number(res.days_range||30)}일</div></div>
-  ${confB}${lowB}
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-lbl">🎬 클리핑</div><div class="kpi-val">${totalV}건</div><div class="kpi-sub">자막 ${capV}건 (${capPct}%)</div></div>
-    <div class="kpi"><div class="kpi-lbl">👀 평균 조회수</div><div class="kpi-val">${avgViews.toLocaleString()}회</div><div class="kpi-sub">좋아요율 ${avgLr}%</div></div>
-    <div class="kpi"><div class="kpi-lbl">🔥 최고 일평균</div><div class="kpi-val">${maxVpd.toLocaleString()}회/일</div><div class="kpi-sub">급상승 1위</div></div>
-    <div class="kpi"><div class="kpi-lbl">📊 판정 분포</div><div class="kpi-val">Go ${goItems.length} · Pivot ${pvItems.length} · Drop ${drItems.length}</div><div class="kpi-sub">총 ${judgements.length}건</div></div>
-  </div>
-  <div class="insight"><b>🧭 시장 관통 패턴</b><ol style="margin:6px 0 0;padding-left:18px;font-size:.86rem;">${(res.market_patterns||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ol></div>
-  ${matB}
-  <h3>🎯 Go 판정 캠페인 컨셉 (${goItems.length}건)</h3>${goCards}
-  <h3>📋 Pivot &amp; Drop 탈락 사유 요약</h3>
-  <table><thead><tr><th>판정</th><th>도메인</th><th>영상</th><th>조회수</th><th>사유</th></tr></thead><tbody>${triageRows}</tbody></table>
-</div></body></html>`;
-}
-function downloadExecutiveHtml() {
-  if (!currentResult) { showToast("⚠️ 먼저 분석 또는 리허설을 실행하세요."); return; }
-  const htmlStr = buildShareableHtmlReport(currentResult);
-  const blob = new Blob([htmlStr], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `kbeauty_executive_report_${currentResult.report_date || new Date().toISOString().slice(0,10)}.html`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showToast("📄 팀장 결재용 1페이지 HTML 보고서를 저장했습니다!");
-}
-
-function buildCopyables(res) {
-  const prod = PRODUCTS[res.product] || { verified_claims: [], banned: [] };
-  const vBy = Object.fromEntries((res.videos || []).map(v => [v.video_id, computeMetrics(v)]));
-  const fBy = Object.fromEntries((res.facts || []).map(f => [f.video_id, f]));
-  const bBy = Object.fromEntries((res.briefs || []).map(b => [b.video_id, b]));
-  const go = (res.judgements || []).filter(j => j.decision === "Go");
-  const pv = (res.judgements || []).filter(j => j.decision === "Pivot");
-  const dr = (res.judgements || []).filter(j => j.decision === "Drop");
-  const mat = res.multi_product_matrix || buildMultiProductMatrix(res.videos || [], res.facts || [], res.product, res.judgements || []);
-  const matLines = mat.product_summary ? [
-    "", "### 🔀 제품 3종 교차 매칭 요약",
-    ...mat.products.map(pn => {
-      const ps = mat.product_summary[pn] || {};
-      return `- **${pn}**: Go ${ps.go||0}건(합계 ${ps.total_go_score||0}점) · Pivot ${ps.pivot||0}건 · Drop ${ps.drop||0}건`;
-    }),
-    `- **${mat.recommended_product ? "🏆" : "⚠️"} 오늘의 추천 주력 제품**: ${mat.recommendation_reason}`
-  ] : [];
-  const rep = [
-    `# [주간 K-뷰티 쇼츠 트렌드 보고] ${res.product}`,
-    `- 보고 기준일: ${res.report_date} | 최근 ${res.days_range || 30}일 | Go ${go.length} · Pivot ${pv.length} · Drop ${dr.length}`,
-    "", "## 1. 이번 주 시장 바이럴 패턴",
-    ...(res.market_patterns || []).map((p, i) => `${i+1}. ${p}`),
-    "", "## 2. Go 추천 컨셉",
-    ...go.map((j, i) => {
-      const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {}, b = bBy[j.video_id];
-      const warnLine = (b && b.needs_review) ? `> 🚨 [발송 보류 — 검수 필요]: ${(b.violations||[]).join("; ")}\n` : "";
-      const newTag = v.is_new ? " 🆕 NEW" : "";
-      const dTag = (typeof v.views_delta === "number" && v.views_delta > 0) ? ` (+${v.views_delta.toLocaleString()}회 ↑)` : "";
-      return `### Go #${i+1}.${newTag} ${v.title || j.video_id}\n${warnLine}- https://youtube.com/shorts/${j.video_id} | 조회수 ${(v.views||0).toLocaleString()}회${dTag} · 일평균 ${(v.views_per_day||0).toLocaleString()}회/일 | 포맷: ${f.format_tag || "기타"}\n- 근거(${j.score}점): ${j.reason}\n- 인용: "${f.hook_quote || f.evidence_quote || "-"}"`;
-    }),
-    "", `## 3. Drop 제외 요약 (${dr.length}건)`,
-    ...dr.map(j => `- [${(fBy[j.video_id]||{}).domain || "-"}] ${(vBy[j.video_id]||{}).title || j.video_id}: ${j.reason}`),
-    ...matLines
-  ].join("\n");
-
-  const flagged = (res.briefs || []).filter(b => b.needs_review);
-  const dmWarn = flagged.length
-    ? [`> 🚨 [발송 보류 — 검수 필요]: ${flagged.map(b => `${b.video_id}(${(b.violations||[]).join(", ")})`).join(" / ")}`, ""]
-    : [];
-  const dm = [
-    ...dmWarn,
-    `# [크리에이터 촬영 가이드] ${res.product}`,
-    `- 배포 기준일: ${res.report_date} | 권장 규격: 세로형 9:16 숏폼 (20~45초) | 필수 표기: #광고 또는 #협찬`,
-    "> 아래 가이드는 최근 실제 바이럴 쇼츠 포맷과 공식 확인된 제품 정보만을 기반으로 작성되었습니다.", "",
-    ...(res.briefs || []).map((b, i) => {
-      const v = vBy[b.video_id] || {}, f = fBy[b.video_id] || {};
-      return [
-        `## 컨셉 #${i+1}. [${f.format_tag || "기타"}] ${v.title || b.video_id}`,
-        `- 참고 레퍼런스: https://youtube.com/shorts/${b.video_id}`,
-        `- 첫 3초 훅: ${b.hook}`,
-        `- 비포 상황: ${b.before}`,
-        `- 제품 침투 시점: ${b.product_moment}`,
-        `- CTA: ${b.cta}`,
-        `- 촬영 주의사항: ${b.creator_note}`,
-        prod.banned?.length ? `- 절대 사용 금지 문구: ${prod.banned.join(", ")}` : ""
-      ].filter(Boolean).join("\n");
-    }),
-    "", "### [참고] 공식 확인된 제품 소구 포인트",
-    ...(prod.verified_claims || []).map(cleanClaim).filter(Boolean).map(c => `- ${c}`)
-  ].join("\n");
-
-  return { internal_report_md: rep, creator_dm_clean_md: dm };
-}
-
 async function callGeminiJson(apiKey, model, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
-    })
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json" } })
   });
-  if (!resp.ok) throw new Error(`Gemini API 오류 (${resp.status})`);
+  if (!resp.ok) throw new Error(`AI 응답 오류 (${resp.status})`);
   const data = await resp.json();
-  const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-  return JSON.parse(txt);
+  return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
 }
 
-async function runLive2Stage() {
+async function runStep1Live() {
   const ytKey = document.getElementById("ytKey").value.trim();
   const ggKey = document.getElementById("ggKey").value.trim();
-  const productName = document.getElementById("productSel").value;
-  const days = Number(document.getElementById("daysSel").value);
-  const sortBy = document.getElementById("sortSel").value;
   const model = document.getElementById("modelSel").value;
-  const status = document.getElementById("statusBar");
+  const st = document.getElementById("step1Status");
+  if (!ytKey || !ggKey) { st.textContent = "⚠️ 상단 'API 키 설정'에 유튜브 API 키와 제미나이 API 키를 모두 입력해주세요."; return; }
 
-  if (!ytKey || !ggKey) { status.textContent = "⚠️ YouTube API Key와 Gemini API Key를 모두 입력하세요."; return; }
-  const prod = PRODUCTS[productName];
+  const today = new Date().toISOString().slice(0, 10);
+  const cacheKey = `ts_kr_step1_${today}_${currentPath}_${selectedDays}`;
   try {
-    status.textContent = "1/3. YouTube 기초 스킨케어 쇼츠 수집 중...";
-    const pubAfter = new Date(Date.now() - days * 86400000).toISOString();
-    const idSet = new Set();
-    for (const kw of SKINCARE_ANCHORS) {
-      const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw + " shorts")}&type=video&videoCategoryId=26&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
-      const r = await fetch(u);
-      const d = await r.json();
-      (d.items || []).forEach(it => it?.id?.videoId && idSet.add(it.id.videoId));
+    const cached = window.localStorage.getItem(cacheKey);
+    if (cached) {
+      step1Data = JSON.parse(cached);
+      st.textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' 결과를 캐시에서 즉시 불러왔습니다 (유튜브 쿼터 0).`;
+      renderStep1Result(step1Data);
+      return;
     }
-    const ids = [...idSet].slice(0, 40);
-    if (!ids.length) { status.textContent = "수집된 영상이 없습니다."; return; }
+  } catch (e) {}
 
-    const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
-    const det = await (await fetch(detUrl)).json();
-    let videos = (det.items || []).map(it => {
+  const node = KR_TREE[currentPath];
+  try {
+    st.textContent = `1/2. '${getPathLabel(currentPath)}' 한국 유튜브 쇼츠 수집 중...`;
+    let detItems = [];
+    if (node.mode === "mostPopular") {
+      const u = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=KR&maxResults=25&key=${encodeURIComponent(ytKey)}`;
+      detItems = (await (await fetch(u)).json()).items || [];
+    } else {
+      const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
+      const idSet = new Set();
+      for (const kw of node.keywords.slice(0, 3)) {
+        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw + " shorts")}&type=video&videoCategoryId=26&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
+        const d = await (await fetch(u)).json();
+        (d.items || []).forEach(it => it?.id?.videoId && idSet.add(it.id.videoId));
+      }
+      const ids = [...idSet].slice(0, 40);
+      if (!ids.length) { st.textContent = "수집된 쇼츠가 없습니다. 기간을 30일로 늘려보세요."; return; }
+      const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
+      detItems = (await (await fetch(detUrl)).json()).items || [];
+    }
+
+    let videos = detItems.map(it => {
       const secs = isoToSec(it.contentDetails?.duration);
       if (secs === 0 || secs > 120) return null;
-      const sn = it.snippet || {}, st = it.statistics || {};
-      return computeMetrics({
+      const sn = it.snippet || {}, stats = it.statistics || {};
+      const row = computeMetrics({
         video_id: it.id, title: sn.title || "", description: (sn.description || "").slice(0, 300),
-        channel_title: sn.channelTitle || "", views: Number(st.viewCount || 0), likes: Number(st.likeCount || 0),
+        channel_title: sn.channelTitle || "", views: Number(stats.viewCount || 0), likes: Number(stats.likeCount || 0),
         published_at: sn.publishedAt || "", thumbnail_url: sn.thumbnails?.medium?.url || "",
         text_source: "meta", source_text: `${sn.title || ""} ${(sn.description || "").slice(0, 300)}`
       });
+      return isSpam(row) ? null : row;
     }).filter(Boolean);
-    videos.sort((a, b) => sortBy === "views" ? b.views - a.views : (b.views_per_day*0.6 + b.views*0.4) - (a.views_per_day*0.6 + a.views*0.4));
-    videos = annotateHistoryLocal(videos.slice(0, 10), true);
 
-    // Stage 1: 브랜드 정보 완전 차단 팩트 + 포맷 + 패턴 추출
-    status.textContent = "2/3. [Stage 1] 브랜드 편향 차단 팩트·포맷·시장 패턴 추출 중...";
-    const s1Prompt = `당신은 브랜드를 모르는 K-뷰티 리서처입니다. 아래 쇼츠의 제목·설명만으로 JSON을 반환하세요.
-스키마: {"market_patterns":["패턴1","패턴2"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
-규칙: 원문 복사 필수. 추측 금지.\n` + videos.map(v => `[${v.video_id}] ${v.title} | ${v.description}`).join("\n");
-    const s1 = await callGeminiJson(ggKey, model, s1Prompt);
+    const kor = videos.filter(isKorean);
+    if (kor.length >= 3) videos = kor;
+    videos = sortVideos(videos).slice(0, 10);
+    if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없습니다."; return; }
+
+    st.textContent = "2/2. AI가 요즘 뜨는 포맷과 핵심 흐름을 요약 중...";
+    const p1 = `당신은 브랜드를 모르는 한국 유튜브 쇼츠 트렌드 리서처입니다. 아래 쇼츠 제목·설명만으로 JSON을 반환하세요.
+스키마: {"market_patterns":["요약1","요약2","요약3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
+규칙: 원문 복사 필수, 추측 금지.\n` + videos.map(v => `[${v.video_id}] ${v.title} | ${v.description}`).join("\n");
+    const s1 = await callGeminiJson(ggKey, model, p1);
     const vBy = Object.fromEntries(videos.map(v => [v.video_id, v]));
     const facts = (s1.facts || []).filter(f => vBy[f.video_id]).map(f => {
-      const src = norm(vBy[f.video_id].source_text);
-      const evOk = norm(f.evidence_quote).length >= 4 && src.includes(norm(f.evidence_quote));
+      const evOk = norm(f.evidence_quote).length >= 4 && norm(vBy[f.video_id].source_text).includes(norm(f.evidence_quote));
       return { ...f, evidence_ok: evOk, text_source: vBy[f.video_id].text_source };
     });
 
-    // Stage 2: 제품 확인 문구 기반 Go/Pivot/Drop + Go만 4단 콘티
-    status.textContent = "3/3. [Stage 2] 제품 매칭 판정 및 코드 가드레일 검증 중...";
-    const s2Prompt = `당신은 '${productName}' 인하우스 마케터입니다. 아래 확인 문구만 근거로 판정하고 Go에만 4단 콘티를 작성하세요.
-[확인 문구] ${prod.verified_claims.join(" / ")}
-[적합 영역] ${prod.fit_territory.join(", ")}
-[부적합 영역] ${prod.non_fit_territory.join(", ")}
-[금지 표현] ${prod.banned.join(", ")}
-JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score":1,"reason":"","linked_claim":""}],"briefs":[{"video_id":"","hook":"","before":"","product_moment":"","cta":"","creator_note":""}]}
-[시장 팩트]\n` + facts.map(f => `[${f.video_id}] 영역=${f.domain} | 포맷=${f.format_tag} | 내용=${f.what_happens}`).join("\n");
-    const s2 = await callGeminiJson(ggKey, model, s2Prompt);
-
-    // 코드 가드레일 강제 적용 (근거 실패·영역 불일치·non_fit 강제 Drop + linked_claim 8자)
-    const fBy = Object.fromEntries(facts.map(f => [f.video_id, f]));
-    const jByRaw = Object.fromEntries((s2.judgements || []).map(j => [j.video_id, j]));
-    const judgements = facts.map(f => {
-      if (!f.evidence_ok) {
-        return { video_id: f.video_id, decision: "Drop", score: 1, reason: "[자동 제외] 근거 인용 검증 실패로 제외", linked_claim: "" };
-      }
-      const j = jByRaw[f.video_id] || { video_id: f.video_id, score: 1, reason: "[자동 제외] 판정 누락", linked_claim: "" };
-      let score = Math.max(1, Math.min(5, Number(j.score) || 1));
-      let reason = j.reason || "";
-      if (f.domain !== "기초/스킨케어") { score = Math.min(score, 1); reason = `[규칙] 영역 불일치(${f.domain}). ` + reason; }
-      const blob = norm(`${f.what_happens} ${(f.product_types||[]).join(" ")}`);
-      for (const terr of prod.non_fit_territory) {
-        for (const [k, kws] of Object.entries(NON_FIT_MAP)) {
-          if (terr.includes(k) && kws.some(kw => blob.includes(norm(kw)))) { score = Math.min(score, 2); reason = `[규칙] 부적합 영역(${terr}). ` + reason; }
-        }
-      }
-      if (score >= 4 && norm(j.linked_claim).length < 8) score = 3;
-      const decision = score >= 4 ? "Go" : score === 3 ? "Pivot" : "Drop";
-      return { ...j, video_id: f.video_id, score, decision, reason };
-    });
-    const goIds = new Set(judgements.filter(j => j.decision === "Go").map(j => j.video_id));
-    const briefs = (s2.briefs || []).filter(b => goIds.has(b.video_id)).map(b => {
-      const violations = checkBriefViolations(b, prod);
-      return { ...b, violations, needs_review: violations.length > 0 };
-    });
-
-    const result = {
-      product: productName, report_date: new Date().toISOString().slice(0, 10), days_range: days,
-      product_confidence: prod.confidence, videos, facts, market_patterns: (s1.market_patterns || []).slice(0, 3),
-      judgements, briefs, _mode: "live"
+    step1Data = {
+      mode: "live", path_label: getPathLabel(currentPath), days_range: selectedDays,
+      report_date: today, videos, facts, market_patterns: (s1.market_patterns || []).slice(0, 3)
     };
-    Object.assign(result, buildCopyables(result));
-    renderDashboard(result);
-    status.textContent = "✅ 2-Stage 실시간 분석 완료!";
+    try { window.localStorage.setItem(cacheKey, JSON.stringify(step1Data)); } catch (e) {}
+    document.getElementById("apiDetails").open = false;
+    st.textContent = `✅ '${step1Data.path_label}' 트렌드 분석 완료! 아래에서 바로 우리 제품에 입혀보세요.`;
+    renderStep1Result(step1Data);
   } catch (e) {
-    status.textContent = "❌ 오류: " + e.message;
+    st.textContent = "❌ 분석 중 오류: " + e.message;
   }
 }
 
-function loadLocalJson(ev) {
-  const file = ev.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const data = JSON.parse(reader.result);
-      data._mode = "json_loaded";
-      if (!data.internal_report_md || !data.creator_dm_clean_md) Object.assign(data, buildCopyables(data));
-      renderDashboard(data);
-      document.getElementById("statusBar").textContent = `✅ 로컬 JSON 로드 완료 (${file.name})`;
-    } catch (e) {
-      document.getElementById("statusBar").textContent = "❌ JSON 파싱 실패: " + e.message;
-    }
-  };
-  reader.readAsText(file, "utf-8");
-}
-
-function loadSampleRehearsal() {
-  const productName = document.getElementById("productSel").value;
-  const prod = PRODUCTS[productName];
-  const sample = {
-    product: productName, report_date: new Date().toISOString().slice(0, 10), days_range: 30,
-    product_confidence: prod.confidence, _mode: "rehearsal",
+function runStep1Preview() {
+  const today = new Date().toISOString().slice(0, 10);
+  step1Data = {
+    mode: "preview",
+    path_label: getPathLabel(currentPath),
+    days_range: selectedDays,
+    report_date: today,
     market_patterns: [
-      "전성분 함량(ppm)과 보습 핵심 성분을 20초 내외로 팩트체크하는 실험·리스트형 쇼츠 반응이 높음.",
-      "푸석한 피부의 데일리 수분 케어 및 메이크업 전 기초 루틴 포맷이 꾸준한 수요를 형성.",
-      "색조 믹싱·발색 쇼츠 비중이 높아 기초 브랜드 캠페인 기획 시 영역 필터링(Drop)이 필수적임."
+      "전성분 함량 숫자와 보습 핵심 성분을 20초 내외로 비교하는 팩트체크형 쇼츠가 높은 반응을 얻고 있습니다.",
+      "화장 전 푸석한 피부에 수분 제품을 바로 시연하는 응급처치 루틴 포맷의 저장·공유가 강세입니다.",
+      "립틴트·컨실러 믹싱 같은 색조 꿀팁도 조회수가 높아, 기초 브랜드 기획 시 영역 필터링이 중요합니다."
     ],
     videos: [
       computeMetrics({ video_id:"brKNpouibqo", title:"물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼", channel_title:"aweop", views:1187, likes:12, published_at:"2026-11-20T07:10:16Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/brKNpouibqo/mqdefault.jpg" }),
@@ -1035,300 +592,317 @@ function loadSampleRehearsal() {
       computeMetrics({ video_id:"jfsweQpxqsY", title:"립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts", channel_title:"K-뷰티 메이크업랩", views:156361, likes:4820, published_at:"2026-11-15T09:00:00Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/jfsweQpxqsY/mqdefault.jpg" })
     ],
     facts: [
-      { video_id:"brKNpouibqo", domain:"기초/스킨케어", format_tag:"응급처치 루틴형", what_happens:"푸석한 피부에 히알루론산 수분 제품으로 데일리 수분 케어 및 화잘먹 피부 연출", hook_quote:"물먹은 듯 촉촉한 쫀광 피부", evidence_quote:"푸석한 피부를 위한 데일리 수분 케어", evidence_ok:true, text_source:"caption" },
-      { video_id:"Zl5CPQxmWFE", domain:"기초/스킨케어", format_tag:"비포/애프터 실험형", what_happens:"히알루론산 제품의 전성분표 함량(ppm)을 직접 검증하는 성분 팩트체크", hook_quote:"성분표 숫자 다 더하니 3%", evidence_quote:"히알루론산 함량을 직접 확인하는 전성분 팩트체크", evidence_ok:true, text_source:"caption" },
-      { video_id:"RdXhzcCVtsw", domain:"기초/스킨케어", format_tag:"기타", what_happens:"경쟁 브랜드의 저분자 히알루론산 세럼 분기 매출 1000억 돌파 소식 전달", hook_quote:"세럼 하나로 분기 1000억 찍은 브랜드", evidence_quote:"대표 제품 다이브인 저분자 히알루론산 세럼", evidence_ok:true, text_source:"meta" },
-      { video_id:"jfsweQpxqsY", domain:"색조/메이크업", format_tag:"믹싱 꿀팁형", what_happens:"립틴트와 컨실러를 손등에 섞어 블러셔로 바르는 색조 믹싱 꿀팁 시연", hook_quote:"립틴트랑 컨실러 섞어서 맑은 블러셔 만드는 법", evidence_quote:"손등에 틴트 한 방울 덜고 컨실러 살짝 섞어서 볼에 톡톡", evidence_ok:true, text_source:"caption" }
-    ],
-    judgements: [
-      { video_id:"brKNpouibqo", decision:"Go", score:5, reason:"실제 자막 기반 수분 케어 포맷이 제품의 확인된 소구 포인트와 직접 연결됨.", linked_claim:prod.verified_claims[0] },
-      { video_id:"Zl5CPQxmWFE", decision:"Go", score:4, reason:"전성분 함량 공개 포맷이 확인된 성분 문구와 자연스럽게 연결됨.", linked_claim:prod.verified_claims[1] || prod.verified_claims[0] },
-      { video_id:"RdXhzcCVtsw", decision:"Pivot", score:3, reason:"기초 시장 연관성은 있으나 자막 미확인(meta) 상태로 직접 시청 후 검토 필요.", linked_claim:prod.verified_claims[0] },
-      { video_id:"jfsweQpxqsY", decision:"Drop", score:1, reason:"[규칙] 영상 영역이 '색조/메이크업'으로 제품 영역(기초/스킨케어)과 다름.", linked_claim:"" }
-    ],
-    briefs: [
-      { video_id:"brKNpouibqo", hook:"첫 3초: 화장솜에 제품을 듬뿍 적시는 클로즈업과 '속건조로 화장 뜨는 아침' 자막", before:"세안 직후 당김과 베이스 들뜸이 느껴지는 비포 컷", product_moment:`${productName} — ${prod.verified_claims[0]} 중심으로 자연스럽게 시연`, cta:"올리브영/프로필 링크에서 데일리 루틴 확인하기", creator_note:"확인되지 않은 순위·즉각 효과 표현 금지", violations:[], needs_review:false },
-      { video_id:"Zl5CPQxmWFE", hook:"첫 3초: 전성분 라벨을 확대하며 '성분표 직접 확인해봤습니다' 대사", before:"성분 확인 없이 수분 제품을 고르던 소비자의 고민 공감", product_moment:`${productName}의 확인된 특징(${prod.verified_claims[1] || prod.verified_claims[0]})을 팩트 중심으로 소개`, cta:"전성분 확인 후 댓글로 피부 타입 공유하기", creator_note:"과대광고 및 미확인 수치 표현 금지", violations:[], needs_review:false }
+      { video_id:"brKNpouibqo", domain:"기초/스킨케어", format_tag:"응급처치 루틴형", what_happens:"푸석한 피부에 히알루론산 수분 제품으로 데일리 수분 케어 및 화잘먹 피부 연출", product_types:["수분세럼"], hook_quote:"물먹은 듯 촉촉한 쫀광 피부", evidence_quote:"푸석한 피부를 위한 데일리 수분 케어", evidence_ok:true, text_source:"caption" },
+      { video_id:"Zl5CPQxmWFE", domain:"기초/스킨케어", format_tag:"비포/애프터 실험형", what_happens:"히알루론산 제품의 전성분표 함량을 직접 검증하는 성분 팩트체크", product_types:["히알루론산 세럼"], hook_quote:"성분표 숫자 다 더하니 3%", evidence_quote:"히알루론산 함량을 직접 확인하는 전성분 팩트체크", evidence_ok:true, text_source:"caption" },
+      { video_id:"RdXhzcCVtsw", domain:"기초/스킨케어", format_tag:"기타", what_happens:"저분자 히알루론산 세럼 브랜드의 분기 매출 성장 소식 전달", product_types:["저분자 히알루론산 세럼"], hook_quote:"세럼 하나로 분기 1000억 찍은 브랜드", evidence_quote:"대표 제품 다이브인 저분자 히알루론산 세럼", evidence_ok:true, text_source:"meta" },
+      { video_id:"jfsweQpxqsY", domain:"색조/메이크업", format_tag:"믹싱 꿀팁형", what_happens:"립틴트와 컨실러를 손등에 섞어 블러셔로 바르는 색조 믹싱 꿀팁 시연", product_types:["립틴트","블러셔"], hook_quote:"립틴트랑 컨실러 섞어서 맑은 블러셔 만드는 법", evidence_quote:"손등에 틴트 한 방울 덜고 컨실러 살짝 섞어서 볼에 톡톡", evidence_ok:true, text_source:"caption" }
     ]
   };
-  Object.assign(sample, buildCopyables(sample));
-  renderDashboard(sample);
-  document.getElementById("statusBar").textContent = "🧪 샘플 리허설 데이터를 로드했습니다 (API 쿼터 0).";
+  document.getElementById("step1Status").textContent = "👀 예시 화면을 불러왔습니다 (유튜브 쿼터 0). 아래 2단계에서 우리 제품에 입혀보세요.";
+  renderStep1Result(step1Data);
 }
 
-function setRawSort(key) {
-  rawSortKey = key;
-  if (currentResult) renderDashboard(currentResult, { openRaw: true });
-}
+function renderStep1Result(data) {
+  const fBy = Object.fromEntries((data.facts || []).map(f => [f.video_id, f]));
+  const sorted = sortVideos(data.videos || []);
+  const fmtCount = {};
+  (data.facts || []).forEach(f => { fmtCount[f.format_tag || "기타"] = (fmtCount[f.format_tag || "기타"] || 0) + 1; });
+  const topFmts = Object.entries(fmtCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
-function renderDashboard(res, opts = {}) {
-  currentResult = res;
-  const videos = (res.videos || []).map(computeMetrics);
-  const facts = res.facts || [];
-  const judgements = res.judgements || [];
-  const briefs = res.briefs || [];
-  const vBy = Object.fromEntries(videos.map(v => [v.video_id, v]));
-  const fBy = Object.fromEntries(facts.map(f => [f.video_id, f]));
-  const bBy = Object.fromEntries(briefs.map(b => [b.video_id, b]));
-  const jBy = Object.fromEntries(judgements.map(j => [j.video_id, j]));
-  const prod = PRODUCTS[res.product] || { banned: [] };
-
-  const badge = document.getElementById("modeBadge");
-  badge.textContent = res._mode === "live" ? "🟢 실시간 분석" : res._mode === "json_loaded" ? "📂 불러온 결과" : "👀 예시 미리보기";
-  badge.className = res._mode === "live" ? "pill pill-go" : "pill pill-warn";
-
-  const totalV = videos.length;
-  const capV = videos.filter(v => v.text_source === "caption").length;
-  const capPct = totalV ? Math.round((capV / totalV) * 1000) / 10 : 0;
-  const avgViews = totalV ? Math.round(videos.reduce((s, v) => s + v.views, 0) / totalV) : 0;
-  const avgLr = totalV ? (videos.reduce((s, v) => s + v.like_rate, 0) / totalV).toFixed(2) : "0.00";
-  const maxVpd = videos.reduce((m, v) => Math.max(m, v.views_per_day), 0);
-
-  const goItems = judgements.filter(j => j.decision === "Go").sort((a,b) => (b.score - a.score) || ((vBy[b.video_id]?.views_per_day||0) - (vBy[a.video_id]?.views_per_day||0)));
-  const pivotItems = judgements.filter(j => j.decision === "Pivot");
-  const dropItems = judgements.filter(j => j.decision === "Drop");
-
-  const confBanner = res.product_confidence && res.product_confidence !== "high"
-    ? `<div style="font-size:0.82rem;color:var(--muted);margin:0 0 12px 4px;">ℹ️ 현재 기본 제품 요약 문구 기준입니다. 위 [우리 제품 추가 / 공식 설명 수정]에 공식 상세페이지 문구를 넣으면 더 정확해집니다.</div>` : "";
-  const lowViewsBanner = videos.some(v => v.low_views_fallback)
-    ? `<div class="alert-banner alert-info">ℹ️ 저유입 기준 완화 포함: 최소 조회수 기준을 넘는 영상이 부족해 일부 저유입 영상이 포함되었습니다.</div>` : "";
-
-  const patternsHtml = (res.market_patterns || []).map((p, i) =>
+  const pats = (data.market_patterns || []).map((p, i) =>
     `<div class="pattern-row"><span class="pattern-num">${i+1}</span><div>${esc(p)}</div></div>`
-  ).join("") || `<div class="pattern-row">추출된 공통 시장 패턴이 없습니다.</div>`;
+  ).join("");
+  const fmtChips = topFmts.map(([tag, cnt]) => `<span class="pill pill-purple">🎬 ${esc(tag)} (${cnt}건)</span>`).join(" ");
 
-  const anyNeedsRev = briefs.some(b => b.needs_review);
-  const goHtml = !goItems.length
-    ? `<div class="empty-box">이번 수집 배치에서는 우리 제품과 억지 연결 없이 바로 집행할 Go 컨셉이 없습니다.<br>아래 Pivot 후보를 직접 시청해 검토하거나 수집 기간을 조정해 보세요.</div>`
-    : goItems.map((j, idx) => {
+  const cards = sorted.map(v => {
+    const f = fBy[v.video_id] || {};
+    const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
+    return `<div class="short-card">
+      <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
+      <div class="short-body">
+        <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
+        <div class="short-meta">
+          <span>📺 ${esc(v.channel_title)}</span>
+          <span>👀 ${v.views.toLocaleString()}회</span>
+          <span class="pill pill-hot">🔥 하루 평균 ${v.views_per_day.toLocaleString()}회</span>
+          <span>❤️ ${v.like_rate.toFixed(2)}%</span>
+          <span class="pill pill-purple">${esc(f.format_tag || "기타")}</span>
+        </div>
+        <div class="short-fact">${esc(f.what_happens || "")}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("step1Area").innerHTML = `
+    <div class="insight-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <b style="font-size:1.04rem;color:var(--purple-dark);">🧭 '${esc(data.path_label)}' 요즘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
+        <div>${fmtChips}</div>
+      </div>
+      ${pats}
+    </div>
+    <div class="shorts-grid">${cards}</div>
+  `;
+  document.getElementById("step2Panel").style.display = "block";
+  if (!document.getElementById("prodName").value) applyPreset("toner");
+}
+
+function expectedDomainFromCat(cat) {
+  if (/색조|메이크업|립|틴트|블러셔|쿠션|파데|아이/.test(cat || "")) return "색조/메이크업";
+  if (/헤어|바디/.test(cat || "")) return "헤어/바디";
+  return "기초/스킨케어";
+}
+function checkViolations(b, allowedClaims, bannedList) {
+  const txt = `${b.hook||""} ${b.before||""} ${b.product_moment||""} ${b.cta||""} ${(b.copy_ideas||[]).join(" ")}`;
+  const nt = norm(txt), nc = norm(allowedClaims.join(" "));
+  const v = [];
+  for (const m of ABS_MED_BANNED) if (nt.includes(norm(m))) v.push(`의약품 오인 금지 표현: ${m}`);
+  for (const bad of (bannedList || [])) if (norm(bad) && nt.includes(norm(bad))) v.push(`확인되지 않은 표현: ${bad}`);
+  for (const term of LAW_BANNED) if (nt.includes(norm(term)) && !nc.includes(norm(term))) v.push(`과대광고 주의 표현: ${term}`);
+  const scan = txt.replace(DIR_TIME_RE, " ");
+  for (const tok of (scan.match(NUM_RE) || [])) if (!nc.includes(norm(tok))) v.push(`출처 없는 수치 표현: ${tok.trim()}`);
+  return [...new Set(v)];
+}
+
+async function runStep2Match() {
+  if (!step1Data) return;
+  const cat = document.getElementById("prodCat").value;
+  const prodName = document.getElementById("prodName").value.trim();
+  const prodKw = document.getElementById("prodKeywords").value.trim();
+  const st = document.getElementById("step2Status");
+  if (!prodName) { st.textContent = "⚠️ 제품명을 입력해주세요."; return; }
+
+  const expDomain = expectedDomainFromCat(cat);
+  const presetMatch = Object.values(PRESETS).find(p => p.name === prodName);
+  const bannedList = presetMatch ? presetMatch.banned : [];
+  const allowedClaims = prodKw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  const ggKey = document.getElementById("ggKey").value.trim();
+  const model = document.getElementById("modelSel").value;
+
+  let judgements = [], briefs = [];
+  if (step1Data.mode === "live" && ggKey) {
+    try {
+      st.textContent = "✨ 방금 본 트렌드와 우리 제품을 매칭하고 카피·콘티를 작성 중 (추가 유튜브 검색 0)...";
+      const p2 = `당신은 '${prodName}' (${cat}) 담당 마케터입니다. 아래 팩트를 보고 Go/Pivot/Drop 판정과 Go 항목의 카피 3종 + 4단 촬영 콘티를 JSON으로 반환하세요.
+[제품 특징 — 이 범위 안에서만 작성] ${allowedClaims.join(" / ")}
+[금지 표현] ${bannedList.join(", ")} / 1위·1등·즉각·완벽·치료·완치·아토피 금지
+JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score":1,"reason":"","linked_claim":""}],"briefs":[{"video_id":"","hook":"","before":"","product_moment":"","cta":"","creator_note":"","copy_ideas":["카피1","카피2","카피3"]}]}
+[시장 팩트]\n` + step1Data.facts.map(f => `[${f.video_id}] 영역=${f.domain} | 포맷=${f.format_tag} | 내용=${f.what_happens}`).join("\n");
+      const s2 = await callGeminiJson(ggKey, model, p2);
+      const fBy = Object.fromEntries(step1Data.facts.map(f => [f.video_id, f]));
+      judgements = step1Data.facts.map(f => {
+        const raw = (s2.judgements || []).find(j => j.video_id === f.video_id) || { score: 1, reason: "판정 누락", linked_claim: "" };
+        let score = Math.max(1, Math.min(5, Number(raw.score) || 1));
+        let reason = raw.reason || "";
+        if (!f.evidence_ok) { score = 1; reason = "원문 근거 검증 실패로 제외"; }
+        else if (f.domain !== expDomain) { score = 1; reason = `영역 불일치(${f.domain} ≠ ${expDomain}). ` + reason; }
+        const decision = score >= 4 ? "Go" : score === 3 ? "Pivot" : "Drop";
+        return { video_id: f.video_id, decision, score, reason, linked_claim: raw.linked_claim || "" };
+      });
+      const goIds = new Set(judgements.filter(j => j.decision === "Go").map(j => j.video_id));
+      briefs = (s2.briefs || []).filter(b => goIds.has(b.video_id)).map(b => {
+        const violations = checkViolations(b, allowedClaims, bannedList);
+        return { ...b, violations, needs_review: violations.length > 0 };
+      });
+      st.textContent = "✅ 우리 제품 맞춤 캠페인·카피 생성이 완료되었습니다!";
+    } catch (e) {
+      st.textContent = "❌ 기획 생성 오류: " + e.message;
+      return;
+    }
+  } else {
+    // 예시 화면 미리보기 (오프라인 즉시 매칭)
+    judgements = step1Data.facts.map(f => {
+      if (f.domain !== expDomain) {
+        return { video_id: f.video_id, decision: "Drop", score: 1, reason: `영상 영역(${f.domain})이 제품 영역(${expDomain})과 달라 억지 연결을 차단했습니다.`, linked_claim: "" };
+      }
+      if (f.text_source !== "caption") {
+        return { video_id: f.video_id, decision: "Pivot", score: 3, reason: "영역은 맞지만 자막이 없어 직접 시청 후 결정하는 것을 권장합니다.", linked_claim: allowedClaims[0] || prodName };
+      }
+      return { video_id: f.video_id, decision: "Go", score: 5, reason: `'${f.format_tag}' 포맷이 '${prodName}'의 핵심 특징과 자연스럽게 연결됩니다.`, linked_claim: allowedClaims[0] || prodName };
+    });
+    const goList = judgements.filter(j => j.decision === "Go").slice(0, 3);
+    briefs = goList.map(g => {
+      const f = step1Data.facts.find(x => x.video_id === g.video_id);
+      const b = {
+        video_id: g.video_id,
+        hook: `첫 3초: "${f.hook_quote || f.what_happens}" 자막과 함께 제품 사용 직전 클로즈업`,
+        before: `평소 ${cat} 고민이 드러나는 공감 비포 장면`,
+        product_moment: `${prodName} — ${allowedClaims[0] || prodName} 특징을 자연스럽게 시연`,
+        cta: "프로필 링크 또는 올리브영에서 데일리 루틴 제품 확인해보세요",
+        creator_note: "확인되지 않은 순위·즉각 효과·의약품 오인 표현 절대 금지",
+        copy_ideas: [
+          `${prodName}, ${f.format_tag}으로 바로 따라 해보는 데일리 루틴`,
+          `복잡한 단계 대신 딱 하나, ${allowedClaims[0] || prodName}`,
+          `요즘 뜨는 쇼츠 포맷 그대로 담은 ${prodName} 리얼 사용기`
+        ]
+      };
+      const violations = checkViolations(b, allowedClaims, bannedList);
+      return { ...b, violations, needs_review: violations.length > 0 };
+    });
+    st.textContent = "👀 예시 화면 기반 맞춤 캠페인·카피가 생성되었습니다 (유튜브 쿼터 0).";
+  }
+
+  step2Data = { product: prodName, cat, expDomain, bannedList, allowedClaims, judgements, briefs };
+  renderStep2Result(step2Data);
+}
+
+function buildReports(s1, s2) {
+  const vBy = Object.fromEntries(s1.videos.map(v => [v.video_id, v]));
+  const fBy = Object.fromEntries(s1.facts.map(f => [f.video_id, f]));
+  const bBy = Object.fromEntries(s2.briefs.map(b => [b.video_id, b]));
+  const go = s2.judgements.filter(j => j.decision === "Go");
+  const pv = s2.judgements.filter(j => j.decision === "Pivot");
+  const dr = s2.judgements.filter(j => j.decision === "Drop");
+
+  const rep = [
+    `# [주간 쇼츠 트렌드 보고] ${s2.product} (${s2.cat})`,
+    `- 기준일: ${s1.report_date} | 탐색 경로: ${s1.path_label} (${s1.days_range}일) | 추천 ${go.length} · 보류 ${pv.length} · 제외 ${dr.length}`,
+    "", "## 1. 요즘 뜨는 핵심 흐름",
+    ...s1.market_patterns.map((p, i) => `${i+1}. ${p}`),
+    "", "## 2. 추천(Go) 캠페인 컨셉",
+    ...go.map((j, i) => {
+      const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {}, b = bBy[j.video_id];
+      const copies = b?.copy_ideas?.length ? `\n- 추천 카피 3종: ${b.copy_ideas.map(c => `"${c}"`).join(" / ")}` : "";
+      return `### 추천 #${i+1}. ${v.title || j.video_id}\n- https://youtube.com/shorts/${j.video_id} (조회수 ${(v.views||0).toLocaleString()}회 · 하루 평균 ${(v.views_per_day||0).toLocaleString()}회)\n- 추천 이유(${j.score}점): ${j.reason}${copies}`;
+    }),
+    "", `## 3. 제외(Drop) 요약 (${dr.length}건)`,
+    ...dr.map(j => `- [${(fBy[j.video_id]||{}).domain || "-"}] ${(vBy[j.video_id]||{}).title || j.video_id}: ${j.reason}`)
+  ].join("\n");
+
+  const dm = [
+    `# [크리에이터 촬영 가이드] ${s2.product}`,
+    `- 배포일: ${s1.report_date} | 권장 규격: 세로형 9:16 숏폼 (20~45초) | 필수 표기: #광고 또는 #협찬`, "",
+    ...s2.briefs.map((b, i) => {
+      const v = vBy[b.video_id] || {}, f = fBy[b.video_id] || {};
+      return [
+        `## 컨셉 #${i+1}. [${f.format_tag || "기타"}] ${v.title || b.video_id}`,
+        `- 참고 영상: https://youtube.com/shorts/${b.video_id}`,
+        `- 추천 카피 3종: ${(b.copy_ideas||[]).map(c => `"${c}"`).join(" / ")}`,
+        `- 첫 3초 훅: ${b.hook}`,
+        `- 비포 상황: ${b.before}`,
+        `- 제품 등장 시점: ${b.product_moment}`,
+        `- 마무리 안내(CTA): ${b.cta}`,
+        `- 촬영 주의사항: ${b.creator_note}`,
+        s2.bannedList.length ? `- 절대 금지 표현: ${s2.bannedList.join(", ")}` : ""
+      ].filter(Boolean).join("\n");
+    })
+  ].join("\n");
+
+  return { rep, dm };
+}
+
+function downloadStep2Html() {
+  if (!step1Data || !step2Data) return;
+  const vBy = Object.fromEntries(step1Data.videos.map(v => [v.video_id, v]));
+  const fBy = Object.fromEntries(step1Data.facts.map(f => [f.video_id, f]));
+  const bBy = Object.fromEntries(step2Data.briefs.map(b => [b.video_id, b]));
+  const go = step2Data.judgements.filter(j => j.decision === "Go");
+  const dr = step2Data.judgements.filter(j => j.decision === "Drop");
+  const htmlDoc = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>[결재 보고서] ${esc(step2Data.product)}</title>
+<style>body{font-family:-apple-system,"Pretendard","Malgun Gothic",sans-serif;max-width:920px;margin:0 auto;padding:24px;color:#1C1730;}
+.card{border:1px solid #ECE9F5;border-radius:12px;padding:14px 16px;margin-bottom:12px;break-inside:avoid;}
+.sb{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;} .cell{border:1px solid #ECE9F5;padding:8px;border-radius:8px;font-size:.85rem;}
+@media print{body{padding:0;}.card{break-inside:avoid;}}</style></head><body>
+<h1>💄 주간 쇼츠 트렌드 결재 보고서 — ${esc(step2Data.product)}</h1>
+<p>기준일: ${esc(step1Data.report_date)} · 탐색 경로: ${esc(step1Data.path_label)} (${step1Data.days_range}일)</p>
+<h2>1. 요즘 뜨는 핵심 흐름</h2><ol>${step1Data.market_patterns.map(p=>`<li>${esc(p)}</li>`).join("")}</ol>
+<h2>2. 추천 캠페인 (${go.length}건)</h2>
+${go.map((j,i)=>{const v=vBy[j.video_id]||{},b=bBy[j.video_id];return `<div class="card"><h3>추천 #${i+1}. ${esc(v.title||j.video_id)} (${j.score}점)</h3>
+<p>${esc(j.reason)} · <a href="https://youtube.com/shorts/${esc(j.video_id)}">쇼츠 링크</a></p>
+${b?`<p><b>추천 카피 3종:</b> ${(b.copy_ideas||[]).map(c=>`"${esc(c)}"`).join(" / ")}</p>
+<div class="sb"><div class="cell"><b>첫 3초 훅</b><br>${esc(b.hook)}</div><div class="cell"><b>비포 상황</b><br>${esc(b.before)}</div>
+<div class="cell"><b>제품 등장</b><br>${esc(b.product_moment)}</div><div class="cell"><b>마무리 안내</b><br>${esc(b.cta)}</div></div>`:""}</div>`;}).join("")}
+<h2>3. 제외 항목 요약 (${dr.length}건)</h2><ul>${dr.map(j=>`<li>[${esc((fBy[j.video_id]||{}).domain||"-")}] ${esc((vBy[j.video_id]||{}).title||j.video_id)} — ${esc(j.reason)}</li>`).join("")}</ul>
+</body></html>`;
+  const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = `kbeauty_executive_report_${step1Data.report_date}.html`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast("📄 1페이지 보고서 HTML을 저장했습니다!");
+}
+
+function renderStep2Result(s2) {
+  const vBy = Object.fromEntries(step1Data.videos.map(v => [v.video_id, v]));
+  const fBy = Object.fromEntries(step1Data.facts.map(f => [f.video_id, f]));
+  const bBy = Object.fromEntries(s2.briefs.map(b => [b.video_id, b]));
+  const go = s2.judgements.filter(j => j.decision === "Go");
+  const pv = s2.judgements.filter(j => j.decision === "Pivot");
+  const dr = s2.judgements.filter(j => j.decision === "Drop");
+  const anyRev = s2.briefs.some(b => b.needs_review);
+  const reports = buildReports(step1Data, s2);
+  window._step2Reports = reports;
+
+  const goHtml = !go.length
+    ? `<div class="welcome-box">이번 탐색 결과에서는 '${esc(s2.product)}'에 억지 연결 없이 바로 쓸 수 있는 추천(Go) 컨셉이 없습니다.<br>위에서 다른 세부 카테고리를 탐색해 보세요.</div>`
+    : go.map((j, idx) => {
         const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {}, b = bBy[j.video_id];
-        const isTop = idx === 0;
-        const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(j.video_id)}/mqdefault.jpg`;
-        const capBadge = f.text_source === "caption"
-          ? `<span class="pill pill-go">✅ 자막 검증 완료</span>`
-          : `<span class="pill pill-warn">⚠️ 자막 미확인 (직접 시청 필요)</span>`;
-        const revBanner = (b && b.needs_review)
-          ? `<div class="alert-banner alert-danger">🚨 <b>발송 보류 — 검수 필요:</b> ${esc((b.violations||[]).join("; "))}</div>` : "";
+        const dots = "●".repeat(j.score) + "○".repeat(5 - j.score);
+        const revB = (b && b.needs_review) ? `<div class="alert-banner alert-danger">🚨 <b>발송 보류 — 검수 필요:</b> ${esc(b.violations.join("; "))}</div>` : "";
+        const copyBox = (b && b.copy_ideas?.length)
+          ? `<div class="copy-box"><b>✍️ 바로 쓸 마케팅 카피 3종</b>${b.copy_ideas.slice(0,3).map(c => `<div class="copy-item">• ${esc(c)}</div>`).join("")}</div>` : "";
         const sbHtml = b ? `
           <div class="sb-grid">
-            <div class="sb-cell"><div class="sb-label">⚡ 1. 첫 3초 훅</div><div class="sb-text">${esc(b.hook)}</div></div>
-            <div class="sb-cell"><div class="sb-label">👀 2. 비포 공감 상황</div><div class="sb-text">${esc(b.before)}</div></div>
-            <div class="sb-cell"><div class="sb-label">💧 3. 제품 침투 시점</div><div class="sb-text">${esc(b.product_moment)}</div></div>
-            <div class="sb-cell"><div class="sb-label">🛒 4. 구매/참여 CTA</div><div class="sb-text">${esc(b.cta)}</div></div>
+            <div class="sb-cell"><div class="sb-label">⚡ 1. 첫 3초 훅</div>${esc(b.hook)}</div>
+            <div class="sb-cell"><div class="sb-label">👀 2. 비포 공감 상황</div>${esc(b.before)}</div>
+            <div class="sb-cell"><div class="sb-label">💧 3. 제품 등장 시점</div>${esc(b.product_moment)}</div>
+            <div class="sb-cell"><div class="sb-label">🛒 4. 마무리 안내(CTA)</div>${esc(b.cta)}</div>
           </div>
-          <div class="note-strip">
-            <b>📝 크리에이터 주의사항:</b> ${esc(b.creator_note)}
-            ${prod.banned?.length ? `<br><b>🚫 절대 금지 표현:</b> ${esc(prod.banned.join(", "))}` : ""}
-          </div>` : "";
-        return `
-          <div class="tcard ${isTop ? "gold" : ""}">
-            <div class="tcard-top">
-              <div class="badge-group">
-                ${isTop ? `<span class="pill pill-gold">👑 TOP GO PICK</span>` : ""}
-                <span class="pill pill-go">🎯 Go</span>
-                <span class="pill pill-purple">${esc(f.format_tag || "기타")}</span>
-                ${capBadge}
-              </div>
-              <div>${dotGauge(j.score, "Go")}</div>
-            </div>
-            ${revBanner}
-            <div class="tcard-title">${esc(f.what_happens || v.title || j.video_id)}</div>
-            <div class="tcard-reason"><b>📌 Go 근거:</b> ${esc(j.reason)}</div>
-            <div class="claim-chip">🔗 ${esc(cleanClaim(j.linked_claim) || j.linked_claim || "-")}</div>
-            <div class="quote-box">
-              <div class="quote-meta">
-                <span>💬 실제 영상 원문 인용</span>
-                <span>${f.text_source === "caption" ? "✅ 자막 100% 원문 대조 통과" : "⚠️ 제목·설명 기반 (브라우저 단독 실행 시 자막 미수집 — 직접 시청 권장)"}</span>
-              </div>
-              <div class="quote-text">"${esc(f.hook_quote || f.evidence_quote || "-")}"</div>
-            </div>
-            <div class="evid-item">
-              <img class="evid-thumb" src="${esc(thumb)}" alt="thumb" />
-              <div class="evid-body">
-                <div class="evid-title">${esc(v.title || j.video_id)}</div>
-                <div class="evid-meta">
-                  <span>📺 ${esc(v.channel_title || "-")}</span>
-                  <span>👀 ${(v.views||0).toLocaleString()}회</span>
-                  ${v.is_new ? `<span class="pill pill-go">🆕 NEW</span>` : ""}
-                  ${(typeof v.views_delta === "number" && v.views_delta > 0) ? `<span class="pill pill-go">+${v.views_delta.toLocaleString()}회 ↑</span>` : ""}
-                  <span class="pill pill-hot">🔥 ${(v.views_per_day||0).toLocaleString()}회/일</span>
-                  <span>❤️ ${(v.like_rate||0).toFixed(2)}%</span>
-                  <span>📅 ${esc((v.published_at||"-").slice(0,10))}</span>
-                </div>
-              </div>
-              <a class="evid-link" href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank" rel="noopener">쇼츠 보기 ↗</a>
-            </div>
-            ${sbHtml}
-          </div>`;
-      }).join("") + `
-      <div class="action-bar" style="margin-bottom:18px;">
-        <button class="btn btn-sec" onclick="copyText(currentResult.internal_report_md, false)">📋 팀장/슬랙 보고 복사</button>
-        <button class="btn ${anyNeedsRev ? "btn-danger" : "btn-primary"}" onclick="copyText(currentResult.creator_dm_clean_md || currentResult.creator_guide_md, ${anyNeedsRev})">
-          ${anyNeedsRev ? "⚠️ 검수 후 DM 복사" : "💌 인플루언서 DM 복사 (깨끗한 본문)"}
-        </button>
-      </div>`;
-
-  const pivotHtml = pivotItems.length ? `
-    <div class="sec-heading">⚠️ Pivot — 서브 테스트 / 직접 시청 검토 (${pivotItems.length}건)</div>
-    ${pivotItems.map(j => {
-      const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {};
-      const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(j.video_id)}/mqdefault.jpg`;
-      const metaBadge = f.text_source !== "caption"
-        ? `<span class="pill pill-warn">⚠️ 자막 미확인 (직접 시청 필요)</span>`
-        : `<span class="pill pill-go">✅ 자막 검증 완료</span>`;
-      return `
-        <div class="pivot-card">
-          <img class="pivot-thumb" src="${esc(thumb)}" alt="thumb" />
-          <div class="evid-body">
-            <div class="badge-group" style="margin-bottom:4px;">
-              ${metaBadge}
+          <div class="note-strip"><b>📝 주의사항:</b> ${esc(b.creator_note)}${s2.bannedList.length ? ` · <b>🚫 절대 금지 표현:</b> ${esc(s2.bannedList.join(", "))}` : ""}</div>` : "";
+        return `<div class="tcard ${idx===0?"gold":""}">
+          <div class="tcard-top">
+            <div class="badge-group">
+              ${idx===0?'<span class="pill pill-gold">👑 최우선 추천</span>':''}
+              <span class="pill pill-go">🎯 추천 (Go)</span>
               <span class="pill pill-purple">${esc(f.format_tag || "기타")}</span>
-              ${dotGauge(j.score, "Pivot")}
+              ${f.text_source === "caption" ? '<span class="pill pill-go">✅ 자막 확인 완료</span>' : '<span class="pill pill-warn">⚠️ 자막 미확인 (직접 시청 권장)</span>'}
             </div>
-            <div class="evid-title"><a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank" rel="noopener" style="color:var(--ink);text-decoration:none;">${esc(v.title || j.video_id)} ↗</a></div>
-            <div class="evid-meta">
-              <span>👀 ${(v.views||0).toLocaleString()}회</span>
-              <span class="pill pill-hot">🔥 ${(v.views_per_day||0).toLocaleString()}회/일</span>
-              <span>사유: ${esc(j.reason)}</span>
-            </div>
+            <span class="dots" style="color:${idx===0?'var(--gold)':'var(--go)'};">${dots} ${j.score}점</span>
           </div>
+          ${revB}
+          <div class="tcard-title">${esc(f.what_happens || v.title || j.video_id)}</div>
+          <div style="font-size:0.9rem;color:var(--ink-secondary);margin-bottom:6px;"><b>📌 추천 이유:</b> ${esc(j.reason)}</div>
+          <div class="quote-box">💬 "${esc(f.hook_quote || f.evidence_quote || "-")}" · <a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank" rel="noopener" style="color:var(--purple-dark);font-weight:700;">원본 쇼츠 보기 ↗</a></div>
+          ${copyBox}
+          ${sbHtml}
         </div>`;
+      }).join("");
+
+  const pvHtml = pv.length ? `
+    <h3 style="margin:18px 0 10px;">⚠️ 보류 (직접 시청 후 검토 ${pv.length}건)</h3>
+    ${pv.map(j => {
+      const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {};
+      return `<div class="pivot-card">
+        <img class="pivot-thumb" src="${esc(v.thumbnail_url || `https://i.ytimg.com/vi/${j.video_id}/mqdefault.jpg`)}" alt="thumb"/>
+        <div>
+          <span class="pill pill-warn">⚠️ 자막 미확인 (직접 시청 필요)</span> <span class="pill pill-purple">${esc(f.format_tag||"기타")}</span>
+          <div style="font-weight:700;margin-top:4px;"><a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank" style="color:var(--ink);text-decoration:none;">${esc(v.title||j.video_id)} ↗</a></div>
+          <div style="font-size:0.8rem;color:var(--muted);">${esc(j.reason)}</div>
+        </div>
+      </div>`;
     }).join("")}` : "";
 
-  const dropRows = dropItems.map(j => {
+  const drRows = dr.map(j => {
     const v = vBy[j.video_id] || {}, f = fBy[j.video_id] || {};
-    const evBadge = f.evidence_ok === false ? ` <span class="pill pill-drop">🚫 근거 검증 실패</span>` : "";
-    return `<tr>
-      <td><span class="pill pill-drop">${esc(f.domain || "-")}</span>${evBadge}</td>
-      <td><a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank" rel="noopener">${esc((v.title||j.video_id).slice(0,55))} ↗</a></td>
-      <td>${(v.views||0).toLocaleString()}회</td>
-      <td>${esc(j.reason)}</td>
-    </tr>`;
+    return `<tr><td><span class="pill pill-drop">${esc(f.domain||"-")}</span></td><td><a href="https://youtube.com/shorts/${esc(j.video_id)}" target="_blank">${esc((v.title||j.video_id).slice(0,50))} ↗</a></td><td>${(v.views||0).toLocaleString()}회</td><td>${esc(j.reason)}</td></tr>`;
   }).join("");
 
-  const sortedRaw = [...videos].sort((a,b) => (b[rawSortKey]||0) - (a[rawSortKey]||0));
-  const rawRows = sortedRaw.map((v, i) => {
-    const f = fBy[v.video_id] || {}, j = jBy[v.video_id] || {};
-    const dec = j.decision || "-";
-    const dCls = dec === "Go" ? "pill-go" : dec === "Pivot" ? "pill-warn" : "pill-drop";
-    const deltaB = v.is_new
-      ? ` <span class="pill pill-go">🆕 NEW</span>`
-      : (typeof v.views_delta === "number" && v.views_delta > 0 ? ` <span class="pill pill-go">+${v.views_delta.toLocaleString()} ↑</span>` : "");
-    return `<tr>
-      <td><b>${i+1}</b></td>
-      <td><a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc((v.title||v.video_id).slice(0,45))} ↗</a>${deltaB}</td>
-      <td>${esc(v.channel_title || "-")}</td>
-      <td>${v.views.toLocaleString()}</td>
-      <td><b>🔥 ${v.views_per_day.toLocaleString()}</b></td>
-      <td>${v.like_rate.toFixed(2)}%</td>
-      <td>${esc((v.published_at||"-").slice(0,10))}</td>
-      <td>${v.text_source === "caption" ? "✅" : "⚠️"}</td>
-      <td><span class="pill pill-purple">${esc(f.format_tag || "기타")}</span></td>
-      <td><span class="pill ${dCls}">${esc(dec)}</span></td>
-    </tr>`;
-  }).join("");
-
-  const matrix = res.multi_product_matrix || buildMultiProductMatrix(videos, facts, res.product, judgements);
-  const matRecBanner = matrix.recommended_product
-    ? `<div class="alert-banner" style="background:var(--go-soft);color:var(--go);border:1px solid #99F6E4;border-left:4px solid var(--go);margin-top:10px;">🏆 <b>오늘의 추천 주력 제품:</b> ${esc(matrix.recommendation_reason)}</div>`
-    : `<div class="alert-banner alert-warn" style="margin-top:10px;">⚠️ <b>오늘은 억지 집행 금지 — 전원 보류/테스트 권장</b> (${esc(matrix.recommendation_reason)})</div>`;
-  const matThs = (matrix.products || []).map(pn => `<th>${esc(SHORT_PROD[pn] || pn)}</th>`).join("");
-  const matRowsHtml = (matrix.rows || []).map(r => {
-    const cells = (matrix.products || []).map(pn => {
-      const c = r.cells[pn] || { decision: "Drop", score: 1 };
-      const cls = c.decision === "Go" ? "pill-go" : c.decision === "Pivot" ? "pill-warn" : "pill-drop";
-      const ico = c.decision === "Go" ? "🎯" : c.decision === "Pivot" ? "⚠️" : "❌";
-      return `<td><span class="pill ${cls}">${ico} ${esc(c.decision)} ${c.score}점</span></td>`;
-    }).join("");
-    const bestCell = r.best_product
-      ? `<span class="pill pill-gold">👑 ${esc(SHORT_PROD[r.best_product] || r.best_product)}</span>`
-      : `<span class="pill pill-drop">보류/제외</span>`;
-    return `<tr>
-      <td><a href="https://youtube.com/shorts/${esc(r.video_id)}" target="_blank" rel="noopener">${esc((r.title||r.video_id).slice(0,38))} ↗</a>
-      <div style="font-size:0.75rem;color:var(--muted);">👀 ${(r.views||0).toLocaleString()}회 · 🔥 ${(r.views_per_day||0).toLocaleString()}회/일</div></td>
-      ${cells}
-      <td>${bestCell}</td>
-    </tr>`;
-  }).join("");
-  const matrixSectionHtml = (matrix.rows || []).length ? `
-    ${matRecBanner}
-    <details class="b2b-details" style="margin-bottom:18px;">
-      <summary>▶ 🔀 더랩바이블랑두 3종 교차 매칭 매트릭스 상세 보기 (추가 YouTube 쿼터 0 · 기본 접힘)</summary>
-      <div style="overflow-x:auto;">
-        <table class="b2b-table">
-          <thead><tr><th>영상 (조회수 · 일평균🔥)</th>${matThs}<th>최적 추천</th></tr></thead>
-          <tbody>${matRowsHtml}</tbody>
-        </table>
-      </div>
-    </details>` : "";
-
-  document.getElementById("dashboard").innerHTML = `
-    ${confBanner}
-    ${lowViewsBanner}
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">🎬 클리핑 쇼츠</div>
-        <div class="kpi-val">${totalV}건</div>
-        <div class="kpi-sub">자막 확보 ${capV}건 (${capPct}%)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">👀 평균 조회수</div>
-        <div class="kpi-val">${avgViews.toLocaleString()}회</div>
-        <div class="kpi-sub">평균 좋아요율 ${avgLr}%</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">🔥 최고 상승속도</div>
-        <div class="kpi-val">${maxVpd.toLocaleString()}회/일</div>
-        <div class="kpi-sub">최근 ${Number(res.days_range||30)}일 급상승 1위</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">📊 판정 분포 (합계 ${goItems.length+pivotItems.length+dropItems.length}건)</div>
-        <div class="badge-group" style="margin-top:2px;">
-          <span class="pill pill-go">🎯 Go ${goItems.length}</span>
-          <span class="pill pill-warn">⚠️ Pivot ${pivotItems.length}</span>
-          <span class="pill pill-drop">❌ Drop ${dropItems.length}</span>
-        </div>
-        <div class="kpi-sub">억지 연결 차단 (${dropItems.length}건 필터)</div>
-      </div>
-    </div>
-
-    <div class="insight-box">
-      <div class="insight-head">
-        <div class="insight-title">🧭 이번 주 뷰티 쇼츠 핵심 흐름</div>
-        <button class="btn btn-outline" style="padding:6px 12px;font-size:0.8rem;" onclick="downloadExecutiveHtml()">📄 1페이지 보고서 저장</button>
-      </div>
-      ${patternsHtml}
-    </div>
-
-    ${matrixSectionHtml}
-
-    <div class="sec-heading">🎯 우리 제품과 잘 맞는 추천 캠페인 (${goItems.length}건)</div>
+  document.getElementById("step2Area").innerHTML = `
+    <h3 style="margin:6px 0 12px;">🎯 '${esc(s2.product)}' 맞춤 추천 컨셉 (${go.length}건)</h3>
     ${goHtml}
-    ${pivotHtml}
-
+    <div class="action-bar">
+      <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false)">📋 팀장 보고 요약 복사</button>
+      <button class="btn ${anyRev?'btn-danger':'btn-primary'}" onclick="copyText(window._step2Reports.dm, ${anyRev})">${anyRev?'⚠️ 검수 후 인플루언서 DM 복사':'💌 인플루언서 DM 복사'}</button>
+      <button class="btn btn-outline" onclick="downloadStep2Html()">📄 1페이지 보고서 HTML 저장</button>
+    </div>
+    ${pvHtml}
     <details class="b2b-details">
-      <summary>❌ 우리 제품과 안 맞아 제외한 영상 ${dropItems.length}건 보기</summary>
-      ${dropItems.length ? `<table class="b2b-table"><thead><tr><th>영역</th><th>영상 제목 (쇼츠 링크)</th><th>조회수</th><th>제외 이유</th></tr></thead><tbody>${dropRows}</tbody></table>` : `<div style="margin-top:10px;color:var(--muted);">제외된 항목이 없습니다.</div>`}
-    </details>
-
-    <details id="rawDetails" class="b2b-details" ${opts.openRaw ? "open" : ""}>
-      <summary>📊 수집한 쇼츠 전체 목록 (${totalV}건)</summary>
-      <div class="sort-bar">
-        <button class="sort-btn ${rawSortKey==='views_per_day'?'active':''}" onclick="setRawSort('views_per_day')">🔥 빠르게 뜨는 순</button>
-        <button class="sort-btn ${rawSortKey==='views'?'active':''}" onclick="setRawSort('views')">👀 총 조회수순</button>
-        <button class="sort-btn ${rawSortKey==='like_rate'?'active':''}" onclick="setRawSort('like_rate')">❤️ 좋아요율순</button>
-      </div>
-      <table class="b2b-table">
-        <thead><tr><th>#</th><th>영상</th><th>채널</th><th>총조회수</th><th>일평균🔥</th><th>좋아요율</th><th>업로드일</th><th>자막</th><th>포맷</th><th>판정</th></tr></thead>
-        <tbody>${rawRows}</tbody>
-      </table>
+      <summary>▶ ❌ 제외된 영상 ${dr.length}건 보기 (억지 연결 자동 차단 · 기본 접힘)</summary>
+      ${dr.length ? `<div style="overflow-x:auto;"><table class="b2b-table"><thead><tr><th>영역</th><th>영상 제목</th><th>조회수</th><th>제외 이유</th></tr></thead><tbody>${drRows}</tbody></table></div>` : '<p style="color:var(--muted);font-size:0.85rem;">제외된 항목이 없습니다.</p>'}
     </details>
   `;
 }
 
-// Init custom products & dropdown (열자마자 결과를 자동 로드하지 않고 깨끗한 대기 화면 유지)
-loadCustomProducts();
-refreshProductDropdown();
+renderExplorerNav();
 </script>
 </body>
 </html>

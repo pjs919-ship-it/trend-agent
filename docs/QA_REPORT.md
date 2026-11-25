@@ -436,3 +436,25 @@
 
 ### 2. 미세 개선 제안 (Optional)
 - 순수 무스크립트 정적 HTML5 설계는 이메일 보안 관점에서 우수함. 헤더 우측에 `인쇄 / PDF 저장: Ctrl+P` 작은 안내 칩을 추가하면 비개발자 임원이 PDF로 변환하기 더욱 직관적임.
+
+
+---
+
+## 한국(KR) 2단계 탐색 구조 개편 최종 QA 검수
+
+- **검수 일시**: 2026-11-25
+- **검수 대상**: `agent_core.py`, `pipeline.py`, `app.py`, `TrendSetter_KBeauty_Pro.html`, `qa/eval_golden.py`
+- **실행 검증** (`BypassSandbox=false`):
+  - `python qa/eval_golden.py` → `exit code 0` / **`ALL TESTS PASSED!`** (9종 테스트 + 골든셋 15건 Drop 100%)
+  - UI 개발자 용어 전수 스캔 + 색조 제품(`촉촉한 립틴트`) 양방향 도메인 & `copy_ideas` 3종 화장품법 제13조 감사 직접 실행
+- **최종 판정**: **✅ PASS**
+
+### 1. 검증 결과
+1. **초기 샘플 미자동로드**: `app.py`(L456-467 대기 화면) 및 `TrendSetter_KBeauty_Pro.html`(L905 `renderExplorerNav()`만 호출) 모두 첫 화면에서 샘플 자동 로드 0건.
+2. **화면 텍스트 개발자 용어 0건**: `2-Stage`, `products.json`, `velocity`, `localStorage`, `confidence=high`, `Stage 1`, `pipeline JSON` 화면 노출 0건 확인.
+3. **양방향 도메인 & 카피 3종 감사**: 색조 제품(`촉촉한 립틴트`, `expected_domain="색조/메이크업"`) 기준 색조 `lip1=Go(5점)` / 기초 `ton1=Drop(1점)` 정상 판정, `copy_ideas` 3종에 주입한 화장품법 금지 표현 14건 전부 적발 확인.
+4. **XSS & 복사/HTML 저장**: `app.py` (`_esc`)·HTML (`esc`) 전 동적 필드 이스케이프, `needs_review` DM 복사 경고 가드, 1페이지 HTML 보고서 저장(`@media print`, 0 `<script>`) 정상 확인.
+
+### 2. 주의할 점 (Minor / 후속 다듬기 권장)
+- `app.py` L659 및 `TrendSetter_KBeauty_Pro.html` L877의 보류(Pivot) 카드에 `⚠️ 자막 미확인 (직접 시청 필요)` 뱃지가 `text_source` 분기 없이 고정 출력됨 (`caption` Pivot일 때 분기 권장).
+- `TrendSetter_KBeauty_Pro.html` L794 `downloadStep2Html()`에 `needs_review=True` 경고 배너 추가 시 `pipeline.export_shareable_html_report()`와 완전 패리티 달성.

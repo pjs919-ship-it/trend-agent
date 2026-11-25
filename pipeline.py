@@ -238,6 +238,7 @@ class Storyboard(BaseModel):
     product_moment: str = Field(description="제품이 등장하는 순간. 확인된 문구 범위 안에서만")
     cta: str = Field(description="구매/참여 유도")
     creator_note: str = Field(description="인플루언서 전달 주의사항(쓰면 안 되는 표현 포함)")
+    copy_ideas: List[str] = Field(default_factory=list, description="바로 쓸 마케팅 카피 3종")
 
 
 class BriefSheet(BaseModel):
@@ -406,15 +407,25 @@ def _is_valid_linked_claim(linked_claim: str, verified_claims: List[str]) -> boo
     return False
 
 
+def _expected_domain_from_category(product_category: str) -> str:
+    """제품 카테고리(예: '기초 > 토너·패드', '색조 > 립·틴트')에서 기대 영역을 자동 매핑합니다."""
+    cat = product_category or ""
+    if any(k in cat for k in ("색조", "메이크업", "립", "틴트", "블러셔", "쿠션", "파데", "아이")):
+        return "색조/메이크업"
+    if any(k in cat for k in ("헤어", "바디")):
+        return "헤어/바디"
+    return DOMAIN_BASE
+
+
 def apply_judgement_rules(
     raw_judgements: List[Judgement],
     facts: List[Dict[str, Any]],
     product: Dict[str, Any],
+    expected_domain: str = DOMAIN_BASE,
 ) -> List[Dict[str, Any]]:
     """Step 2 LLM 판정에 결정론적 B2B 가드레일(영역·non_fit·linked_claim·자막유무·누락방지)을 적용합니다."""
     verified_claims = product.get("verified_claims", [])
     non_fit_territory = product.get("non_fit_territory", [])
-    fact_by_id = {f["video_id"]: f for f in facts}
     j_by_id = {j.video_id: j for j in raw_judgements}
 
     out: List[Dict[str, Any]] = []
@@ -448,12 +459,12 @@ def apply_judgement_rules(
         score = max(1, min(5, int(j.score)))
         reason = j.reason
 
-        # 규칙 1: 영역 불일치는 무조건 Drop (설명 가능한 하드 규칙)
-        if f["domain"] != DOMAIN_BASE:
+        # 규칙 1: 영역 불일치는 무조건 Drop (기초/색조/헤어바디 양방향 지원)
+        if f["domain"] != expected_domain:
             if score > 2:
-                flags.append(f"규칙 적용: 영역이 '{f['domain']}'이라 제품 영역과 달라 Drop 처리 (LLM 점수 {score})")
+                flags.append(f"규칙 적용: 영역이 '{f['domain']}'이라 제품 영역({expected_domain})과 달라 Drop 처리 (LLM 점수 {score})")
             score = min(score, 1)
-            reason = f"[규칙] 영상 영역이 '{f['domain']}'로 제품 영역({DOMAIN_BASE})과 다름. " + reason
+            reason = f"[규칙] 영상 영역이 '{f['domain']}'로 제품 영역({expected_domain})과 다름. " + reason
 
         # 규칙 2: 기초/스킨케어 내부라도 non_fit_territory 충돌 시 강제 Drop
         non_fit_hits = _find_non_fit_hits(f, non_fit_territory)
@@ -490,18 +501,24 @@ def apply_judgement_rules(
     return out
 
 
-def judge_fit(llm, facts: List[Dict[str, Any]], product_name: str, products: Dict[str, Any]) -> List[Dict[str, Any]]:
+def judge_fit(
+    llm,
+    facts: List[Dict[str, Any]],
+    product_name: str,
+    products: Dict[str, Any],
+    expected_domain: str = DOMAIN_BASE,
+) -> List[Dict[str, Any]]:
     p = products[product_name]
     usable = [f for f in facts if f.get("evidence_ok")]
     if not usable:
-        return apply_judgement_rules([], facts, p)
+        return apply_judgement_rules([], facts, p, expected_domain=expected_domain)
     fact_lines = "\n".join(
         f"- [video_id={f['video_id']}] 영역={f['domain']} | 포맷={f.get('format_tag', '기타')} | "
         f"텍스트출처={f.get('text_source', 'meta')} | 내용={f['what_happens']} | 등장제품군={', '.join(f['product_types']) or '-'}"
         for f in usable
     )
     prompt = (
-        f"당신은 '{product_name}' 담당 인하우스 마케터입니다. 아래 시장 팩트 각각이 이 제품 캠페인에 쓸 만한지 냉정하게 판정하세요.\n\n"
+        f"당신은 '{product_name}' ({expected_domain}) 담당 인하우스 마케터입니다. 아래 시장 팩트 각각이 이 제품 캠페인에 쓸 만한지 냉정하게 판정하세요.\n\n"
         f"[제품 확인된 문구 — 이것만 근거로 사용]\n" + "\n".join(f"- {c}" for c in p["verified_claims"]) + "\n"
         f"[적합 영역 (fit_territory)] {', '.join(p['fit_territory'])}\n"
         f"[부적합 영역 (non_fit_territory)] {', '.join(p['non_fit_territory'])}\n\n"
@@ -510,12 +527,11 @@ def judge_fit(llm, facts: List[Dict[str, Any]], product_name: str, products: Dic
         "- Pivot(3): 일부만 연결되거나 자막이 없는(meta) 영상으로 마케터 직접 시청 후 서브 테스트 수준\n"
         "- Drop(1~2): 부적합 영역(non_fit_territory)에 해당하거나 영역이 다르거나 억지로 엮어야 함. 억지 연결은 소비자에게 조롱당함\n"
         "- 대부분을 Go로 주면 기준이 느슨한 것입니다. 확인된 문구로 연결 근거를 못 대면 Go를 주지 마세요.\n"
-        "- linked_claim은 위 확인된 문구 중 하나를 8자 이상 원문 그대로 복사하세요. 위에 없는 제품 특징을 만들어내지 마세요.\n"
-        "- 예시(참고): '립틴트 바르는 법' 또는 '블러셔 믹싱' 영상 + 수분 토너 → Drop(부적합 영역, 연결 문구 없음).\n\n"
+        "- linked_claim은 위 확인된 문구 중 하나를 8자 이상 원문 그대로 복사하세요. 위에 없는 제품 특징을 만들어내지 마세요.\n\n"
         "[시장 팩트]\n" + fact_lines
     )
     js = _invoke(llm, JudgementSheet, prompt).judgements
-    return apply_judgement_rules(js, facts, p)
+    return apply_judgement_rules(js, facts, p, expected_domain=expected_domain)
 
 
 # ───────────────────────── Step 2-2. 제품 3종 교차 매칭 매트릭스 (Multi-Product Triage) ─────────────────────────
@@ -778,8 +794,8 @@ def _token_in_claims(tok: str, claims_text: str) -> bool:
 
 
 def _brief_violations(b: Storyboard, product: Dict[str, Any]) -> List[str]:
-    # 시청자 노출 스크립트 4개 필드만 검사 (creator_note는 금지 안내 문맥이므로 제외하여 오탐 방지)
-    text = " ".join([b.hook, b.before, b.product_moment, b.cta])
+    # 시청자 노출 스크립트 4개 필드 + 마케팅 카피 3종(copy_ideas) 검사 (creator_note는 금지 안내 문맥이므로 제외)
+    text = " ".join([b.hook, b.before, b.product_moment, b.cta, *(b.copy_ideas or [])])
     norm_text = _norm(text)
     claims = " ".join(product["verified_claims"])
     norm_claims = _norm(claims)
@@ -829,7 +845,8 @@ def write_briefs(llm, go_items: List[Dict[str, Any]], facts: Dict[str, Dict[str,
             f"[금지 문구] {', '.join(p.get('unverified_removed_from_v1', []))}\n"
             "규칙:\n"
             "- 각 트렌드의 바이럴 포맷 구조를 살려 구체적인 화면 구도·소품·자막/대사를 작성하세요(추상적 문구 금지).\n"
-            "- hook/before/product_moment/cta에는 '1위/1등/3초 만에/24시간/10배/즉각/완벽/치료/재생' 같은 과대광고 표현을 절대 쓰지 마세요.\n"
+            "- copy_ideas에는 썸네일/자막에 바로 쓸 수 있는 짧은 마케팅 카피 3종을 작성하세요.\n"
+            "- hook/before/product_moment/cta/copy_ideas에는 '1위/1등/3초 만에/24시간/10배/즉각/완벽/치료/재생/완치/아토피' 같은 과대광고 표현을 절대 쓰지 마세요.\n"
             "- creator_note에는 인플루언서가 피해야 할 금지 표현 주의사항을 명확히 적으세요.\n"
             + (f"[이전 시도 위반 — 반드시 수정]\n{feedback}\n" if feedback else "")
             + "\n[Go 판정 트렌드]\n" + lines
@@ -976,6 +993,8 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
             ])
             if b:
                 rep.append(f"- **핵심 훅/제품 침투**: {b['hook']} → {b['product_moment']}")
+                if b.get("copy_ideas"):
+                    rep.append(f"- **추천 카피 3종**: " + " / ".join(f"\"{c}\"" for c in b["copy_ideas"][:3]))
             rep.append("")
     else:
         rep.append("- 이번 수집 배치에서 Go 판정 컨셉이 없습니다.")
@@ -1068,6 +1087,8 @@ def format_copyable_outputs(result: Dict[str, Any]) -> Dict[str, str]:
                 f"- **CTA**: {b['cta']}",
                 f"- **촬영 주의사항**: {b['creator_note']}",
             ])
+            if b.get("copy_ideas"):
+                clean_guide.append(f"- **추천 카피 3종**: " + " / ".join(f"\"{c}\"" for c in b["copy_ideas"][:3]))
             if banned_list:
                 clean_guide.append(f"- **절대 사용 금지 문구 (과대광고/미확인 표현 방지)**: {', '.join(banned_list)}")
             clean_guide.append("")
@@ -1195,7 +1216,17 @@ def export_shareable_html_report(result: Dict[str, Any]) -> str:
 
             sb_html = ""
             if b:
+                copies = b.get("copy_ideas") or []
+                copy_html = (
+                    '<div class="quote" style="background:#F6F2FF;border-left-color:#6C2BD9;">'
+                    '<div class="quote-lbl" style="color:#4C1D95;">✍️ 바로 쓸 마케팅 카피 3종</div>'
+                    + "".join(f'<div class="quote-txt">• {_e(c)}</div>' for c in copies[:3])
+                    + "</div>"
+                    if copies
+                    else ""
+                )
                 sb_html = f"""
+                {copy_html}
                 <div class="sb-grid">
                   <div class="sb-cell"><div class="sb-lbl">⚡ 1. 첫 3초 훅</div><div>{_e(b['hook'])}</div></div>
                   <div class="sb-cell"><div class="sb-lbl">👀 2. 비포 공감 상황</div><div>{_e(b['before'])}</div></div>
@@ -1439,4 +1470,172 @@ def run_pipeline(videos: List[Dict[str, Any]], product_name: str, llm=None,
     }
     copyables = format_copyable_outputs(result)
     result.update(copyables)
+    return result
+
+
+# ───────────────────────── 2단계 분리 실행 (Step 1 순수 탐색 → Step 2 제품 매칭) ─────────────────────────
+def _summarize_recommended_formats(facts: List[Dict[str, Any]], videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Step 1에서 브랜드 편향 없이 바이럴 성과가 높은 포맷 상위 3종을 집계합니다."""
+    v_by_id = {v["video_id"]: _ensure_video_metrics(v) for v in videos}
+    buckets: Dict[str, List[Dict[str, Any]]] = {}
+    for f in facts:
+        if not f.get("evidence_ok"):
+            continue
+        tag = f.get("format_tag") or "기타"
+        v = v_by_id.get(f["video_id"], {})
+        buckets.setdefault(tag, []).append(v)
+
+    summary: List[Dict[str, Any]] = []
+    for tag, vs in buckets.items():
+        avg_vpd = int(round(sum(x.get("views_per_day", 0) for x in vs) / max(1, len(vs))))
+        top_v = max(vs, key=lambda x: x.get("views_per_day", 0))
+        summary.append({
+            "format_tag": tag,
+            "count": len(vs),
+            "avg_views_per_day": avg_vpd,
+            "example_video_id": top_v.get("video_id", ""),
+            "example_title": top_v.get("title", ""),
+        })
+    summary.sort(key=lambda r: (r["count"], r["avg_views_per_day"]), reverse=True)
+    return summary[:3]
+
+
+def run_step1_explore(
+    videos: List[Dict[str, Any]],
+    path_label: str,
+    days_range: int = 30,
+    llm=None,
+    api_key: Optional[str] = None,
+    model: str = "gemini-2.5-flash-lite",
+    max_videos: int = 10,
+    use_history: bool = True,
+    history_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """[Step 1] 브랜드 정보 완전 배제 — 한국(KR) 쇼츠 팩트·포맷·시장 패턴·추천 포맷만 객관 추출합니다."""
+    llm = llm or make_llm(api_key, model)
+    vids = enrich_with_transcripts(videos[:max_videos])
+    if use_history:
+        vids = history_store.annotate_with_history(vids, save=True, store_path=history_path)
+
+    fact_sheet = extract_facts(llm, vids)
+    facts = audit_facts(fact_sheet.facts, vids)
+    market_patterns = [p.strip() for p in (fact_sheet.market_patterns or []) if p and p.strip()][:3]
+    recommended_formats = _summarize_recommended_formats(facts, vids)
+
+    stats = {
+        "videos": len(vids),
+        "transcript_caption": sum(1 for v in vids if v["text_source"] == "caption"),
+        "facts": len(facts),
+        "evidence_verified": sum(1 for f in facts if f["evidence_ok"]),
+        "has_prev_snapshot": any(v.get("has_prev_snapshot") for v in vids),
+        "new_videos_count": sum(1 for v in vids if v.get("is_new")),
+    }
+    return {
+        "path_label": path_label,
+        "days_range": days_range,
+        "report_date": date.today().isoformat(),
+        "videos": vids,
+        "facts": facts,
+        "market_patterns": market_patterns,
+        "recommended_formats": recommended_formats,
+        "stats": stats,
+    }
+
+
+def _build_temp_product_spec(
+    product_category: str,
+    product_name: str,
+    brand_keywords: str,
+    expected_domain: str,
+) -> Dict[str, Any]:
+    """자유 입력 신제품용 임시 스펙 구성 (화장품법 금지어 자동 격리 + 반대 영역 non_fit 자동 설정)."""
+    raw_tokens = [x.strip() for x in re.split(r"[\n,]+", brand_keywords or "") if x.strip()]
+    safe_claims: List[str] = []
+    for tok in raw_tokens:
+        nt = _norm(tok)
+        if any(_norm(m) in nt for m in ABSOLUTE_MEDICAL_BANNED_TERMS):
+            continue
+        if any(_norm(t) in nt for t in COSMETIC_LAW_BANNED_TERMS):
+            continue
+        safe_claims.append(tok)
+    if not safe_claims:
+        safe_claims = [f"{product_name} ({product_category}) 데일리 뷰티 제품"]
+
+    if expected_domain == "색조/메이크업":
+        non_fit = ["기초/스킨케어", "헤어/바디"]
+    elif expected_domain == "헤어/바디":
+        non_fit = ["기초/스킨케어", "색조/메이크업"]
+    else:
+        non_fit = ["색조 메이크업", "블러셔/틴트 믹싱", "헤어/바디"]
+
+    return {
+        "confidence": "custom",
+        "verified_claims": safe_claims,
+        "unverified_removed_from_v1": [],
+        "fit_territory": [product_category] + safe_claims[:3],
+        "non_fit_territory": non_fit,
+    }
+
+
+def run_step2_match(
+    step1_result: Dict[str, Any],
+    product_category: str,
+    product_name: str,
+    brand_keywords: str = "",
+    llm=None,
+    api_key: Optional[str] = None,
+    model: str = "gemini-2.5-flash-lite",
+    max_briefs: int = 3,
+) -> Dict[str, Any]:
+    """[Step 2] 추가 YouTube 쿼터 0 — Step 1 결과에 자사 제품을 매칭해 Go/Pivot/Drop + 카피 3종 + 4단 콘티 생성."""
+    products_ctx = dict(load_products())
+    expected_domain = _expected_domain_from_category(product_category)
+    clean_name = (product_name or "").strip() or "자사 신제품"
+
+    if clean_name not in products_ctx:
+        products_ctx[clean_name] = _build_temp_product_spec(
+            product_category, clean_name, brand_keywords, expected_domain
+        )
+
+    llm = llm or make_llm(api_key, model)
+    vids = [_ensure_video_metrics(v) for v in step1_result.get("videos", [])]
+    facts = step1_result.get("facts", [])
+    market_patterns = step1_result.get("market_patterns", [])
+
+    judgements = judge_fit(llm, facts, clean_name, products_ctx, expected_domain=expected_domain)
+    fact_by_id = {f["video_id"]: f for f in facts}
+    go = sorted(
+        [j for j in judgements if j["decision"] == "Go"],
+        key=lambda j: (-j["score"], -next((v["views_per_day"] for v in vids if v["video_id"] == j["video_id"]), 0)),
+    )[:max_briefs]
+    briefs = write_briefs(llm, go, fact_by_id, clean_name, products_ctx)
+
+    stats = {
+        **step1_result.get("stats", {}),
+        "videos": len(vids),
+        "go": sum(1 for j in judgements if j["decision"] == "Go"),
+        "pivot": sum(1 for j in judgements if j["decision"] == "Pivot"),
+        "drop": sum(1 for j in judgements if j["decision"] == "Drop"),
+        "briefs": len(briefs),
+        "briefs_need_review": sum(1 for b in briefs if b["needs_review"]),
+    }
+
+    result: Dict[str, Any] = {
+        "product": clean_name,
+        "product_category": product_category,
+        "expected_domain": expected_domain,
+        "path_label": step1_result.get("path_label", ""),
+        "report_date": step1_result.get("report_date") or date.today().isoformat(),
+        "days_range": step1_result.get("days_range"),
+        "videos": vids,
+        "facts": facts,
+        "market_patterns": market_patterns,
+        "recommended_formats": step1_result.get("recommended_formats", []),
+        "judgements": judgements,
+        "briefs": briefs,
+        "stats": stats,
+        "product_confidence": products_ctx[clean_name].get("confidence", "custom"),
+    }
+    result.update(format_copyable_outputs(result))
+    result["shareable_html_report"] = export_shareable_html_report(result)
     return result

@@ -728,6 +728,106 @@ def test_shareable_html_export(products):
     return f"PASS ({len(html_out)} chars, @media print, XSS escaped, 0 <script>, needs_review banner)"
 
 
+def test_step1_step2_kr_flow(products):
+    # 1) KR_EXPLORE_TREE 13개 경로 및 구조 검증
+    expected_keys = {
+        "all", "beauty", "beauty/skincare", "beauty/makeup",
+        "beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream",
+        "beauty/skincare/sun", "beauty/skincare/mask",
+        "beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye",
+    }
+    _assert(set(agent_core.KR_EXPLORE_TREE.keys()) == expected_keys,
+            f"KR_EXPLORE_TREE 경로 불일치: {set(agent_core.KR_EXPLORE_TREE.keys())}")
+    _assert(agent_core.KR_EXPLORE_TREE["all"]["mode"] == "mostPopular", "all 모드가 mostPopular가 아님")
+    for k, node in agent_core.KR_EXPLORE_TREE.items():
+        if k != "all":
+            _assert(len(node["keywords"]) == 3, f"{k} 키워드 수 != 3: {node['keywords']}")
+
+    # 2) is_spam_video() 필터 검증
+    _assert(agent_core.is_spam_video({"views": 0, "title": "정상 제목"}), "조회수 0 스팸 미탐")
+    _assert(agent_core.is_spam_video({"views": 5000, "title": "#a #b #c #d #e #f #g #h 과다태그"}), "해시태그 8개 스팸 미탐")
+    _assert(agent_core.is_spam_video({"views": 5000, "title": "올영 무료나눔 이벤트 참여하세요"}), "스팸 키워드 미탐")
+    _assert(not agent_core.is_spam_video({"views": 12000, "title": "속건조 토너팩 추천 #shorts #스킨케어"}), "정상 영상 스팸 오탐")
+
+    # 3) 색조 제품('촉촉한 탕후루 립틴트', '색조 > 립·틴트') 양방향 Step 2 매칭 검증
+    golden_path = os.path.join(ROOT, "qa", "golden_set.json")
+    with open(golden_path, encoding="utf-8") as f:
+        gs_items = json.load(f)["items"]
+    jf_it = next(x for x in gs_items if x["video_id"] == "jfsweQpxqsY")
+    br_it = next(x for x in gs_items if x["video_id"] == "brKNpouibqo")
+    vids = [pipeline._ensure_video_metrics(jf_it), pipeline._ensure_video_metrics(br_it)]
+    facts = pipeline.audit_facts([
+        pipeline.Fact(video_id="jfsweQpxqsY", **jf_it["sample_fact"]),
+        pipeline.Fact(video_id="brKNpouibqo", **br_it["sample_fact"]),
+    ], vids)
+    step1_mock = {
+        "path_label": "한국 > 뷰티 > 색조메이크업 > 립·틴트",
+        "days_range": 30,
+        "report_date": "2026-11-25",
+        "videos": vids,
+        "facts": facts,
+        "market_patterns": ["립틴트와 컨실러를 믹싱하는 멀티 유즈 메이크업 포맷 인기"],
+        "recommended_formats": pipeline._summarize_recommended_formats(facts, vids),
+        "stats": {"videos": 2, "transcript_caption": 2},
+    }
+
+    class MockStep2LLM:
+        def with_structured_output(self, schema):
+            class _Runner:
+                def invoke(self_inner, _prompt):
+                    if schema is pipeline.JudgementSheet:
+                        return pipeline.JudgementSheet(judgements=[
+                            pipeline.Judgement(
+                                video_id="jfsweQpxqsY", decision="Go", score=5,
+                                reason="립틴트 블러셔 믹싱 포맷과 글로우 립틴트 소구가 직접 일치",
+                                linked_claim="맑은 과즙 광택 글로우 립틴트",
+                            ),
+                            pipeline.Judgement(
+                                video_id="brKNpouibqo", decision="Go", score=5,
+                                reason="수분감으로 억지 연결 시도",
+                                linked_claim="맑은 과즙 광택 글로우 립틴트",
+                            ),
+                        ])
+                    return pipeline.BriefSheet(briefs=[
+                        pipeline.Storyboard(
+                            video_id="jfsweQpxqsY",
+                            hook="첫 3초: 손등에 립틴트 한 방울 떨어뜨려 블러셔 믹싱",
+                            before="볼터치와 립 컬러가 따로 노는 메이크업 고민",
+                            product_moment="맑은 과즙 광택 글로우 립틴트를 볼에 톡톡 블렌딩",
+                            cta="올리브영에서 컬러 차트 확인해보세요",
+                            creator_note="과대광고 수치 표현 금지",
+                            copy_ideas=["립 하나로 치크까지 맑은 광택", "손등 1방울 믹싱 데일리 립틴트", "글로우 립·치크 원톤 메이크업"],
+                        )
+                    ])
+            return _Runner()
+
+    res2 = pipeline.run_step2_match(
+        step1_mock,
+        product_category="색조 > 립·틴트",
+        product_name="촉촉한 탕후루 립틴트",
+        brand_keywords="맑은 과즙 광택 글로우 립틴트, 볼에 톡톡 블러셔 겸용",
+        llm=MockStep2LLM(),
+    )
+    j_map = {j["video_id"]: j for j in res2["judgements"]}
+    _assert(res2["expected_domain"] == "색조/메이크업", f"색조 도메인 매핑 실패: {res2['expected_domain']}")
+    _assert(j_map["jfsweQpxqsY"]["decision"] == "Go", f"색조 제품에 jfsweQpxqsY Go 실패: {j_map['jfsweQpxqsY']}")
+    _assert(j_map["brKNpouibqo"]["decision"] == "Drop", f"색조 제품에 기초 세럼 Drop 실패: {j_map['brKNpouibqo']}")
+    _assert(len(res2["briefs"]) == 1 and len(res2["briefs"][0]["copy_ideas"]) == 3, f"copy_ideas 3종 누락: {res2['briefs']}")
+    _assert("추천 카피 3종" in res2["internal_report_md"] and "추천 카피 3종" in res2["creator_dm_clean_md"], "복사 산출물에 카피 3종 누락")
+    _assert("바로 쓸 마케팅 카피 3종" in res2["shareable_html_report"], "HTML 보고서에 카피 3종 누락")
+
+    # 4) copy_ideas에 화장품법 금지어가 들어갔을 때 _brief_violations 적발 검증
+    bad_copy_sb = pipeline.Storyboard(
+        video_id="jfsweQpxqsY", hook="정상 훅", before="정상 비포",
+        product_moment="맑은 과즙 광택 글로우 립틴트", cta="확인해보세요", creator_note="메모",
+        copy_ideas=["여드름 완치 1등 립틴트", "3초 만에 즉각 볼륨업", "정상 카피"],
+    )
+    v_copy = " | ".join(pipeline._brief_violations(bad_copy_sb, {"verified_claims": ["맑은 과즙 광택 글로우 립틴트"], "unverified_removed_from_v1": []}))
+    _assert("완치" in v_copy and "1등" in v_copy and "3초" in v_copy, f"copy_ideas 금지어 미탐: {v_copy}")
+
+    return "PASS (13 KR paths, spam filter, color-product jfsweQpxqsY=Go & serum=Drop, copy_ideas 3x + guard)"
+
+
 def main():
     products = pipeline.load_products()
     print("=== [1] QA 6대 결함 회귀 테스트 ===")
@@ -739,6 +839,7 @@ def main():
     print("  B2B-08 Multi-Product Matrix:", test_multi_product_matrix(products))
     print("  B2B-10 History Delta & Onboarding:", test_history_delta_and_onboarding(products))
     print("  B2B-12 Shareable HTML Report:", test_shareable_html_export(products))
+    print("  KR 2-Stage Explore & Match:", test_step1_step2_kr_flow(products))
 
     print("\n=== [2] 골든셋 15건 오프라인 자동 채점 ===")
     summary = eval_golden_set(products)

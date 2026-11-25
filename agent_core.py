@@ -110,8 +110,110 @@ def record_youtube_units(
         json.dump(data, f, ensure_ascii=False, indent=2)
     return new_total
 
-# ── 2. K-뷰티 메가 바이럴 앵커 키워드 (기초 스킨케어 중심) ──────────────
-# 조회수 10만~수백만 회를 유발하는 대한민국 기초 스킨케어 뷰티 쇼츠 핵심 검색 앵커
+# ── 2. 한국(KR) 기준 2단계 탐색 트리 & 앵커 키워드 ─────────────────────
+KR_EXPLORE_TREE: Dict[str, Dict[str, Any]] = {
+    "all": {
+        "label": "전체",
+        "parent": None,
+        "level": 0,
+        "mode": "mostPopular",
+        "keywords": [],
+    },
+    "beauty": {
+        "label": "뷰티",
+        "parent": "all",
+        "level": 1,
+        "mode": "search",
+        "keywords": ["올리브영", "화장품 추천", "메이크업"],
+    },
+    "beauty/skincare": {
+        "label": "기초화장품",
+        "parent": "beauty",
+        "level": 2,
+        "mode": "search",
+        "keywords": ["스킨케어", "기초 루틴", "속건조"],
+    },
+    "beauty/makeup": {
+        "label": "색조메이크업",
+        "parent": "beauty",
+        "level": 2,
+        "mode": "search",
+        "keywords": ["메이크업", "립틴트", "블러셔"],
+    },
+    "beauty/skincare/toner": {
+        "label": "토너·패드",
+        "parent": "beauty/skincare",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["토너 추천", "토너패드", "닦토"],
+    },
+    "beauty/skincare/serum": {
+        "label": "세럼·앰플",
+        "parent": "beauty/skincare",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["수분세럼", "앰플 추천", "진정세럼"],
+    },
+    "beauty/skincare/cream": {
+        "label": "크림·로션",
+        "parent": "beauty/skincare",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["수분크림", "장벽크림", "로션 추천"],
+    },
+    "beauty/skincare/sun": {
+        "label": "선크림",
+        "parent": "beauty/skincare",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["선크림 추천", "무기자차", "선세럼"],
+    },
+    "beauty/skincare/mask": {
+        "label": "마스크팩",
+        "parent": "beauty/skincare",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["마스크팩 추천", "1일1팩", "수분팩"],
+    },
+    "beauty/makeup/lip": {
+        "label": "립·틴트",
+        "parent": "beauty/makeup",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["립틴트 추천", "립조합", "글로우립"],
+    },
+    "beauty/makeup/blush": {
+        "label": "블러셔",
+        "parent": "beauty/makeup",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["블러셔 추천", "치크 꿀팁", "쿨톤 블러셔"],
+    },
+    "beauty/makeup/cushion": {
+        "label": "쿠션·파데",
+        "parent": "beauty/makeup",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["쿠션 추천", "파데 추천", "화잘먹"],
+    },
+    "beauty/makeup/eye": {
+        "label": "아이메이크업",
+        "parent": "beauty/makeup",
+        "level": 3,
+        "mode": "search",
+        "keywords": ["아이섀도우", "속눈썹 꿀팁", "아이라인"],
+    },
+}
+
+SPAM_KEYWORDS = (
+    "무료나눔",
+    "이벤트 참여",
+    "쿠팡파트너스 링크",
+    "구독 좋아요 알람",
+    "댓글 이벤트 참여",
+)
+
+# 조회수 10만~수백만 회를 유발하는 대한민국 기초 스킨케어 뷰티 쇼츠 핵심 검색 앵커 (하위 호환)
 KBEAUTY_MEGA_KEYWORDS = [
     "올리브영 스킨케어 추천",
     "피부 뒤집어졌을때",
@@ -345,6 +447,153 @@ def fetch_mega_kbeauty_shorts(
     else:
         results.sort(key=lambda r: (r["views_per_day"] * 0.6 + r["views"] * 0.4), reverse=True)
     return results[:10]
+
+
+def is_spam_video(row: Dict[str, Any]) -> bool:
+    """조회수 0, 과도한 해시태그(8개 이상), 낚시 스팸 키워드 영상을 판별합니다."""
+    if int(row.get("views", 0)) <= 0:
+        return True
+    title = row.get("title", "") or ""
+    desc = row.get("description", "") or ""
+    if title.count("#") >= 8:
+        return True
+    blob = f"{title} {desc}"
+    if any(kw in blob for kw in SPAM_KEYWORDS):
+        return True
+    return False
+
+
+def fetch_kr_step1_shorts(
+    youtube,
+    path_key: str = "beauty/skincare",
+    days: int = 30,
+    sort_by: str = "velocity",
+    min_views: int = 5000,
+    use_cache: bool = True,
+) -> List[Dict[str, Any]]:
+    """한국(KR) 기준 1단계 계층 탐색 쇼츠 수집 (당일 캐시 재사용으로 뒤로가기/재클릭 시 0유닛)."""
+    if path_key not in KR_EXPLORE_TREE:
+        raise ValueError(f"지원하지 않는 탐색 경로입니다: {path_key}")
+
+    cache_key = f"{date.today()}_kr_step1_{path_key}_{days}_{sort_by}"
+    if use_cache and cache_key in _cache:
+        return _cache[cache_key]
+
+    node = KR_EXPLORE_TREE[path_key]
+    now_utc = datetime.now(timezone.utc)
+
+    if node["mode"] == "mostPopular":
+        record_youtube_units(1, action="videos.list.mostPopular", meta={"path_key": path_key, "region": "KR"})
+        det = youtube.videos().list(
+            part="snippet,contentDetails,statistics",
+            chart="mostPopular",
+            regionCode="KR",
+            maxResults=25,
+        ).execute()
+    else:
+        published_after = recent_published_after(days=days)
+        candidate_ids: List[str] = []
+        for kw in node["keywords"][:3]:
+            try:
+                record_youtube_units(100, action="search.list", meta={"path_key": path_key, "q": kw, "days": days})
+                sr = youtube.search().list(
+                    part="snippet",
+                    q=f"{kw} shorts",
+                    type="video",
+                    videoCategoryId="26",
+                    videoDuration="short",
+                    order="viewCount",
+                    regionCode="KR",
+                    relevanceLanguage="ko",
+                    maxResults=10,
+                    publishedAfter=published_after,
+                ).execute()
+                candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
+            except RuntimeError:
+                raise
+            except Exception:
+                try:
+                    record_youtube_units(100, action="search.list_fallback", meta={"path_key": path_key, "q": kw, "days": days})
+                    sr = youtube.search().list(
+                        part="snippet",
+                        q=f"{kw} shorts",
+                        type="video",
+                        videoDuration="short",
+                        order="viewCount",
+                        regionCode="KR",
+                        relevanceLanguage="ko",
+                        maxResults=10,
+                        publishedAfter=published_after,
+                    ).execute()
+                    candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
+                except RuntimeError:
+                    raise
+                except Exception as e2:
+                    print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
+
+        candidate_ids = list(dict.fromkeys(candidate_ids))
+        if not candidate_ids:
+            return []
+
+        record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})
+        det = youtube.videos().list(
+            part="snippet,contentDetails,statistics",
+            id=",".join(candidate_ids[:50]),
+        ).execute()
+
+    results: List[Dict[str, Any]] = []
+    for item in det.get("items", []):
+        secs = iso8601_to_seconds(item.get("contentDetails", {}).get("duration", ""))
+        if secs == 0 or secs > 120:
+            continue
+        sn = item["snippet"]
+        stats = item.get("statistics", {})
+        views = int(stats.get("viewCount", 0))
+        likes = int(stats.get("likeCount", 0))
+        pub_raw = sn.get("publishedAt", "")
+        metrics = compute_video_metrics(views, likes, pub_raw, now_utc=now_utc)
+        row = {
+            "video_id": item["id"],
+            "title": sn.get("title", ""),
+            "description": sn.get("description", "")[:300],
+            "channel_title": sn.get("channelTitle", ""),
+            "views": views,
+            "likes": likes,
+            **metrics,
+            "published_at": pub_raw[:10],
+            "thumbnail_url": sn.get("thumbnails", {}).get("medium", {}).get("url", ""),
+            "duration_s": secs,
+            "is_short60": secs <= 60,
+            "low_views_fallback": False,
+            "explore_path": path_key,
+        }
+        if is_spam_video(row):
+            continue
+        results.append(row)
+
+    high_impact = [r for r in results if r["views"] >= min_views]
+    if len(high_impact) >= 5:
+        results = high_impact
+    else:
+        for r in results:
+            if r["views"] < min_views:
+                r["low_views_fallback"] = True
+
+    korean = [r for r in results if is_korean(r)]
+    if len(korean) >= 3:
+        results = korean
+
+    if sort_by == "views":
+        results.sort(key=lambda r: r["views"], reverse=True)
+    elif sort_by == "like_rate":
+        results.sort(key=lambda r: r["like_rate"], reverse=True)
+    else:
+        results.sort(key=lambda r: (r["views_per_day"] * 0.6 + r["views"] * 0.4), reverse=True)
+
+    final_rows = results[:10]
+    if use_cache and final_rows:
+        _cache.set(cache_key, final_rows, expire=43200)
+    return final_rows
 
 # ── 6. 에이전트 도구 및 인스턴스 팩토리 ────────────────────────────────
 def create_mega_tools(youtube_client, default_days: int = 7, default_keyword: str = ""):
