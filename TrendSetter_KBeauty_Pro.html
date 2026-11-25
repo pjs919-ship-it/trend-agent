@@ -728,7 +728,22 @@ async function syncSnapshotFromGitHub() {
       showToast("✅ 최신 트렌드를 불러왔어요!");
     }
   } catch (e) {
-    st.textContent = `⚠️ GitHub 스냅샷을 불러오지 못했어요: ${e.message}`;
+    // 비공개 저장소(404)이거나 오프라인이면 내 PC의 data/trends_snapshot.js 로 폴백
+    if (window.SHORTFORM_RADAR_SNAPSHOT?.entries && Object.keys(window.SHORTFORM_RADAR_SNAPSHOT.entries).length) {
+      if (!tryApplySnapshotEntry(currentPath, selectedDays)) {
+        const firstKey = Object.keys(window.SHORTFORM_RADAR_SNAPSHOT.entries)[0];
+        const [fkPath, fkDays] = firstKey.split("_");
+        currentPath = fkPath || "beauty";
+        selectedDays = Number(fkDays) || 30;
+        document.getElementById("days7").classList.toggle("active", selectedDays === 7);
+        document.getElementById("days30").classList.toggle("active", selectedDays === 30);
+        renderExplorerNav();
+        tryApplySnapshotEntry(currentPath, selectedDays);
+      }
+      st.textContent = `⚡ 내 PC에 저장된 배치 스냅샷(${window.SHORTFORM_RADAR_SNAPSHOT.updated_at_kst || ""})을 불러왔어요. (원격 동기화 ${e.message})`;
+    } else {
+      st.textContent = `⚠️ GitHub 스냅샷을 불러오지 못했어요 (${e.message}). 저장소가 비공개(Private)라면 내 PC에서 git pull 후 이용해 주세요.`;
+    }
   } finally {
     if (btn) btn.disabled = false;
   }
