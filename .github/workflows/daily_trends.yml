@@ -68,5 +68,6 @@ jobs:
             echo "변경된 스냅샷이 없습니다."
           else
             git commit -m "chore(batch): update ShortformRadar trends snapshot (${{ steps.cfg.outputs.days }}d)"
-            git push
+            git pull --rebase -X theirs origin main
+            git push origin main
           fi
