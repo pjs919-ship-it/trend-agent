@@ -1,0 +1,72 @@
+name: 숏폼레이더 일일 트렌드 배치 업데이트
+
+on:
+  schedule:
+    # 매일 오전 08:00 KST (UTC 23:00) — 최근 30일(대세) 전체 갱신
+    - cron: '0 23 * * *'
+    # 매일 오후 17:00 KST (UTC 08:00, 유튜브 쿼터 초기화 직후) — 최근 7일(급상승) 전체 갱신
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '수집 기간 (30 / 7 / both)'
+        required: true
+        default: '30'
+        type: choice
+        options:
+          - '30'
+          - '7'
+          - 'both'
+      paths:
+        description: '테스트용 특정 경로 (비우면 전체 16개, 예: beauty,beauty/skincare/toner)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  update-trends:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 수집 기간 결정
+        id: cfg
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "days=${{ github.event.inputs.days }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 8 * * *" ]; then
+            echo "days=7" >> $GITHUB_OUTPUT
+          else
+            echo "days=30" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 1단계 트렌드 스냅샷 갱신
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          python batch_update.py --days "${{ steps.cfg.outputs.days }}" --paths "${{ github.event.inputs.paths || '' }}"
+
+      - name: 변경된 스냅샷 커밋 및 푸시
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/trends_snapshot.json data/trends_snapshot.js
+          if git diff --staged --quiet; then
+            echo "변경된 스냅샷이 없습니다."
+          else
+            git commit -m "chore(batch): update ShortformRadar trends snapshot (${{ steps.cfg.outputs.days }}d)"
+            git push
+          fi

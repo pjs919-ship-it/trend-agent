@@ -345,6 +345,7 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 </div>
 <div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
 <script src="local_keys.js"></script>
+<script src="data/trends_snapshot.js" onerror="void 0"></script>
 
 <script>
 const KR_TREE = {
@@ -629,14 +630,27 @@ function formatYoutubeApiError(status, errObj) {
 }
 
 async function runStep1Live() {
+  const st = document.getElementById("step1Status");
+  clearLogs();
+  addLog(`1단계 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort}`);
+
+  // 1) 배치 스냅샷이 있으면 토큰 0으로 즉시 로드
+  const snapEntry = window.SHORTFORM_RADAR_SNAPSHOT?.entries?.[`${currentPath}_${selectedDays}`];
+  if (snapEntry && Array.isArray(snapEntry.videos) && snapEntry.videos.length) {
+    step1Data = {
+      ...snapEntry,
+      videos: snapEntry.videos.map(computeMetrics)
+    };
+    addLog(`⚡ 자동 배치 스냅샷 사용 (${snapEntry.updated_at_kst || snapEntry.report_date}) — 영상 ${step1Data.videos.length}건`);
+    st.textContent = `⚡ 최신 배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date})을 바로 불러왔어요. (API 한도 0 사용)`;
+    renderStep1Result(step1Data);
+    return;
+  }
+
   const ytKey = document.getElementById("ytKey").value.trim();
   const ggKey = document.getElementById("ggKey").value.trim();
   const model = document.getElementById("modelSel").value;
-  const st = document.getElementById("step1Status");
   if (!ytKey || !ggKey) { st.textContent = "⚠️ 상단 'API 키 설정'에 유튜브 API 키와 제미나이 API 키를 모두 입력해주세요."; return; }
-
-  clearLogs();
-  addLog(`1단계 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
 
   const today = new Date().toISOString().slice(0, 10);
   const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${selectedDays}`;

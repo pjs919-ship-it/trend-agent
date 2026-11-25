@@ -466,8 +466,28 @@ if run_s1_preview:
     st.session_state["step1_res"] = _build_preview_step1(_path_label(cur_path), days_val)
     st.session_state["step2_res"] = None
 
+def _load_snapshot_entry(path_key: str, days_val: int) -> Optional[Dict[str, Any]]:
+    snap_path = os.path.join(BASE, "data", "trends_snapshot.json")
+    if not os.path.exists(snap_path):
+        return None
+    try:
+        with open(snap_path, encoding="utf-8") as f:
+            snap = json.load(f)
+        entry = snap.get("entries", {}).get(f"{path_key}_{days_val}")
+        if entry and entry.get("videos"):
+            return entry
+    except Exception:
+        pass
+    return None
+
+
 if run_s1_live:
-    if not yt_key or not gg_key:
+    snap_entry = _load_snapshot_entry(cur_path, days_val)
+    if snap_entry:
+        st.session_state["step1_res"] = snap_entry
+        st.session_state["step2_res"] = None
+        st.success(f"⚡ 최신 배치 스냅샷({snap_entry.get('updated_at_kst', '')})을 바로 불러왔어요. (API 한도 0 사용)")
+    elif not yt_key or not gg_key:
         st.error("왼쪽 사이드바 'API 키 설정'에 유튜브 API 키와 제미나이 AI API 키를 모두 입력해주세요.")
     else:
         try:

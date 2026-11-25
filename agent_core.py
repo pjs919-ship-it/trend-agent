@@ -68,12 +68,13 @@ def record_youtube_units(
     action: str = "",
     meta: Optional[Dict[str, Any]] = None,
     log_path: str = USAGE_LOG_PATH,
-    limit: int = YOUTUBE_UNIT_LIMIT,
+    limit: Optional[int] = None,
 ) -> int:
     """YouTube API 호출 전 누적 유닛을 확인·기록합니다. 상한 초과 시 RuntimeError 발생."""
     if units < 0:
         raise ValueError("units는 0 이상이어야 합니다.")
-    data: Dict[str, Any] = {"total_units": 0, "limit": limit, "events": []}
+    eff_limit = YOUTUBE_UNIT_LIMIT if limit is None else limit
+    data: Dict[str, Any] = {"total_units": 0, "limit": eff_limit, "events": []}
     if os.path.exists(log_path):
         try:
             with open(log_path, encoding="utf-8") as f:
@@ -84,10 +85,10 @@ def record_youtube_units(
             pass
 
     current = int(data.get("total_units", 0))
-    if current + units > limit:
+    if current + units > eff_limit:
         raise RuntimeError(
-            f"YouTube API 누적 유닛 상한({limit}) 초과로 호출을 차단했습니다: "
-            f"현재 {current} + 요청 {units} = {current + units} > {limit}"
+            f"YouTube API 누적 유닛 상한({eff_limit}) 초과로 호출을 차단했습니다: "
+            f"현재 {current} + 요청 {units} = {current + units} > {eff_limit}"
         )
 
     new_total = current + units
