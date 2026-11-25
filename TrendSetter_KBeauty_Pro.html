@@ -209,7 +209,7 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
   <!-- API 키 설정 (접기 가능) -->
   <details id="apiDetails" class="b2b-details" open>
-    <summary>🔑 API 키 설정 (입력 후 접어두실 수 있습니다)</summary>
+    <summary id="apiSummary">🔑 API 키 설정 (입력 후 접어두실 수 있습니다)</summary>
     <div class="grid-3" style="margin-top:12px;">
       <div class="field">
         <label>유튜브 API 키</label>
@@ -312,6 +312,7 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   <div id="step2Area"></div>
 </div>
 <div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
+<script src="local_keys.js"></script>
 
 <script>
 const KR_TREE = {
@@ -902,6 +903,39 @@ function renderStep2Result(s2) {
   `;
 }
 
+function initLocalKeys() {
+  const env = window.__LOCAL_ENV__ || {};
+  const ytEl = document.getElementById("ytKey");
+  const ggEl = document.getElementById("ggKey");
+  const savedYt = env.YOUTUBE_API_KEY || localStorage.getItem("ts_yt_key") || "";
+  const savedGg = env.GOOGLE_API_KEY || localStorage.getItem("ts_gg_key") || "";
+  if (savedYt) ytEl.value = savedYt;
+  if (savedGg) ggEl.value = savedGg;
+
+  const updateKeyUi = () => {
+    const ok = ytEl.value.trim().length > 10 && ggEl.value.trim().length > 10;
+    const sum = document.getElementById("apiSummary");
+    const det = document.getElementById("apiDetails");
+    if (ok) {
+      sum.textContent = "🔑 API 키 자동 연결됨 ✅ (필요 시 펼쳐서 변경)";
+      det.removeAttribute("open");
+    } else {
+      sum.textContent = "🔑 API 키 설정 (입력 후 접어두실 수 있습니다)";
+    }
+  };
+
+  ytEl.addEventListener("change", () => {
+    localStorage.setItem("ts_yt_key", ytEl.value.trim());
+    updateKeyUi();
+  });
+  ggEl.addEventListener("change", () => {
+    localStorage.setItem("ts_gg_key", ggEl.value.trim());
+    updateKeyUi();
+  });
+  updateKeyUi();
+}
+
+initLocalKeys();
 renderExplorerNav();
 </script>
 </body>

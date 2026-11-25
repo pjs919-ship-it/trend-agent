@@ -2,6 +2,7 @@
 .env
 .env.local
 *.env
+local_keys.js
 
 # Cache & Local DB
 cache_store/
