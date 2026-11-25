@@ -439,17 +439,20 @@ with c_days:
 with c_sort:
     sort_label = st.radio(
         "정렬 기준",
-        ["📈 확산력 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
+        ["🏆 등급·인기 순", "📈 확산력 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
         index=0,
         horizontal=True,
         help=(
+            "• 등급·인기 순: 등급(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순\n"
             "• 확산력 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순 (작은 채널인데 알고리즘을 타 크게 뜬 영상 우선)\n"
             "• 하루 평균 순: 올라온 뒤 하루 평균 조회수가 높은 순\n"
             "• 조회수 순: 누적 조회수가 높은 순\n"
             "• 댓글 많은 순: 시청자 질문과 반응(댓글)이 많은 순"
         ),
     )
-    if "하루 평균" in sort_label:
+    if "등급" in sort_label:
+        sort_key = "grade"
+    elif "하루 평균" in sort_label:
         sort_key = "fast"
     elif "조회수" in sort_label:
         sort_key = "views"
@@ -555,8 +558,26 @@ else:
     )
 
     vids_disp = list(s1.get("videos", []))
-    if sort_key == "views":
-        vids_disp.sort(key=lambda x: x.get("views", 0), reverse=True)
+    _grade_rank = {"S": 4, "A": 3, "B": 2, "C": 1}
+    if sort_key == "grade":
+        vids_disp.sort(
+            key=lambda x: (
+                _grade_rank.get(
+                    agent_core.get_beauty_viral_grade(
+                        int(x.get("views", 0)),
+                        int(x.get("views_per_day", 0)),
+                        x.get("views_per_subscriber"),
+                    )["grade"],
+                    1,
+                ),
+                int(x.get("views", 0)),
+                int(x.get("likes", 0)),
+                int(x.get("comments", 0)),
+            ),
+            reverse=True,
+        )
+    elif sort_key == "views":
+        vids_disp.sort(key=lambda x: (x.get("views", 0), x.get("likes", 0), x.get("comments", 0)), reverse=True)
     elif sort_key == "comments":
         vids_disp.sort(key=lambda x: (x.get("comments", 0), x.get("views", 0)), reverse=True)
     elif sort_key == "fast":
@@ -598,6 +619,8 @@ else:
             if delta_val and int(delta_val) > 0
             else ""
         )
+        pub_raw = str(v.get("published_at", ""))[:10].replace("-", ".")
+        pub_html = f"<span>📅 {_esc(pub_raw)}</span><span>·</span>" if pub_raw else ""
         cards_html.append(
             f'<div class="short-card">'
             f'<img class="short-thumb" src="{_esc(thumb)}" alt="thumb"/>'
@@ -610,7 +633,8 @@ else:
             f'{ratio_html}'
             f'</div>'
             f'<div class="short-meta">'
-            f'<span>{_esc(v.get("channel_title", "-"))}</span>'
+            f'{pub_html}'
+            f'<span>❤️ 좋아요 {_format_ko_num(v.get("likes", 0))}</span>'
             f'<span>· 💬 댓글 {int(v.get("comments", 0)):,}개</span>'
             f'{delta_html}'
             f'<span>· {_esc(f.get("format_tag", "기타"))}</span>'

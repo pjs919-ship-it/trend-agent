@@ -242,8 +242,14 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
   <!-- Step 1: 요즘 뷰티 쇼츠 트렌드 먼저 보기 -->
   <div class="panel">
-    <span class="step-badge">1단계 · 뷰티 트렌드 탐색</span>
-    <h2 class="step-title">요즘 뜨는 K-뷰티 쇼츠 먼저 보기</h2>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+      <div>
+        <span class="step-badge">1단계 · 뷰티 트렌드 탐색</span>
+        <h2 class="step-title" style="margin-bottom:0;">요즘 뜨는 K-뷰티 쇼츠 먼저 보기</h2>
+      </div>
+      <button id="syncSnapBtn" class="btn btn-sec" style="padding:8px 14px;font-size:0.83rem;" onclick="syncSnapshotFromGitHub()"
+        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">🔄 최신 트렌드 업데이트</button>
+    </div>
 
     <div id="crumbBar" class="crumb-bar"></div>
     <div id="childChips" class="chip-row"></div>
@@ -254,18 +260,21 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
         <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 최근 30일 (대세)</button>
       </div>
       <div class="seg-group">
-        <button id="sortRatio" class="seg-btn active" onclick="setSort('subscriber_ratio')"
+        <button id="sortGrade" class="seg-btn active" onclick="setSort('grade')"
+          data-tip="등급 높은 순(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순서로 보여드려요."
+          aria-label="등급·인기 순">🏆 등급·인기 순</button>
+        <button id="sortRatio" class="seg-btn" onclick="setSort('subscriber_ratio')"
           data-tip="구독자 수 대비 조회수가 몇 배나 터졌는지 순이에요. 작은 채널인데 알고리즘을 타 크게 뜬 영상을 먼저 찾아요."
-          aria-label="확산력 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순">📈 확산력 순</button>
+          aria-label="확산력 순">📈 확산력 순</button>
         <button id="sortFast" class="seg-btn" onclick="setSort('fast')"
           data-tip="올라온 뒤 하루 평균 조회수가 높은 순이에요. 지금 가장 빠르게 치고 올라오는 영상을 먼저 봐요."
-          aria-label="하루 평균 순: 올라온 뒤 하루 평균 조회수가 높은 순">🔥 하루 평균 순</button>
+          aria-label="하루 평균 순">🔥 하루 평균 순</button>
         <button id="sortViews" class="seg-btn" onclick="setSort('views')"
           data-tip="누적 조회수가 가장 높은 영상부터 보여드려요."
-          aria-label="조회수 순: 누적 조회수가 가장 높은 영상부터 보기">👀 조회수 순</button>
+          aria-label="조회수 순">👀 조회수 순</button>
         <button id="sortComments" class="seg-btn" onclick="setSort('comments')"
           data-tip="시청자 질문과 반응(댓글)이 가장 많이 달린 영상부터 보여드려요."
-          aria-label="댓글 많은 순: 시청자 질문과 반응이 가장 많이 달린 영상부터 보기">💬 댓글 많은 순</button>
+          aria-label="댓글 많은 순">💬 댓글 많은 순</button>
       </div>
     </div>
 
@@ -406,7 +415,7 @@ const DIR_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:�
 
 let currentPath = "beauty";
 let selectedDays = 30;
-let selectedSort = "subscriber_ratio";
+let selectedSort = "grade";
 let step1Data = null;
 let step2Data = null;
 
@@ -472,11 +481,28 @@ function renderExplorerNav() {
     ).join("");
   }
 }
+function tryApplySnapshotEntry(pathKey, days) {
+  const snapEntry = window.SHORTFORM_RADAR_SNAPSHOT?.entries?.[`${pathKey}_${days}`];
+  if (snapEntry && Array.isArray(snapEntry.videos) && snapEntry.videos.length) {
+    step1Data = {
+      ...snapEntry,
+      videos: snapEntry.videos.map(computeMetrics)
+    };
+    document.getElementById("step1Status").textContent =
+      `⚡ 최신 배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date}) — '${getPathLabel(pathKey)}' (${days}일 기준) 바로 불러왔어요.`;
+    renderStep1Result(step1Data);
+    return true;
+  }
+  return false;
+}
 function selectPath(key) {
   currentPath = key;
   renderExplorerNav();
-  if (step1Data && step1Data.path_key && step1Data.path_key !== key) {
-    document.getElementById("step1Status").textContent = `카테고리를 '${getPathLabel(key)}'로 바꿨어요. [🚀 이 카테고리 트렌드 보기]를 눌러 새 결과를 불러오세요.`;
+  if (step1Data) {
+    if (tryApplySnapshotEntry(key, selectedDays)) return;
+    if (step1Data.path_key !== key) {
+      document.getElementById("step1Status").textContent = `카테고리를 '${getPathLabel(key)}'로 바꿨어요. 저장된 배치에 없는 항목이면 [🚀 이 카테고리 트렌드 보기]를 눌러주세요.`;
+    }
   }
 }
 function setDays(d) {
@@ -484,6 +510,7 @@ function setDays(d) {
   document.getElementById("days7").classList.toggle("active", d === 7);
   document.getElementById("days30").classList.toggle("active", d === 30);
   if (step1Data && step1Data.days_range !== d) {
+    if (tryApplySnapshotEntry(currentPath, d)) return;
     const today = new Date().toISOString().slice(0, 10);
     const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${d}`;
     try {
@@ -500,6 +527,8 @@ function setDays(d) {
 }
 function setSort(s) {
   selectedSort = s;
+  const gBtn = document.getElementById("sortGrade");
+  if (gBtn) gBtn.classList.toggle("active", s === "grade");
   document.getElementById("sortRatio").classList.toggle("active", s === "subscriber_ratio");
   document.getElementById("sortFast").classList.toggle("active", s === "fast");
   document.getElementById("sortViews").classList.toggle("active", s === "views");
@@ -581,16 +610,26 @@ function computeMetrics(v) {
     comment_rate: v.comment_rate != null ? Number(v.comment_rate) : Math.round((comments / Math.max(1, views)) * 10000) / 100
   };
 }
+function getGradeRank(v) {
+  const code = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber).code;
+  return code === "S" ? 4 : code === "A" ? 3 : code === "B" ? 2 : 1;
+}
 function sortVideos(vids) {
   const arr = [...vids];
-  if (selectedSort === "views") {
-    arr.sort((a, b) => b.views - a.views);
+  if (selectedSort === "grade") {
+    arr.sort((a, b) =>
+      (getGradeRank(b) - getGradeRank(a)) ||
+      (b.views - a.views) ||
+      (b.likes - a.likes) ||
+      (b.comments - a.comments)
+    );
+  } else if (selectedSort === "views") {
+    arr.sort((a, b) => (b.views - a.views) || (b.likes - a.likes) || (b.comments - a.comments));
   } else if (selectedSort === "comments") {
     arr.sort((a, b) => (b.comments - a.comments) || (b.views - a.views));
   } else if (selectedSort === "fast") {
     arr.sort((a, b) => (b.views_per_day - a.views_per_day) || (b.views - a.views));
   } else {
-    // 기본: 확산력 순 (조회수 1만 이상이면서 구독자 대비 배수가 높은 영상 우선)
     arr.sort((a, b) => {
       const aQual = (a.views >= 10000 && a.views_per_subscriber != null) ? 1 : 0;
       const bQual = (b.views >= 10000 && b.views_per_subscriber != null) ? 1 : 0;
@@ -657,6 +696,42 @@ async function ensureLatestSnapshot() {
     } catch (e) {}
   }
   return window.SHORTFORM_RADAR_SNAPSHOT || null;
+}
+
+async function syncSnapshotFromGitHub() {
+  const st = document.getElementById("step1Status");
+  const btn = document.getElementById("syncSnapBtn");
+  if (btn) btn.disabled = true;
+  st.textContent = "🔄 GitHub에서 최신 트렌드 스냅샷을 불러오고 있어요...";
+  _remoteSnapChecked = false;
+  try {
+    const resp = await fetch(`${REMOTE_SNAPSHOT_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const remote = await resp.json();
+    if (!remote || !remote.entries || !Object.keys(remote.entries).length) {
+      throw new Error("아직 저장된 배치 데이터가 없어요.");
+    }
+    window.SHORTFORM_RADAR_SNAPSHOT = remote;
+    _remoteSnapChecked = true;
+    try { window.localStorage.setItem("sr_remote_snapshot_v1", JSON.stringify(remote)); } catch (e) {}
+    if (tryApplySnapshotEntry(currentPath, selectedDays)) {
+      showToast("✅ 최신 트렌드를 모두 불러왔어요!");
+    } else {
+      const firstKey = Object.keys(remote.entries)[0];
+      const [fkPath, fkDays] = firstKey.split("_");
+      currentPath = fkPath || "beauty";
+      selectedDays = Number(fkDays) || 30;
+      document.getElementById("days7").classList.toggle("active", selectedDays === 7);
+      document.getElementById("days30").classList.toggle("active", selectedDays === 30);
+      renderExplorerNav();
+      tryApplySnapshotEntry(currentPath, selectedDays);
+      showToast("✅ 최신 트렌드를 불러왔어요!");
+    }
+  } catch (e) {
+    st.textContent = `⚠️ GitHub 스냅샷을 불러오지 못했어요: ${e.message}`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 async function runStep1Live() {
@@ -899,11 +974,20 @@ function renderStep1Result(data) {
   const avgRatio = validRatios.length ? Math.round((validRatios.reduce((s, x) => s + x, 0) / validRatios.length) * 10) / 10 : null;
   const overallGrade = getViralGrade(avgV, avgVpd, avgRatio);
 
+  const formatPubDate = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso).slice(0, 10).replace(/-/g, ".");
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+    return `${y}.${m}.${day}`;
+  };
+
   const ratioTooltip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 배수가 높을수록 채널 규모보다 소재 자체가 인기를 끈 영상이에요.";
   const cards = sorted.map(v => {
     const f = fBy[v.video_id] || {};
     const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
+    const pubDateStr = formatPubDate(v.published_at);
     const ratioBadge = v.views_per_subscriber != null
       ? `<span class="pill pill-purple" title="${ratioTooltip}">📈 구독자 대비 ${v.views_per_subscriber}배</span>`
       : "";
@@ -921,7 +1005,8 @@ function renderStep1Result(data) {
           ${ratioBadge}
         </div>
         <div class="short-meta" style="color:var(--muted);font-size:0.76rem;">
-          <span>${esc(v.channel_title)}</span>
+          ${pubDateStr ? `<span>📅 ${pubDateStr}</span><span>·</span>` : ""}
+          <span>❤️ 좋아요 ${formatKoNum(v.likes)}</span>
           <span>· 💬 댓글 ${(v.comments || 0).toLocaleString()}개</span>
           ${deltaChip}
           <span>· ${esc(f.format_tag || "기타")}</span>
