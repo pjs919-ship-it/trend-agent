@@ -97,9 +97,9 @@ body {
   padding: 10px 16px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
   border: 1px solid transparent; transition: all 0.15s ease;
 }
-.btn-primary { background: var(--purple); color: #FFF; }
+.btn-primary { background: var(--purple); color: #FFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .btn-primary:hover { background: var(--purple-dark); }
-.btn-sec { background: var(--purple-soft); color: var(--purple-dark); border-color: #C4B5FD; }
+.btn-sec { background: var(--purple-soft); color: var(--purple-dark); border-color: #C4B5FD; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .btn-sec:hover { background: #EDE9FE; }
 .btn-outline { background: #FFF; color: var(--ink-secondary); border-color: var(--line-strong); }
 .btn-danger { background: var(--danger-soft); color: var(--danger); border: 1.5px solid var(--danger); }
@@ -424,7 +424,7 @@ function renderExplorerNav() {
   const children = KR_TREE[currentPath].children || [];
   const childEl = document.getElementById("childChips");
   if (!children.length) {
-    childEl.innerHTML = `<span style="font-size:0.8rem;color:var(--muted);">✅ 최하위 세부 품목입니다. 위 경로를 누르면 상위 카테고리로 돌아갈 수 있습니다.</span>`;
+    childEl.innerHTML = `<span style="font-size:0.82rem;color:var(--muted);">위 경로를 눌러 상위 카테고리로 돌아갈 수 있어요.</span>`;
   } else {
     childEl.innerHTML = children.map(ck =>
       `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(KR_TREE[ck].label)}</button>`
@@ -536,7 +536,7 @@ async function runStep1Live() {
   addLog(`Step 1 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
 
   const today = new Date().toISOString().slice(0, 10);
-  const cacheKey = `ts_kr_step1_v2_${today}_${currentPath}_${selectedDays}`;
+  const cacheKey = `ts_kr_step1_v3_${today}_${currentPath}_${selectedDays}`;
   try {
     const cached = window.localStorage.getItem(cacheKey);
     if (cached) {
@@ -580,13 +580,15 @@ async function runStep1Live() {
       const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
       const idSet = new Set();
       for (const kw of node.keywords.slice(0, 3)) {
-        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw + " shorts")}&type=video&videoCategoryId=26&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
+        // 대형 뷰티 크리에이터 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
+        // videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration=short로 순수 검색
+        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=15&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
         const d = await (await fetch(u)).json();
         const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
         got.forEach(id => idSet.add(id));
-        addLog(`검색 '${kw} shorts' (cat=26, ${selectedDays}일): ${got.length}건`);
+        addLog(`검색 '${kw}' (순수 키워드·쇼츠, ${selectedDays}일): ${got.length}건`);
       }
-      const ids = [...idSet].slice(0, 40);
+      const ids = [...idSet].slice(0, 45);
       addLog(`중복 제거 후 후보 ID: ${ids.length}건`);
       if (!ids.length) { st.textContent = "수집된 쇼츠가 없습니다. 기간을 30일로 늘려보세요."; return; }
       const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
@@ -627,11 +629,10 @@ async function runStep1Live() {
 {"market_patterns":["인사이트1","인사이트2","인사이트3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
 
 [market_patterns 작성 절대 규칙 — 매우 중요]
-1. 단순 단어·명사구 나열 절대 금지! (나쁜 예: "다이소 가성비 뷰티템", "올리브영 추천템", "메이크업 꿀팁")
-2. 각 항목은 반드시 [① 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(구체적 영상 근거 포함)] 3요소를 갖춘 완성된 1~2문장(최소 45자 이상)으로 작성하세요.
-   (좋은 예: "'다이소 3천원 vs 백화점템'처럼 가격 대비 효능을 15초 안에 비교하는 실험 포맷이 높은 좋아요율(3%+)을 얻으며, 고물가 속 실패 없는 구매를 원하는 소비자의 검증 심리를 자극하고 있습니다.")
-3. 제공된 영상 목록에 없는 내용은 추측하지 마세요.
-4. facts의 hook_quote, evidence_quote는 아래 원문에서 그대로 복사하세요.
+1. 단순 단어·명사구 나열 절대 금지!
+2. 각 항목은 반드시 [① 실제 수집된 영상 속 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(실제 영상 소재·수치 근거 포함)] 3요소를 갖춘 완성된 1~2문장(45자 이상)으로 작성하세요.
+3. 정직성 규칙: 조회수 1만 미만 또는 좋아요율 1% 미만인 영상군을 '높은 좋아요율/폭발적 인기'로 절대 과장하지 말고, '초기 반응' 또는 '저유입 참고 수준'이라고 사실대로 쓰세요.
+4. 제공된 영상 목록에 없는 내용은 추측하지 말고, facts의 hook_quote·evidence_quote는 아래 원문에서 그대로 복사하세요.
 
 [수집된 쇼츠 목록]
 ` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 일평균:${v.views_per_day.toLocaleString()}회 | 좋아요율:${v.like_rate}% | 제목:${v.title} | 설명:${v.description}`).join("\n");
@@ -711,14 +712,16 @@ function renderStep1Result(data) {
       <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
       <div class="short-body">
         <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
-        <div class="short-meta">
+        <div class="short-meta" style="margin-bottom:4px;">
           <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
-          <span>📺 ${esc(v.channel_title)}</span>
-          <span>👀 ${v.views.toLocaleString()}회</span>
+          <b style="color:var(--ink);">👀 ${v.views.toLocaleString()}회</b>
           <span class="pill pill-hot">🔥 하루 평균 ${v.views_per_day.toLocaleString()}회</span>
-          <span>❤️ ${v.like_rate.toFixed(2)}%</span>
-          ${v.comments ? `<span>💬 ${v.comment_rate.toFixed(2)}%</span>` : ""}
-          <span class="pill pill-purple">${esc(f.format_tag || "기타")}</span>
+        </div>
+        <div class="short-meta" style="color:var(--muted);font-size:0.76rem;">
+          <span>${esc(v.channel_title)}</span>
+          <span>· 좋아요 ${v.like_rate.toFixed(2)}%</span>
+          ${v.comments ? `<span>· 댓글 ${v.comment_rate.toFixed(2)}%</span>` : ""}
+          <span>· ${esc(f.format_tag || "기타")}</span>
         </div>
         <div class="short-fact">${esc(f.what_happens || "")}</div>
       </div>

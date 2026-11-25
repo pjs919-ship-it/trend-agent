@@ -475,7 +475,7 @@ def fetch_kr_step1_shorts(
     if path_key not in KR_EXPLORE_TREE:
         raise ValueError(f"지원하지 않는 탐색 경로입니다: {path_key}")
 
-    cache_key = f"{date.today()}_kr_step1_{path_key}_{days}_{sort_by}"
+    cache_key = f"{date.today()}_kr_step1_v3_{path_key}_{days}_{sort_by}"
     if use_cache and cache_key in _cache:
         return _cache[cache_key]
 
@@ -525,41 +525,25 @@ def fetch_kr_step1_shorts(
         candidate_ids: List[str] = []
         for kw in node["keywords"][:3]:
             try:
+                # 대형 뷰티 유튜버 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
+                # videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration="short"로 순수 검색
                 record_youtube_units(100, action="search.list", meta={"path_key": path_key, "q": kw, "days": days})
                 sr = youtube.search().list(
                     part="snippet",
-                    q=f"{kw} shorts",
+                    q=kw,
                     type="video",
-                    videoCategoryId="26",
                     videoDuration="short",
                     order="viewCount",
                     regionCode="KR",
                     relevanceLanguage="ko",
-                    maxResults=10,
+                    maxResults=15,
                     publishedAfter=published_after,
                 ).execute()
                 candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
             except RuntimeError:
                 raise
-            except Exception:
-                try:
-                    record_youtube_units(100, action="search.list_fallback", meta={"path_key": path_key, "q": kw, "days": days})
-                    sr = youtube.search().list(
-                        part="snippet",
-                        q=f"{kw} shorts",
-                        type="video",
-                        videoDuration="short",
-                        order="viewCount",
-                        regionCode="KR",
-                        relevanceLanguage="ko",
-                        maxResults=10,
-                        publishedAfter=published_after,
-                    ).execute()
-                    candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
-                except RuntimeError:
-                    raise
-                except Exception as e2:
-                    print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
+            except Exception as e2:
+                print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
 
         candidate_ids = list(dict.fromkeys(candidate_ids))
         if not candidate_ids:
