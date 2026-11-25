@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>K-뷰티 쇼츠 트렌드 어시스턴트</title>
+<title>숏폼레이더 (ShortformRadar) — K-뷰티 유튜브 쇼츠 트렌드 분석</title>
 <style>
 :root {
   --purple: #6C2BD9;
@@ -83,6 +83,9 @@ body {
 }
 .chip:hover { border-color: var(--purple); color: var(--purple-dark); background: var(--purple-soft); }
 .chip.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
+.quick-label { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin: 2px 0 6px; }
+.chip-quick { background: var(--surface-subtle); border-color: var(--line-strong); color: var(--purple-dark); }
+.chip-quick.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
 
 .ctrl-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
 .seg-group { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -201,15 +204,15 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>💄 K-뷰티 쇼츠 트렌드 어시스턴트</h1>
-      <div class="sub">한국 유튜브 쇼츠 인기 흐름을 먼저 보고, 우리 제품에 맞는 캠페인과 카피를 바로 만듭니다.</div>
+      <h1>📡 숏폼레이더 <span style="font-size:0.95rem;font-weight:700;color:var(--muted);">ShortformRadar</span></h1>
+      <div class="sub">K-뷰티 마케터를 위한 유튜브 쇼츠 트렌드 분석 &amp; 캠페인 기획</div>
     </div>
-    <span id="topStatusBadge" class="pill pill-purple">한국(KR) 전용</span>
+    <span id="topStatusBadge" class="pill pill-purple">한국 뷰티 전용</span>
   </div>
 
   <!-- API 키 설정 (접기 가능) -->
   <details id="apiDetails" class="b2b-details" open>
-    <summary id="apiSummary">🔑 API 키 설정 (입력 후 접어두실 수 있습니다)</summary>
+    <summary id="apiSummary">🔑 API 키 설정 (입력 후 접어두실 수 있어요)</summary>
     <div class="grid-3" style="margin-top:12px;">
       <div class="field">
         <label>유튜브 API 키</label>
@@ -229,13 +232,15 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
     </div>
   </details>
 
-  <!-- Step 1: 요즘 유튜브 쇼츠 트렌드 먼저 보기 -->
+  <!-- Step 1: 요즘 뷰티 쇼츠 트렌드 먼저 보기 -->
   <div class="panel">
-    <span class="step-badge">1단계 · 시장 탐색</span>
-    <h2 class="step-title">요즘 유튜브 쇼츠 트렌드 먼저 보기</h2>
+    <span class="step-badge">1단계 · 뷰티 트렌드 탐색</span>
+    <h2 class="step-title">요즘 뜨는 K-뷰티 쇼츠 먼저 보기</h2>
 
     <div id="crumbBar" class="crumb-bar"></div>
     <div id="childChips" class="chip-row"></div>
+    <div class="quick-label">⚡ 유통·피부고민 바로 보기</div>
+    <div id="quickChips" class="chip-row"></div>
 
     <div class="ctrl-row">
       <div class="seg-group">
@@ -243,9 +248,10 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
         <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 최근 30일 (대세)</button>
       </div>
       <div class="seg-group">
-        <button id="sortFast" class="seg-btn active" onclick="setSort('fast')">🔥 빠르게 뜨는 순</button>
-        <button id="sortViews" class="seg-btn" onclick="setSort('views')">👀 총 조회수 순</button>
-        <button id="sortLikes" class="seg-btn" onclick="setSort('like_rate')">❤️ 좋아요율 순</button>
+        <button id="sortRatio" class="seg-btn active" onclick="setSort('subscriber_ratio')">📈 확산력 순</button>
+        <button id="sortFast" class="seg-btn" onclick="setSort('fast')">🔥 하루 평균 순</button>
+        <button id="sortViews" class="seg-btn" onclick="setSort('views')">👀 조회수 순</button>
+        <button id="sortComments" class="seg-btn" onclick="setSort('comments')">💬 댓글 많은 순</button>
       </div>
     </div>
 
@@ -259,18 +265,18 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   <!-- 초기 대기 화면 또는 Step 1 결과 영역 -->
   <div id="step1Area">
     <div class="welcome-box">
-      <h3>어느 카테고리의 쇼츠 트렌드를 먼저 볼까요?</h3>
-      <p style="margin:0;">위에서 <b>전체 → 뷰티 → 기초화장품 / 색조메이크업 → 세부 품목</b>을 한 단계씩 고르고<br>
-      <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 바로 체험할 수 있습니다.</p>
+      <h3>어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
+      <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>이나 <b>유통·고민 칩</b>을 고르고<br>
+      <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 먼저 둘러볼 수 있어요.</p>
     </div>
   </div>
 
-  <!-- Step 2: 우리 제품에 입히기 (Step 1 결과 후 활성화) -->
+  <!-- Step 2: 홍보할 상품에 입히기 (Step 1 결과 후 활성화) -->
   <div id="step2Panel" class="panel" style="display:none;">
-    <span class="step-badge">2단계 · 우리 제품 맞춤 기획 (추가 유튜브 검색 없음)</span>
-    <h2 class="step-title">방금 본 트렌드를 우리 제품에 입히기</h2>
+    <span class="step-badge">2단계 · 홍보할 상품에 맞추기</span>
+    <h2 class="step-title">방금 본 트렌드를 홍보할 상품에 입히기</h2>
 
-    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:6px;">⚡ 원클릭 예시 제품 채우기</div>
+    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:6px;">⚡ 예시 상품 바로 채우기</div>
     <div class="chip-row">
       <button class="chip" onclick="applyPreset('toner')">💧 딥 토너</button>
       <button class="chip" onclick="applyPreset('pad')">🌿 그린 2.5 패드</button>
@@ -280,31 +286,34 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
     <div class="grid-3">
       <div class="field">
-        <label>제품 카테고리</label>
+        <label>상품 카테고리</label>
         <select id="prodCat">
           <option value="기초 > 토너·패드">기초 &gt; 토너·패드</option>
           <option value="기초 > 세럼·앰플">기초 &gt; 세럼·앰플</option>
           <option value="기초 > 크림·로션">기초 &gt; 크림·로션</option>
           <option value="기초 > 선크림">기초 &gt; 선크림</option>
           <option value="기초 > 마스크팩">기초 &gt; 마스크팩</option>
+          <option value="기초 > 클렌징">기초 &gt; 클렌징</option>
           <option value="색조 > 립·틴트">색조 &gt; 립·틴트</option>
           <option value="색조 > 블러셔">색조 &gt; 블러셔</option>
           <option value="색조 > 쿠션·파데">색조 &gt; 쿠션·파데</option>
           <option value="색조 > 아이메이크업">색조 &gt; 아이메이크업</option>
+          <option value="헤어·바디 > 샴푸·트리트먼트">헤어·바디 &gt; 샴푸·트리트먼트</option>
+          <option value="헤어·바디 > 바디케어">헤어·바디 &gt; 바디케어</option>
         </select>
       </div>
       <div class="field">
-        <label>제품명</label>
+        <label>홍보할 상품명</label>
         <input id="prodName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
       </div>
       <div class="field">
-        <label>강조하고 싶은 키워드 / 특징</label>
+        <label>강조할 핵심 특징</label>
         <input id="prodKeywords" type="text" placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어" />
       </div>
     </div>
 
     <div class="btn-row" style="margin-top:14px;">
-      <button class="btn btn-primary" onclick="runStep2Match()">✨ 이 트렌드로 우리 캠페인·카피 만들기</button>
+      <button class="btn btn-primary" onclick="runStep2Match()">✨ 이 트렌드로 캠페인·카피 만들기</button>
     </div>
     <div id="step2Status" class="status-bar"></div>
   </div>
@@ -325,20 +334,35 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
 <script>
 const KR_TREE = {
-  "all": { label: "전체", parent: null, mode: "mostPopular", keywords: [], children: ["beauty"] },
-  "beauty": { label: "뷰티", parent: "all", mode: "search", keywords: ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup"] },
-  "beauty/skincare": { label: "기초화장품", parent: "beauty", mode: "search", keywords: ["스킨케어", "기초 루틴", "속건조"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask"] },
-  "beauty/makeup": { label: "색조메이크업", parent: "beauty", mode: "search", keywords: ["메이크업", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
+  "beauty": { label: "뷰티 전체", parent: null, mode: "search", keywords: ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup", "beauty/hairbody"] },
+  "beauty/skincare": { label: "기초 스킨케어", parent: "beauty", mode: "search", keywords: ["스킨케어", "기초 루틴", "속건조"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing"] },
+  "beauty/makeup": { label: "색조 메이크업", parent: "beauty", mode: "search", keywords: ["메이크업", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
+  "beauty/hairbody": { label: "헤어·바디", parent: "beauty", mode: "search", keywords: ["헤어케어 추천", "바디로션 추천", "샴푸 추천"], children: ["beauty/hairbody/hair", "beauty/hairbody/body"] },
   "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너 추천", "토너패드", "닦토"], children: [] },
   "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "앰플 추천", "진정세럼"], children: [] },
   "beauty/skincare/cream": { label: "크림·로션", parent: "beauty/skincare", mode: "search", keywords: ["수분크림", "장벽크림", "로션 추천"], children: [] },
   "beauty/skincare/sun": { label: "선크림", parent: "beauty/skincare", mode: "search", keywords: ["선크림 추천", "무기자차", "선세럼"], children: [] },
   "beauty/skincare/mask": { label: "마스크팩", parent: "beauty/skincare", mode: "search", keywords: ["마스크팩 추천", "1일1팩", "수분팩"], children: [] },
+  "beauty/skincare/cleansing": { label: "클렌징", parent: "beauty/skincare", mode: "search", keywords: ["클렌징오일 추천", "클렌징폼", "블랙헤드 클렌징"], children: [] },
   "beauty/makeup/lip": { label: "립·틴트", parent: "beauty/makeup", mode: "search", keywords: ["립틴트 추천", "립조합", "글로우립"], children: [] },
   "beauty/makeup/blush": { label: "블러셔", parent: "beauty/makeup", mode: "search", keywords: ["블러셔 추천", "치크 꿀팁", "쿨톤 블러셔"], children: [] },
   "beauty/makeup/cushion": { label: "쿠션·파데", parent: "beauty/makeup", mode: "search", keywords: ["쿠션 추천", "파데 추천", "화잘먹"], children: [] },
-  "beauty/makeup/eye": { label: "아이메이크업", parent: "beauty/makeup", mode: "search", keywords: ["아이섀도우", "속눈썹 꿀팁", "아이라인"], children: [] }
+  "beauty/makeup/eye": { label: "아이메이크업", parent: "beauty/makeup", mode: "search", keywords: ["아이섀도우", "속눈썹 꿀팁", "아이라인"], children: [] },
+  "beauty/hairbody/hair": { label: "샴푸·트리트먼트", parent: "beauty/hairbody", mode: "search", keywords: ["샴푸 추천", "트리트먼트 추천", "두피케어"], children: [] },
+  "beauty/hairbody/body": { label: "바디케어", parent: "beauty/hairbody", mode: "search", keywords: ["바디로션 추천", "바디워시 추천", "바디미스트"], children: [] }
 };
+
+const KR_QUICK_CHIPS = {
+  "chip/oliveyoung": { label: "올리브영", parent: "beauty", mode: "search", keywords: ["올리브영 추천템", "올영 세일 추천", "올리브영 꿀템"], children: [] },
+  "chip/daiso": { label: "다이소", parent: "beauty", mode: "search", keywords: ["다이소 화장품 추천", "다이소 뷰티 꿀템", "다이소 스킨케어"], children: [] },
+  "chip/glowskin": { label: "속건조·화잘먹", parent: "beauty", mode: "search", keywords: ["속건조 해결", "화잘먹 기초", "속보습 스킨케어"], children: [] },
+  "chip/calming": { label: "트러블·진정", parent: "beauty", mode: "search", keywords: ["트러블 진정", "피부 뒤집어졌을때", "여드름 진정 스킨케어"], children: [] },
+  "chip/pore": { label: "모공·요철", parent: "beauty", mode: "search", keywords: ["모공 줄이기", "블랙헤드 제거", "요철 관리"], children: [] }
+};
+
+function getNode(key) {
+  return KR_TREE[key] || KR_QUICK_CHIPS[key] || KR_TREE["beauty"];
+}
 
 const PRESETS = {
   toner: {
@@ -373,11 +397,18 @@ const LAW_BANNED = ["1위", "1등", "최고", "즉각", "완벽", "100%", "재�
 const NUM_RE = /\d[\d,.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시간|초|분|일|만\s*개?|억|개)/g;
 const DIR_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:훅|이내|후|오프닝|클립|분량|연출|촬영)|\b(?:[3-9]|\d{2,})\s*초\s*컷/g;
 
-let currentPath = "beauty/skincare";
+let currentPath = "beauty";
 let selectedDays = 30;
-let selectedSort = "fast";
+let selectedSort = "subscriber_ratio";
 let step1Data = null;
 let step2Data = null;
+
+function formatKoNum(n) {
+  const num = Number(n || 0);
+  if (num >= 100000000) return `${(num / 100000000).toFixed(1).replace(/\.0$/, "")}억`;
+  if (num >= 10000) return `${(num / 10000).toFixed(1).replace(/\.0$/, "")}만`;
+  return num.toLocaleString();
+}
 
 function esc(s) {
   return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
@@ -408,43 +439,71 @@ function fallbackCopy(txt, cb) {
 function getPathChain(key) {
   const chain = [];
   let cur = key;
-  while (cur && KR_TREE[cur]) { chain.unshift(cur); cur = KR_TREE[cur].parent; }
+  while (cur && (KR_TREE[cur] || KR_QUICK_CHIPS[cur])) {
+    chain.unshift(cur);
+    cur = getNode(cur).parent;
+  }
   return chain;
 }
 function getPathLabel(key) {
-  return getPathChain(key).map(k => KR_TREE[k].label).join(" > ");
+  return getPathChain(key).map(k => getNode(k).label).join(" > ");
 }
 function renderExplorerNav() {
   const chain = getPathChain(currentPath);
   document.getElementById("crumbBar").innerHTML = chain.map((k, idx) => {
     const isCur = idx === chain.length - 1;
-    return `${idx > 0 ? '<span class="crumb-sep">›</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(KR_TREE[k].label)}</button>`;
+    return `${idx > 0 ? '<span class="crumb-sep">›</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(getNode(k).label)}</button>`;
   }).join("");
 
-  const children = KR_TREE[currentPath].children || [];
+  const children = getNode(currentPath).children || [];
   const childEl = document.getElementById("childChips");
   if (!children.length) {
     childEl.innerHTML = `<span style="font-size:0.82rem;color:var(--muted);">위 경로를 눌러 상위 카테고리로 돌아갈 수 있어요.</span>`;
   } else {
     childEl.innerHTML = children.map(ck =>
-      `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(KR_TREE[ck].label)}</button>`
+      `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(getNode(ck).label)}</button>`
+    ).join("");
+  }
+
+  const quickEl = document.getElementById("quickChips");
+  if (quickEl) {
+    quickEl.innerHTML = Object.entries(KR_QUICK_CHIPS).map(([ck, node]) =>
+      `<button class="chip chip-quick ${currentPath === ck ? 'active' : ''}" onclick="selectPath('${ck}')"># ${esc(node.label)}</button>`
     ).join("");
   }
 }
 function selectPath(key) {
   currentPath = key;
   renderExplorerNav();
+  if (step1Data && step1Data.path_key && step1Data.path_key !== key) {
+    document.getElementById("step1Status").textContent = `카테고리를 '${getPathLabel(key)}'로 바꿨어요. [🚀 이 카테고리 트렌드 보기]를 눌러 새 결과를 불러오세요.`;
+  }
 }
 function setDays(d) {
   selectedDays = d;
   document.getElementById("days7").classList.toggle("active", d === 7);
   document.getElementById("days30").classList.toggle("active", d === 30);
+  if (step1Data && step1Data.days_range !== d) {
+    const today = new Date().toISOString().slice(0, 10);
+    const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${d}`;
+    try {
+      const cached = window.localStorage.getItem(cacheKey);
+      if (cached) {
+        step1Data = JSON.parse(cached);
+        document.getElementById("step1Status").textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' (${d}일 기준) 결과를 바로 불러왔어요.`;
+        renderStep1Result(step1Data);
+        return;
+      }
+    } catch (e) {}
+    document.getElementById("step1Status").textContent = `⏱️ 기간을 최근 ${d}일로 바꿨어요. [🚀 이 카테고리 트렌드 보기]를 눌러 새 결과를 불러오세요.`;
+  }
 }
 function setSort(s) {
   selectedSort = s;
+  document.getElementById("sortRatio").classList.toggle("active", s === "subscriber_ratio");
   document.getElementById("sortFast").classList.toggle("active", s === "fast");
   document.getElementById("sortViews").classList.toggle("active", s === "views");
-  document.getElementById("sortLikes").classList.toggle("active", s === "like_rate");
+  document.getElementById("sortComments").classList.toggle("active", s === "comments");
   if (step1Data) renderStep1Result(step1Data);
 }
 function applyPreset(key) {
@@ -488,11 +547,17 @@ function copyDebugLog() {
   copyText(debugLogs.join("\n") || "로그 없음", false);
 }
 
-function getViralGrade(views, vpd) {
-  if (views >= 100000 || vpd >= 10000) return { code: "S", label: "🔥 S등급 · 메가 바이럴", cls: "pill-gold", desc: "검증된 대세 (10만 회↑ 또는 일평균 1만↑)" };
-  if (views >= 30000 || vpd >= 3000) return { code: "A", label: "⚡ A등급 · 급상승", cls: "pill-hot", desc: "빠르게 뜨는 중 (3만 회↑ 또는 일평균 3천↑)" };
-  if (views >= 10000 || vpd >= 1000) return { code: "B", label: "📈 B등급 · 초기 반응", cls: "pill-go", desc: "니치·초기 트렌드 (1만 회↑ 또는 일평균 1천↑)" };
-  return { code: "C", label: "🔍 C등급 · 저유입 참고", cls: "pill-drop", desc: "아직 대중적 대세 아님 (1만 회 미만 · 참고용)" };
+function getViralGrade(views, vpd, ratio) {
+  if (views >= 100000 || (views >= 10000 && ratio != null && ratio >= 5)) {
+    return { code: "S", label: "🔥 S등급 · 메가 바이럴", cls: "pill-gold", desc: "조회수 10만 이상이거나 조회수 1만 이상·구독자 대비 5배 이상" };
+  }
+  if (views >= 30000 || vpd >= 3000) {
+    return { code: "A", label: "⚡ A등급 · 급상승", cls: "pill-hot", desc: "조회수 3만 이상 또는 하루 평균 3천 이상" };
+  }
+  if (views >= 10000 || vpd >= 1000) {
+    return { code: "B", label: "📈 B등급 · 초기 반응", cls: "pill-go", desc: "조회수 1만 이상 또는 하루 평균 1천 이상" };
+  }
+  return { code: "C", label: "🔍 C등급 · 참고용", cls: "pill-drop", desc: "조회수 1만 미만 참고용 영상" };
 }
 
 function computeMetrics(v) {
@@ -503,8 +568,14 @@ function computeMetrics(v) {
     days = Math.max(0.25, Math.round((hrs / 24) * 100) / 100);
   }
   if (!days) days = 1;
+  const subs = v.subscriber_count != null && Number(v.subscriber_count) > 0 ? Number(v.subscriber_count) : null;
+  const ratio = v.views_per_subscriber != null
+    ? Number(v.views_per_subscriber)
+    : (subs ? Math.round((views / subs) * 10) / 10 : null);
   return {
     ...v, views, likes, comments, days_since_published: days,
+    subscriber_count: subs,
+    views_per_subscriber: ratio,
     views_per_day: Number(v.views_per_day || Math.round(views / days)),
     like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100,
     comment_rate: v.comment_rate != null ? Number(v.comment_rate) : Math.round((comments / Math.max(1, views)) * 10000) / 100
@@ -512,9 +583,23 @@ function computeMetrics(v) {
 }
 function sortVideos(vids) {
   const arr = [...vids];
-  if (selectedSort === "views") arr.sort((a, b) => b.views - a.views);
-  else if (selectedSort === "like_rate") arr.sort((a, b) => b.like_rate - a.like_rate);
-  else arr.sort((a, b) => (b.views_per_day * 0.6 + b.views * 0.4) - (a.views_per_day * 0.6 + a.views * 0.4));
+  if (selectedSort === "views") {
+    arr.sort((a, b) => b.views - a.views);
+  } else if (selectedSort === "comments") {
+    arr.sort((a, b) => (b.comments - a.comments) || (b.views - a.views));
+  } else if (selectedSort === "fast") {
+    arr.sort((a, b) => (b.views_per_day - a.views_per_day) || (b.views - a.views));
+  } else {
+    // 기본: 확산력 순 (조회수 1만 이상이면서 구독자 대비 배수가 높은 영상 우선)
+    arr.sort((a, b) => {
+      const aQual = (a.views >= 10000 && a.views_per_subscriber != null) ? 1 : 0;
+      const bQual = (b.views >= 10000 && b.views_per_subscriber != null) ? 1 : 0;
+      if (bQual !== aQual) return bQual - aQual;
+      const diffRatio = (b.views_per_subscriber || 0) - (a.views_per_subscriber || 0);
+      if (diffRatio !== 0) return diffRatio;
+      return (b.views_per_day - a.views_per_day) || (b.views - a.views);
+    });
+  }
   return arr;
 }
 async function callGeminiJson(apiKey, model, prompt) {
@@ -536,70 +621,59 @@ async function runStep1Live() {
   if (!ytKey || !ggKey) { st.textContent = "⚠️ 상단 'API 키 설정'에 유튜브 API 키와 제미나이 API 키를 모두 입력해주세요."; return; }
 
   clearLogs();
-  addLog(`Step 1 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
+  addLog(`1단계 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
 
   const today = new Date().toISOString().slice(0, 10);
-  const cacheKey = `ts_kr_step1_v4_${today}_${currentPath}_${selectedDays}`;
+  const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${selectedDays}`;
   try {
     const cached = window.localStorage.getItem(cacheKey);
     if (cached) {
       step1Data = JSON.parse(cached);
-      addLog(`⚡ 당일 캐시 히트 (${cacheKey}) — 유튜브 API 0유닛, 영상 ${step1Data.videos?.length || 0}건 로드`);
-      st.textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' 결과를 캐시에서 즉시 불러왔습니다 (유튜브 쿼터 0).`;
+      addLog(`⚡ 당일 캐시 사용 (${cacheKey}) — 영상 ${step1Data.videos?.length || 0}건 로드`);
+      st.textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' (${selectedDays}일 기준) 결과를 바로 불러왔어요.`;
       renderStep1Result(step1Data);
       return;
     }
   } catch (e) {}
 
-  const node = KR_TREE[currentPath];
+  const node = getNode(currentPath);
   try {
-    st.textContent = `1/2. '${getPathLabel(currentPath)}' 한국 유튜브 쇼츠 수집 중...`;
-    let detItems = [];
-    const seenIds = new Set();
-    if (node.mode === "mostPopular") {
-      const u = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=KR&maxResults=50&key=${encodeURIComponent(ytKey)}`;
-      const popItems = (await (await fetch(u)).json()).items || [];
-      addLog(`YouTube mostPopular(KR, max=50, 1유닛) 원본 수집: ${popItems.length}건`);
-      popItems.forEach(it => { if (it?.id && !seenIds.has(it.id)) { seenIds.add(it.id); detItems.push(it); } });
-      const shortPopCount = detItems.filter(it => {
-        const s = isoToSec(it.contentDetails?.duration);
-        const t = it.snippet?.title || "";
-        return s > 0 && s <= 180 && isKorean({ title: t, description: it.snippet?.description || "" }) && !/예고편|Covered by|M\/V|\bMV\b|Teaser/i.test(t);
-      }).length;
-      addLog(`mostPopular 중 쇼츠 규격(≤180초): ${shortPopCount}건`);
-      if (shortPopCount < 6) {
-        const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
-        const extraIds = new Set();
-        for (const kw of ["인기 쇼츠", "요즘 뜨는 shorts"]) {
-          const su = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
-          const sd = await (await fetch(su)).json();
-          const got = (sd.items || []).map(it => it?.id?.videoId).filter(Boolean);
-          got.forEach(id => { if (!seenIds.has(id)) extraIds.add(id); });
-          addLog(`보완 검색 '${kw}' (최근 ${selectedDays}일): ${got.length}건`);
-        }
-        if (extraIds.size) {
-          const du = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${[...extraIds].slice(0, 30).join(",")}&key=${encodeURIComponent(ytKey)}`;
-          const extraDet = (await (await fetch(du)).json()).items || [];
-          extraDet.forEach(it => { if (it?.id && !seenIds.has(it.id)) { seenIds.add(it.id); detItems.push(it); } });
-        }
+    st.textContent = `1/2. '${getPathLabel(currentPath)}' 한국 뷰티 쇼츠를 모으고 있어요...`;
+    const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
+    const idSet = new Set();
+    for (const kw of node.keywords.slice(0, 3)) {
+      // 대형 뷰티 크리에이터 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
+      // videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration=short로 순수 검색
+      const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=50&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
+      const d = await (await fetch(u)).json();
+      const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
+      got.forEach(id => idSet.add(id));
+      addLog(`검색 '${kw}' (쇼츠 최대 50건, ${selectedDays}일): ${got.length}건`);
+    }
+    const ids = [...idSet].slice(0, 50);
+    addLog(`중복 제거 후 후보 영상: ${ids.length}건`);
+    if (!ids.length) { st.textContent = "조건에 맞는 쇼츠가 없어요. 기간을 30일로 늘려보세요."; return; }
+
+    const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
+    const detItems = (await (await fetch(detUrl)).json()).items || [];
+
+    // 채널 구독자 수 1회 배치 조회 (구독자 대비 배수 계산용)
+    const chIds = [...new Set(detItems.map(it => it?.snippet?.channelId).filter(Boolean))].slice(0, 50);
+    const subMap = {};
+    if (chIds.length) {
+      try {
+        const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${chIds.join(",")}&key=${encodeURIComponent(ytKey)}`;
+        const chData = await (await fetch(chUrl)).json();
+        (chData.items || []).forEach(c => {
+          const stc = c.statistics || {};
+          if (!stc.hiddenSubscriberCount && Number(stc.subscriberCount || 0) > 0) {
+            subMap[c.id] = Number(stc.subscriberCount);
+          }
+        });
+        addLog(`채널 구독자 수 조회 완료: ${Object.keys(subMap).length}/${chIds.length}개 채널`);
+      } catch (ce) {
+        addLog(`채널 구독자 수 조회 생략: ${ce.message}`);
       }
-    } else {
-      const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
-      const idSet = new Set();
-      for (const kw of node.keywords.slice(0, 3)) {
-        // 대형 뷰티 크리에이터 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
-        // videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration=short로 순수 검색
-        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=50&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
-        const d = await (await fetch(u)).json();
-        const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
-        got.forEach(id => idSet.add(id));
-        addLog(`검색 '${kw}' (순수 키워드·쇼츠 max=50, ${selectedDays}일): ${got.length}건`);
-      }
-      const ids = [...idSet].slice(0, 50);
-      addLog(`중복 제거 후 후보 ID: ${ids.length}건`);
-      if (!ids.length) { st.textContent = "수집된 쇼츠가 없습니다. 기간을 30일로 늘려보세요."; return; }
-      const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
-      detItems = (await (await fetch(detUrl)).json()).items || [];
     }
 
     let dropLen = 0, dropSpam = 0;
@@ -608,10 +682,24 @@ async function runStep1Live() {
       const maxLen = 180;
       if (secs === 0 || secs > maxLen) { dropLen++; return null; }
       const sn = it.snippet || {}, stats = it.statistics || {};
+      const views = Number(stats.viewCount || 0);
+      const cid = sn.channelId || "";
+      const subs = subMap[cid] || null;
+      let viewsDelta = null;
+      try {
+        const prevRaw = window.localStorage.getItem(`ts_kr_prev_views_${it.id}`);
+        if (prevRaw != null) {
+          const prevV = Number(prevRaw);
+          if (views > prevV) viewsDelta = views - prevV;
+        }
+        window.localStorage.setItem(`ts_kr_prev_views_${it.id}`, String(views));
+      } catch (e) {}
       const row = computeMetrics({
         video_id: it.id, title: sn.title || "", description: (sn.description || "").slice(0, 300),
-        channel_title: sn.channelTitle || "", views: Number(stats.viewCount || 0),
-        likes: Number(stats.likeCount || 0), comments: Number(stats.commentCount || 0),
+        channel_id: cid, channel_title: sn.channelTitle || "",
+        subscriber_count: subs,
+        views, likes: Number(stats.likeCount || 0), comments: Number(stats.commentCount || 0),
+        views_delta: viewsDelta,
         published_at: sn.publishedAt || "", thumbnail_url: sn.thumbnails?.medium?.url || "",
         text_source: "meta", source_text: `${sn.title || ""} ${(sn.description || "").slice(0, 300)}`
       });
@@ -631,13 +719,13 @@ async function runStep1Live() {
       if (tk) seenT.add(tk);
       return true;
     }).slice(0, 10);
-    if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없습니다."; return; }
+    if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없어요."; return; }
     const avgV = Math.round(videos.reduce((s, v) => s + v.views, 0) / videos.length);
     const avgVpd = Math.round(videos.reduce((s, v) => s + v.views_per_day, 0) / videos.length);
     addLog(`최종 상위 ${videos.length}건 선정 | 평균 조회수 ${avgV.toLocaleString()}회 | 하루 평균 ${avgVpd.toLocaleString()}회`);
 
-    st.textContent = "2/2. AI가 요즘 뜨는 포맷과 실무 인사이트를 분석 중...";
-    const p1 = `당신은 10년차 한국 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 목록(조회수·하루 평균·좋아요율·제목·설명)을 분석해 반드시 JSON으로 반환하세요.
+    st.textContent = "2/2. AI가 요즘 뜨는 포맷과 실무 인사이트를 정리하고 있어요...";
+    const p1 = `당신은 10년차 한국 K-뷰티 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 목록(조회수·하루 평균·구독자 대비 배수·댓글 수·제목·설명)을 분석해 반드시 JSON으로 반환하세요.
 
 [스키마]
 {"market_patterns":["인사이트1","인사이트2","인사이트3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
@@ -645,14 +733,14 @@ async function runStep1Live() {
 [market_patterns 작성 절대 규칙 — 매우 중요]
 1. 단순 단어·명사구 나열 절대 금지!
 2. 각 항목은 반드시 [① 실제 수집된 영상 속 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(실제 영상 소재·수치 근거 포함)] 3요소를 갖춘 완성된 1~2문장(45자 이상)으로 작성하세요.
-3. 정직성 규칙: 조회수 1만 미만 또는 좋아요율 1% 미만인 영상군을 '높은 좋아요율/폭발적 인기'로 절대 과장하지 말고, '초기 반응' 또는 '저유입 참고 수준'이라고 사실대로 쓰세요.
+3. 정직성 규칙: 조회수 1만 미만인 영상군을 '폭발적 인기'로 절대 과장하지 말고, '초기 반응' 또는 '참고 수준'이라고 사실대로 쓰세요.
 4. 제공된 영상 목록에 없는 내용은 추측하지 말고, facts의 hook_quote·evidence_quote는 아래 원문에서 그대로 복사하세요.
 
 [수집된 쇼츠 목록]
-` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 일평균:${v.views_per_day.toLocaleString()}회 | 좋아요율:${v.like_rate}% | 제목:${v.title} | 설명:${v.description}`).join("\n");
+` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 하루평균:${v.views_per_day.toLocaleString()}회 | 구독자대비:${v.views_per_subscriber != null ? v.views_per_subscriber + '배' : '미공개'} | 댓글:${v.comments}개 | 제목:${v.title} | 설명:${v.description}`).join("\n");
     const t0 = Date.now();
     const s1 = await callGeminiJson(ggKey, model, p1);
-    addLog(`Gemini 분석 완료 (${((Date.now() - t0) / 1000).toFixed(1)}초) | 인사이트 ${(s1.market_patterns || []).length}줄, 팩트 ${(s1.facts || []).length}건`);
+    addLog(`AI 분석 완료 (${((Date.now() - t0) / 1000).toFixed(1)}초) | 인사이트 ${(s1.market_patterns || []).length}줄, 영상 요약 ${(s1.facts || []).length}건`);
     const vBy = Object.fromEntries(videos.map(v => [v.video_id, v]));
     const facts = (s1.facts || []).filter(f => vBy[f.video_id]).map(f => {
       const evOk = norm(f.evidence_quote).length >= 4 && norm(vBy[f.video_id].source_text).includes(norm(f.evidence_quote));
@@ -660,12 +748,12 @@ async function runStep1Live() {
     });
 
     step1Data = {
-      mode: "live", path_label: getPathLabel(currentPath), days_range: selectedDays,
+      mode: "live", path_key: currentPath, path_label: getPathLabel(currentPath), days_range: selectedDays,
       report_date: today, videos, facts, market_patterns: (s1.market_patterns || []).slice(0, 3)
     };
     try { window.localStorage.setItem(cacheKey, JSON.stringify(step1Data)); } catch (e) {}
     document.getElementById("apiDetails").open = false;
-    st.textContent = `✅ '${step1Data.path_label}' 트렌드 분석 완료 (${videos.length}건)! 아래에서 바로 우리 제품에 입혀보세요.`;
+    st.textContent = `✅ '${step1Data.path_label}' 트렌드 분석 완료 (${videos.length}건)! 아래에서 홍보할 상품에 바로 입혀보세요.`;
     renderStep1Result(step1Data);
   } catch (e) {
     addLog(`❌ 오류: ${e.message}`);
@@ -677,19 +765,20 @@ function runStep1Preview() {
   const today = new Date().toISOString().slice(0, 10);
   step1Data = {
     mode: "preview",
+    path_key: currentPath,
     path_label: getPathLabel(currentPath),
     days_range: selectedDays,
     report_date: today,
     market_patterns: [
-      "전성분 함량 숫자와 보습 핵심 성분을 20초 내외로 비교하는 팩트체크형 쇼츠가 높은 반응을 얻고 있습니다.",
-      "화장 전 푸석한 피부에 수분 제품을 바로 시연하는 응급처치 루틴 포맷의 저장·공유가 강세입니다.",
-      "립틴트·컨실러 믹싱 같은 색조 꿀팁도 조회수가 높아, 기초 브랜드 기획 시 영역 필터링이 중요합니다."
+      "화장 전 푸석한 피부에 토너패드와 수분세럼을 10초 내외로 바로 시연하는 '화잘먹 응급 루틴' 쇼츠가 조회수 15만 회 이상과 구독자 대비 높은 확산력을 기록하고 있어요.",
+      "전성분 함량 숫자를 직접 더해보는 팩트체크형 쇼츠는 소형 채널에서도 댓글 문의가 집중되며 저장·공유 반응이 뚜렷하게 나타나요.",
+      "립틴트·컨실러 믹싱 같은 색조 꿀팁도 조회수가 높으므로, 홍보할 상품 영역에 맞는 영상만 골라 캠페인에 연결하는 것이 중요해요."
     ],
     videos: [
-      computeMetrics({ video_id:"brKNpouibqo", title:"물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼", channel_title:"aweop", views:1187, likes:12, published_at:"2026-11-20T07:10:16Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/brKNpouibqo/mqdefault.jpg" }),
-      computeMetrics({ video_id:"Zl5CPQxmWFE", title:"일명 '수지 세럼' 성분표 숫자 다 더하니 3% #shorts", channel_title:"FLIKO", views:162, likes:0, published_at:"2026-11-19T12:02:34Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/Zl5CPQxmWFE/mqdefault.jpg" }),
-      computeMetrics({ video_id:"RdXhzcCVtsw", title:"세럼 하나로 분기 1000억 찍은 브랜드 👑 #shorts", channel_title:"쇼핑공주", views:1009, likes:3, published_at:"2026-11-22T22:10:18Z", text_source:"meta", thumbnail_url:"https://i.ytimg.com/vi/RdXhzcCVtsw/mqdefault.jpg" }),
-      computeMetrics({ video_id:"jfsweQpxqsY", title:"립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts", channel_title:"K-뷰티 메이크업랩", views:156361, likes:4820, published_at:"2026-11-15T09:00:00Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/jfsweQpxqsY/mqdefault.jpg" })
+      computeMetrics({ video_id:"brKNpouibqo", title:"물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼", channel_title:"aweop", subscriber_count:14500, views:128400, likes:3420, comments:246, views_delta:18200, published_at:"2026-11-20T07:10:16Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/brKNpouibqo/mqdefault.jpg" }),
+      computeMetrics({ video_id:"Zl5CPQxmWFE", title:"일명 '수지 세럼' 성분표 숫자 다 더하니 3% #shorts", channel_title:"FLIKO", subscriber_count:4200, views:46800, likes:1290, comments:184, published_at:"2026-11-19T12:02:34Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/Zl5CPQxmWFE/mqdefault.jpg" }),
+      computeMetrics({ video_id:"RdXhzcCVtsw", title:"세럼 하나로 분기 1000억 찍은 브랜드 👑 #shorts", channel_title:"쇼핑공주", subscriber_count:28000, views:34100, likes:640, comments:73, published_at:"2026-11-22T22:10:18Z", text_source:"meta", thumbnail_url:"https://i.ytimg.com/vi/RdXhzcCVtsw/mqdefault.jpg" }),
+      computeMetrics({ video_id:"jfsweQpxqsY", title:"립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts", channel_title:"K-뷰티 메이크업랩", subscriber_count:19000, views:156361, likes:4820, comments:319, views_delta:24500, published_at:"2026-11-15T09:00:00Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/jfsweQpxqsY/mqdefault.jpg" })
     ],
     facts: [
       { video_id:"brKNpouibqo", domain:"기초/스킨케어", format_tag:"응급처치 루틴형", what_happens:"푸석한 피부에 히알루론산 수분 제품으로 데일리 수분 케어 및 화잘먹 피부 연출", product_types:["수분세럼"], hook_quote:"물먹은 듯 촉촉한 쫀광 피부", evidence_quote:"푸석한 피부를 위한 데일리 수분 케어", evidence_ok:true, text_source:"caption" },
@@ -698,7 +787,7 @@ function runStep1Preview() {
       { video_id:"jfsweQpxqsY", domain:"색조/메이크업", format_tag:"믹싱 꿀팁형", what_happens:"립틴트와 컨실러를 손등에 섞어 블러셔로 바르는 색조 믹싱 꿀팁 시연", product_types:["립틴트","블러셔"], hook_quote:"립틴트랑 컨실러 섞어서 맑은 블러셔 만드는 법", evidence_quote:"손등에 틴트 한 방울 덜고 컨실러 살짝 섞어서 볼에 톡톡", evidence_ok:true, text_source:"caption" }
     ]
   };
-  document.getElementById("step1Status").textContent = "👀 예시 화면을 불러왔습니다 (유튜브 쿼터 0). 아래 2단계에서 우리 제품에 입혀보세요.";
+  document.getElementById("step1Status").textContent = "👀 예시 화면을 불러왔어요. 아래 2단계에서 홍보할 상품에 바로 입혀보세요.";
   renderStep1Result(step1Data);
 }
 
@@ -716,25 +805,35 @@ function renderStep1Result(data) {
 
   const avgV = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views, 0) / sorted.length) : 0;
   const avgVpd = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views_per_day, 0) / sorted.length) : 0;
-  const overallGrade = getViralGrade(avgV, avgVpd);
+  const validRatios = sorted.map(v => v.views_per_subscriber).filter(x => x != null);
+  const avgRatio = validRatios.length ? Math.round((validRatios.reduce((s, x) => s + x, 0) / validRatios.length) * 10) / 10 : null;
+  const overallGrade = getViralGrade(avgV, avgVpd, avgRatio);
 
+  const ratioTooltip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 배수가 높을수록 채널 규모보다 소재 자체가 인기를 끈 영상이에요.";
   const cards = sorted.map(v => {
     const f = fBy[v.video_id] || {};
-    const g = getViralGrade(v.views, v.views_per_day);
+    const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
+    const ratioBadge = v.views_per_subscriber != null
+      ? `<span class="pill pill-purple" title="${ratioTooltip}">📈 구독자 대비 ${v.views_per_subscriber}배</span>`
+      : "";
+    const deltaChip = v.views_delta && v.views_delta > 0
+      ? `<span class="pill pill-go">⬆️ 이전보다 +${formatKoNum(v.views_delta)}</span>`
+      : "";
     return `<div class="short-card">
       <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
       <div class="short-body">
         <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
         <div class="short-meta" style="margin-bottom:4px;">
           <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
-          <b style="color:var(--ink);">👀 ${v.views.toLocaleString()}회</b>
-          <span class="pill pill-hot">🔥 하루 평균 ${v.views_per_day.toLocaleString()}회</span>
+          <b style="color:var(--ink);">👀 조회수 ${formatKoNum(v.views)}</b>
+          <span class="pill pill-hot">🔥 하루 평균 ${formatKoNum(v.views_per_day)}</span>
+          ${ratioBadge}
         </div>
         <div class="short-meta" style="color:var(--muted);font-size:0.76rem;">
           <span>${esc(v.channel_title)}</span>
-          <span>· 좋아요 ${v.like_rate.toFixed(2)}%</span>
-          ${v.comments ? `<span>· 댓글 ${v.comment_rate.toFixed(2)}%</span>` : ""}
+          <span>· 💬 댓글 ${(v.comments || 0).toLocaleString()}개</span>
+          ${deltaChip}
           <span>· ${esc(f.format_tag || "기타")}</span>
         </div>
         <div class="short-fact">${esc(f.what_happens || "")}</div>
@@ -745,10 +844,10 @@ function renderStep1Result(data) {
   document.getElementById("step1Area").innerHTML = `
     <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;font-size:0.84rem;">
       <div>
-        <b>📊 트렌드 신뢰도 벤치마크</b> · 현재 수집 ${sorted.length}건 평균: <b>조회수 ${avgV.toLocaleString()}회 · 하루 평균 ${avgVpd.toLocaleString()}회</b>
+        <b>📊 트렌드 신뢰도 요약</b> · 현재 ${sorted.length}건 평균: <b>조회수 ${formatKoNum(avgV)} · 하루 평균 ${formatKoNum(avgVpd)}${avgRatio != null ? ` · 구독자 대비 ${avgRatio}배` : ""}</b>
         <span class="pill ${overallGrade.cls}" style="margin-left:6px;">${overallGrade.label}</span>
       </div>
-      <div style="color:var(--muted);font-size:0.78rem;">기준: 🔥S(10만↑/일1만↑) · ⚡A(3만↑/일3천↑) · 📈B(1만↑/일1천↑) · 🔍C(1만 미만 참고용)</div>
+      <div style="color:var(--muted);font-size:0.78rem;">기준: 🔥S(10만↑ 또는 1만↑·구독자 5배↑) · ⚡A(3만↑/일3천↑) · 📈B(1만↑/일1천↑) · 🔍C(1만 미만 참고용)</div>
     </div>
     <div class="insight-box">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
@@ -786,7 +885,7 @@ async function runStep2Match() {
   const prodName = document.getElementById("prodName").value.trim();
   const prodKw = document.getElementById("prodKeywords").value.trim();
   const st = document.getElementById("step2Status");
-  if (!prodName) { st.textContent = "⚠️ 제품명을 입력해주세요."; return; }
+  if (!prodName) { st.textContent = "⚠️ 홍보할 상품명을 입력해주세요."; return; }
 
   const expDomain = expectedDomainFromCat(cat);
   const presetMatch = Object.values(PRESETS).find(p => p.name === prodName);
@@ -798,7 +897,7 @@ async function runStep2Match() {
   let judgements = [], briefs = [];
   if (step1Data.mode === "live" && ggKey) {
     try {
-      st.textContent = "✨ 방금 본 트렌드와 우리 제품을 매칭하고 카피·콘티를 작성 중 (추가 유튜브 검색 0)...";
+      st.textContent = "✨ 방금 본 트렌드와 홍보할 상품을 매칭하고 카피·콘티를 만들고 있어요...";
       const p2 = `당신은 '${prodName}' (${cat}) 담당 마케터입니다. 아래 팩트를 보고 Go/Pivot/Drop 판정과 Go 항목의 카피 3종 + 4단 촬영 콘티를 JSON으로 반환하세요.
 [제품 특징 — 이 범위 안에서만 작성] ${allowedClaims.join(" / ")}
 [금지 표현] ${bannedList.join(", ")} / 1위·1등·즉각·완벽·치료·완치·아토피 금지
@@ -820,7 +919,7 @@ JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score"
         const violations = checkViolations(b, allowedClaims, bannedList);
         return { ...b, violations, needs_review: violations.length > 0 };
       });
-      st.textContent = "✅ 우리 제품 맞춤 캠페인·카피 생성이 완료되었습니다!";
+      st.textContent = "✅ 맞춤 캠페인·카피가 완성됐어요!";
     } catch (e) {
       st.textContent = "❌ 기획 생성 오류: " + e.message;
       return;
@@ -829,22 +928,22 @@ JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score"
     // 예시 화면 미리보기 (오프라인 즉시 매칭)
     judgements = step1Data.facts.map(f => {
       if (f.domain !== expDomain) {
-        return { video_id: f.video_id, decision: "Drop", score: 1, reason: `영상 영역(${f.domain})이 제품 영역(${expDomain})과 달라 억지 연결을 차단했습니다.`, linked_claim: "" };
+        return { video_id: f.video_id, decision: "Drop", score: 1, reason: `영상 영역(${f.domain})이 상품 영역(${expDomain})과 달라 억지 연결을 막았어요.`, linked_claim: "" };
       }
       if (f.text_source !== "caption") {
-        return { video_id: f.video_id, decision: "Pivot", score: 3, reason: "영역은 맞지만 자막이 없어 직접 시청 후 결정하는 것을 권장합니다.", linked_claim: allowedClaims[0] || prodName };
+        return { video_id: f.video_id, decision: "Pivot", score: 3, reason: "영역은 맞지만 자막이 없어 직접 시청 후 결정하는 것을 권장해요.", linked_claim: allowedClaims[0] || prodName };
       }
-      return { video_id: f.video_id, decision: "Go", score: 5, reason: `'${f.format_tag}' 포맷이 '${prodName}'의 핵심 특징과 자연스럽게 연결됩니다.`, linked_claim: allowedClaims[0] || prodName };
+      return { video_id: f.video_id, decision: "Go", score: 5, reason: `'${f.format_tag}' 포맷이 '${prodName}'의 핵심 특징과 자연스럽게 연결돼요.`, linked_claim: allowedClaims[0] || prodName };
     });
     const goList = judgements.filter(j => j.decision === "Go").slice(0, 3);
     briefs = goList.map(g => {
       const f = step1Data.facts.find(x => x.video_id === g.video_id);
       const b = {
         video_id: g.video_id,
-        hook: `첫 3초: "${f.hook_quote || f.what_happens}" 자막과 함께 제품 사용 직전 클로즈업`,
+        hook: `첫 3초: "${f.hook_quote || f.what_happens}" 자막과 함께 상품 사용 직전 클로즈업`,
         before: `평소 ${cat} 고민이 드러나는 공감 비포 장면`,
         product_moment: `${prodName} — ${allowedClaims[0] || prodName} 특징을 자연스럽게 시연`,
-        cta: "프로필 링크 또는 올리브영에서 데일리 루틴 제품 확인해보세요",
+        cta: "프로필 링크 또는 올리브영에서 데일리 루틴 상품 확인해보세요",
         creator_note: "확인되지 않은 순위·즉각 효과·의약품 오인 표현 절대 금지",
         copy_ideas: [
           `${prodName}, ${f.format_tag}으로 바로 따라 해보는 데일리 루틴`,
@@ -855,7 +954,7 @@ JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score"
       const violations = checkViolations(b, allowedClaims, bannedList);
       return { ...b, violations, needs_review: violations.length > 0 };
     });
-    st.textContent = "👀 예시 화면 기반 맞춤 캠페인·카피가 생성되었습니다 (유튜브 쿼터 0).";
+    st.textContent = "👀 예시 화면 기준 맞춤 캠페인·카피를 만들었어요.";
   }
 
   step2Data = { product: prodName, cat, expDomain, bannedList, allowedClaims, judgements, briefs };

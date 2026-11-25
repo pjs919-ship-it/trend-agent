@@ -729,19 +729,28 @@ def test_shareable_html_export(products):
 
 
 def test_step1_step2_kr_flow(products):
-    # 1) KR_EXPLORE_TREE 13개 경로 및 구조 검증
+    # 1) KR_EXPLORE_TREE 16개 뷰티 전용 경로 + 5개 유통·고민 빠른 칩 검증 ("all" 제거)
     expected_keys = {
-        "all", "beauty", "beauty/skincare", "beauty/makeup",
+        "beauty", "beauty/skincare", "beauty/makeup", "beauty/hairbody",
         "beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream",
-        "beauty/skincare/sun", "beauty/skincare/mask",
+        "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing",
         "beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye",
+        "beauty/hairbody/hair", "beauty/hairbody/body",
     }
+    _assert("all" not in agent_core.KR_EXPLORE_TREE, "all 경로가 아직 남아있음")
     _assert(set(agent_core.KR_EXPLORE_TREE.keys()) == expected_keys,
             f"KR_EXPLORE_TREE 경로 불일치: {set(agent_core.KR_EXPLORE_TREE.keys())}")
-    _assert(agent_core.KR_EXPLORE_TREE["all"]["mode"] == "mostPopular", "all 모드가 mostPopular가 아님")
+    _assert(agent_core.KR_EXPLORE_TREE["beauty"]["parent"] is None, "beauty 루트 parent가 None이 아님")
     for k, node in agent_core.KR_EXPLORE_TREE.items():
-        if k != "all":
-            _assert(len(node["keywords"]) == 3, f"{k} 키워드 수 != 3: {node['keywords']}")
+        _assert(len(node["keywords"]) == 3, f"{k} 키워드 수 != 3: {node['keywords']}")
+    _assert(len(agent_core.KR_BEAUTY_QUICK_CHIPS) == 5, f"빠른 칩 수 != 5: {agent_core.KR_BEAUTY_QUICK_CHIPS.keys()}")
+
+    # 1-B) get_beauty_viral_grade() S/A/B/C 기준 및 소형 채널 왜곡 방지 검증
+    _assert(agent_core.get_beauty_viral_grade(120000, 4000, 1.5)["grade"] == "S", "10만 조회수 S등급 실패")
+    _assert(agent_core.get_beauty_viral_grade(15000, 1500, 6.2)["grade"] == "S", "1만↑+구독자 5배↑ S등급 실패")
+    _assert(agent_core.get_beauty_viral_grade(100, 50, 10.0)["grade"] == "C", "소형 채널 100회/10배 왜곡 차단 실패")
+    _assert(agent_core.get_beauty_viral_grade(35000, 1200, 1.2)["grade"] == "A", "3만 조회수 A등급 실패")
+    _assert(agent_core.get_beauty_viral_grade(12000, 500, 1.2)["grade"] == "B", "1만 조회수 B등급 실패")
 
     # 2) is_spam_video() 필터 검증
     _assert(agent_core.is_spam_video({"views": 0, "title": "정상 제목"}), "조회수 0 스팸 미탐")

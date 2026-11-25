@@ -1,6 +1,6 @@
-"""app.py — K-뷰티 쇼츠 트렌드 어시스턴트 (한국 KR 기준 2단계 탐색 UI)
-1단계: 브랜드 정보 없이 한국 유튜브 쇼츠 인기 흐름 탐색 (경로 칩 + 당일 캐시 0유닛)
-2단계: 방금 본 트렌드를 우리 제품에 입혀 추천/보류/제외 + 카피 3종 + 4단 콘티 + 복사/HTML 보고서 생성
+"""app.py — 숏폼레이더 (ShortformRadar) K-뷰티 유튜브 쇼츠 트렌드 분석 UI
+1단계: 한국 K-뷰티 유튜브 쇼츠 인기 흐름 탐색 (뷰티 계층 + 유통·고민 빠른 칩 + 5대 실무 지표)
+2단계: 방금 본 트렌드를 홍보할 상품에 입혀 추천/보류/제외 + 카피 3종 + 4단 콘티 + 보고서 생성
 """
 import html
 import json
@@ -19,8 +19,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
 
 st.set_page_config(
-    page_title="K-뷰티 쇼츠 트렌드 어시스턴트",
-    page_icon="💄",
+    page_title="숏폼레이더 (ShortformRadar) — K-뷰티 쇼츠 트렌드",
+    page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -108,10 +108,13 @@ PRODUCT_CATEGORIES = [
     "기초 > 크림·로션",
     "기초 > 선크림",
     "기초 > 마스크팩",
+    "기초 > 클렌징",
     "색조 > 립·틴트",
     "색조 > 블러셔",
     "색조 > 쿠션·파데",
     "색조 > 아이메이크업",
+    "헤어·바디 > 샴푸·트리트먼트",
+    "헤어·바디 > 바디케어",
 ]
 
 PRESET_EXAMPLES = {
@@ -126,17 +129,36 @@ def _esc(val: Any) -> str:
     return html.escape(str(val if val is not None else ""), quote=True)
 
 
+def _format_ko_num(n: Any) -> str:
+    num = int(n or 0)
+    if num >= 100_000_000:
+        return f"{num / 100_000_000:.1f}".rstrip("0").rstrip(".") + "억"
+    if num >= 10_000:
+        return f"{num / 10_000:.1f}".rstrip("0").rstrip(".") + "만"
+    return f"{num:,}"
+
+
+def _node_of(path_key: str) -> Dict[str, Any]:
+    return (
+        agent_core.KR_EXPLORE_TREE.get(path_key)
+        or agent_core.KR_BEAUTY_QUICK_CHIPS.get(path_key)
+        or agent_core.KR_EXPLORE_TREE["beauty"]
+    )
+
+
 def _path_chain(path_key: str) -> List[str]:
+    if path_key in agent_core.KR_BEAUTY_QUICK_CHIPS:
+        return ["beauty", path_key]
     chain: List[str] = []
     cur = path_key
     while cur and cur in agent_core.KR_EXPLORE_TREE:
         chain.insert(0, cur)
         cur = agent_core.KR_EXPLORE_TREE[cur]["parent"]
-    return chain
+    return chain or ["beauty"]
 
 
 def _path_label(path_key: str) -> str:
-    return " > ".join(agent_core.KR_EXPLORE_TREE[k]["label"] for k in _path_chain(path_key))
+    return " > ".join(_node_of(k)["label"] for k in _path_chain(path_key))
 
 
 def _children_of(path_key: str) -> List[str]:
@@ -291,7 +313,7 @@ def _build_preview_step2(step1_res: Dict[str, Any], cat: str, prod_name: str, ke
 
 
 # ── Session Defaults ──────────────────────────────────────────────────
-st.session_state.setdefault("explore_path", "beauty/skincare")
+st.session_state.setdefault("explore_path", "beauty")
 st.session_state.setdefault("step1_res", None)
 st.session_state.setdefault("step2_res", None)
 st.session_state.setdefault("s2_cat", PRODUCT_CATEGORIES[0])
@@ -373,26 +395,29 @@ st.markdown(
     """
     <div class="hero-bar">
       <div>
-        <div class="hero-title">💄 K-뷰티 쇼츠 트렌드 어시스턴트</div>
-        <div class="hero-sub">한국 유튜브 쇼츠 인기 흐름을 먼저 보고, 우리 제품에 맞는 캠페인과 카피를 바로 만듭니다.</div>
+        <div class="hero-title">📡 숏폼레이더 <span style="font-size:0.95rem;font-weight:700;color:var(--muted);">ShortformRadar</span></div>
+        <div class="hero-sub">K-뷰티 마케터를 위한 유튜브 쇼츠 트렌드 분석 &amp; 캠페인 기획</div>
       </div>
-      <span class="pill pill-purple">한국(KR) 전용</span>
+      <span class="pill pill-purple">한국 뷰티 전용</span>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# ── Step 1: 요즘 유튜브 쇼츠 트렌드 먼저 보기 ───────────────────────────
-st.markdown('<span class="step-tag">1단계 · 시장 탐색</span>', unsafe_allow_html=True)
-st.markdown("### 요즘 유튜브 쇼츠 트렌드 먼저 보기")
+# ── Step 1: 요즘 뷰티 쇼츠 트렌드 먼저 보기 ──────────────────────────────
+st.markdown('<span class="step-tag">1단계 · 뷰티 트렌드 탐색</span>', unsafe_allow_html=True)
+st.markdown("### 요즘 뜨는 K-뷰티 쇼츠 먼저 보기")
 
 cur_path = st.session_state["explore_path"]
+if cur_path not in agent_core.KR_EXPLORE_TREE and cur_path not in agent_core.KR_BEAUTY_QUICK_CHIPS:
+    cur_path = "beauty"
+    st.session_state["explore_path"] = "beauty"
 chain = _path_chain(cur_path)
 
 # 경로 Breadcrumb 버튼
 crumb_cols = st.columns(len(chain) + 2)
 for i, k in enumerate(chain):
-    lbl = agent_core.KR_EXPLORE_TREE[k]["label"]
+    lbl = _node_of(k)["label"]
     btn_type = "primary" if i == len(chain) - 1 else "secondary"
     if crumb_cols[i].button(f"{lbl}", key=f"crumb_{k}", type=btn_type, use_container_width=True):
         st.session_state["explore_path"] = k
@@ -402,21 +427,43 @@ for i, k in enumerate(chain):
 children = _children_of(cur_path)
 if children:
     st.caption("👇 더 좁혀보고 싶다면 하위 카테고리를 눌러보세요:")
-    ch_cols = st.columns(min(5, len(children)))
+    ch_cols = st.columns(min(6, len(children)))
     for i, ck in enumerate(children):
-        if ch_cols[i % len(ch_cols)].button(f"+ {agent_core.KR_EXPLORE_TREE[ck]['label']}", key=f"child_{ck}", use_container_width=True):
+        if ch_cols[i % len(ch_cols)].button(f"+ {_node_of(ck)['label']}", key=f"child_{ck}", use_container_width=True):
             st.session_state["explore_path"] = ck
             st.rerun()
 else:
-    st.caption("✅ 최하위 세부 품목입니다. 위 경로 버튼을 누르면 상위 카테고리로 돌아갈 수 있습니다.")
+    st.caption("위 경로 버튼을 눌러 상위 카테고리로 돌아갈 수 있어요.")
 
-c_days, c_sort = st.columns([1, 1.4])
+# 유통·피부고민 빠른 칩
+st.caption("⚡ 유통·피부고민 바로 보기:")
+q_items = list(agent_core.KR_BEAUTY_QUICK_CHIPS.items())
+q_cols = st.columns(len(q_items))
+for col, (qk, qnode) in zip(q_cols, q_items):
+    q_type = "primary" if cur_path == qk else "secondary"
+    if col.button(f"# {qnode['label']}", key=f"qchip_{qk}", type=q_type, use_container_width=True):
+        st.session_state["explore_path"] = qk
+        st.rerun()
+
+c_days, c_sort = st.columns([1, 1.8])
 with c_days:
     days_label = st.radio("수집 기간", ["🔥 최근 7일 (급상승)", "🏆 최근 30일 (대세)"], index=1, horizontal=True)
     days_val = 7 if "7일" in days_label else 30
 with c_sort:
-    sort_label = st.radio("정렬 기준", ["🔥 빠르게 뜨는 순", "👀 총 조회수 순", "❤️ 좋아요율 순"], index=0, horizontal=True)
-    sort_key = "views" if "총 조회수" in sort_label else ("like_rate" if "좋아요율" in sort_label else "velocity")
+    sort_label = st.radio(
+        "정렬 기준",
+        ["📈 확산력 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
+        index=0,
+        horizontal=True,
+    )
+    if "하루 평균" in sort_label:
+        sort_key = "fast"
+    elif "조회수" in sort_label:
+        sort_key = "views"
+    elif "댓글" in sort_label:
+        sort_key = "comments"
+    else:
+        sort_key = "subscriber_ratio"
 
 b1, b2 = st.columns([2, 1])
 run_s1_live = b1.button("🚀 이 카테고리 트렌드 보기", type="primary", use_container_width=True)
@@ -431,26 +478,27 @@ if run_s1_live:
         st.error("왼쪽 사이드바 'API 키 설정'에 유튜브 API 키와 제미나이 AI API 키를 모두 입력해주세요.")
     else:
         try:
-            with st.spinner(f"1/2. '{_path_label(cur_path)}' 한국 쇼츠 수집 중 (당일 캐시 자동 재사용)..."):
+            with st.spinner(f"1/2. '{_path_label(cur_path)}' 한국 뷰티 쇼츠를 모으고 있어요..."):
                 yt_client = agent_core.build_youtube_client(yt_key)
                 vids = agent_core.fetch_kr_step1_shorts(
                     yt_client, path_key=cur_path, days=days_val, sort_by=sort_key
                 )
             if not vids:
-                st.warning("수집된 쇼츠가 없습니다. 기간을 30일로 늘리거나 상위 카테고리를 선택해보세요.")
+                st.warning("조건에 맞는 쇼츠가 없어요. 기간을 30일로 늘리거나 상위 카테고리를 선택해보세요.")
             else:
-                with st.spinner("2/2. AI가 요즘 뜨는 포맷과 핵심 흐름을 요약 중..."):
+                with st.spinner("2/2. AI가 요즘 뜨는 포맷과 핵심 흐름을 정리하고 있어요..."):
                     s1 = pipeline.run_step1_explore(
                         vids, path_label=_path_label(cur_path), days_range=days_val,
                         api_key=gg_key, model=model_name,
                     )
                     s1["mode"] = "live"
+                    s1["path_key"] = cur_path
                     st.session_state["step1_res"] = s1
                     st.session_state["step2_res"] = None
         except RuntimeError as e:
             st.error(f"일일 검색 예산 초과 방지 차단: {e}")
         except Exception as e:
-            st.error(f"분석 중 오류가 발생했습니다: {e}")
+            st.error(f"분석 중 오류가 발생했어요: {e}")
 
 # ── Step 1 결과 또는 초기 대기 화면 ────────────────────────────────────
 s1 = st.session_state["step1_res"]
@@ -458,14 +506,17 @@ if not s1:
     st.markdown(
         """
         <div class="welcome-box">
-          <h3 style="margin:0 0 8px;color:var(--ink);">어느 카테고리의 쇼츠 트렌드를 먼저 볼까요?</h3>
-          <p style="margin:0;">위에서 <b>전체 → 뷰티 → 기초화장품 / 색조메이크업 → 세부 품목</b>을 한 단계씩 고르고<br>
-          <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 바로 체험할 수 있습니다.</p>
+          <h3 style="margin:0 0 8px;color:var(--ink);">어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
+          <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>이나 <b>유통·고민 칩</b>을 고르고<br>
+          <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 먼저 둘러볼 수 있어요.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 else:
+    if int(s1.get("days_range", 30)) != days_val:
+        st.info(f"⏱️ 기간을 최근 {days_val}일로 바꿨어요. [🚀 이 카테고리 트렌드 보기]를 눌러 새 결과를 불러오세요.")
+
     pats_html = "".join(
         f'<div class="pattern-row"><span class="pattern-num">{i}</span><div>{_esc(p)}</div></div>'
         for i, p in enumerate(s1.get("market_patterns", []), 1)
@@ -490,40 +541,75 @@ else:
     vids_disp = list(s1.get("videos", []))
     if sort_key == "views":
         vids_disp.sort(key=lambda x: x.get("views", 0), reverse=True)
-    elif sort_key == "like_rate":
-        vids_disp.sort(key=lambda x: x.get("like_rate", 0.0), reverse=True)
+    elif sort_key == "comments":
+        vids_disp.sort(key=lambda x: (x.get("comments", 0), x.get("views", 0)), reverse=True)
+    elif sort_key == "fast":
+        vids_disp.sort(key=lambda x: (x.get("views_per_day", 0), x.get("views", 0)), reverse=True)
     else:
-        vids_disp.sort(key=lambda x: x.get("views_per_day", 0), reverse=True)
+        vids_disp.sort(
+            key=lambda x: (
+                1 if (x.get("views", 0) >= 10000 and x.get("views_per_subscriber")) else 0,
+                x.get("views_per_subscriber") or 0.0,
+                x.get("views_per_day", 0),
+                x.get("views", 0),
+            ),
+            reverse=True,
+        )
 
     f_by_id = {f["video_id"]: f for f in s1.get("facts", [])}
+    ratio_tip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 배수가 높을수록 채널 규모보다 소재 자체가 인기를 끈 영상이에요."
+    grade_cls_map = {"S": "pill-gold", "A": "pill-hot", "B": "pill-go", "C": "pill-drop"}
     cards_html = []
     for v in vids_disp:
         vid = v["video_id"]
         f = f_by_id.get(vid, {})
         thumb = v.get("thumbnail_url") or f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg"
+        g_info = agent_core.get_beauty_viral_grade(
+            int(v.get("views", 0)),
+            int(v.get("views_per_day", 0)),
+            v.get("views_per_subscriber"),
+        )
+        g_cls = grade_cls_map.get(g_info["grade"], "pill-drop")
+        ratio_val = v.get("views_per_subscriber")
+        ratio_html = (
+            f'<span class="pill pill-purple" title="{ratio_tip}">📈 구독자 대비 {ratio_val}배</span>'
+            if ratio_val is not None
+            else ""
+        )
+        delta_val = v.get("views_delta")
+        delta_html = (
+            f'<span class="pill pill-go">⬆️ 이전보다 +{_format_ko_num(delta_val)}</span>'
+            if delta_val and int(delta_val) > 0
+            else ""
+        )
         cards_html.append(
             f'<div class="short-card">'
             f'<img class="short-thumb" src="{_esc(thumb)}" alt="thumb"/>'
             f'<div style="flex:1;min-width:0;">'
             f'<a class="short-title" href="https://youtube.com/shorts/{_esc(vid)}" target="_blank" rel="noopener">{_esc(v.get("title", vid))} ↗</a>'
+            f'<div class="short-meta" style="margin-bottom:4px;">'
+            f'<span class="pill {g_cls}">{_esc(g_info["label"])}</span>'
+            f'<b style="color:var(--ink);">👀 조회수 {_format_ko_num(v.get("views", 0))}</b>'
+            f'<span class="pill pill-hot">🔥 하루 평균 {_format_ko_num(v.get("views_per_day", 0))}</span>'
+            f'{ratio_html}'
+            f'</div>'
             f'<div class="short-meta">'
-            f'<span>📺 {_esc(v.get("channel_title", "-"))}</span>'
-            f'<span>👀 {v.get("views", 0):,}회</span>'
-            f'<span class="pill pill-hot">🔥 하루 평균 {v.get("views_per_day", 0):,}회</span>'
-            f'<span>❤️ {v.get("like_rate", 0.0):.2f}%</span>'
-            f'<span class="pill pill-purple">{_esc(f.get("format_tag", "기타"))}</span>'
+            f'<span>{_esc(v.get("channel_title", "-"))}</span>'
+            f'<span>· 💬 댓글 {int(v.get("comments", 0)):,}개</span>'
+            f'{delta_html}'
+            f'<span>· {_esc(f.get("format_tag", "기타"))}</span>'
             f'</div>'
             f'<div class="short-fact">{_esc(f.get("what_happens", ""))}</div>'
             f'</div></div>'
         )
     st.markdown(f'<div class="shorts-grid">{"".join(cards_html)}</div>', unsafe_allow_html=True)
 
-    # ── Step 2: 우리 제품에 입히기 (추가 유튜브 검색 없음) ───────────────
+    # ── Step 2: 홍보할 상품에 입히기 ────────────────────────────────────
     st.markdown("---")
-    st.markdown('<span class="step-tag">2단계 · 우리 제품 맞춤 기획 (추가 유튜브 검색 없음)</span>', unsafe_allow_html=True)
-    st.markdown("### 방금 본 트렌드를 우리 제품에 입히기")
+    st.markdown('<span class="step-tag">2단계 · 홍보할 상품에 맞추기</span>', unsafe_allow_html=True)
+    st.markdown("### 방금 본 트렌드를 홍보할 상품에 입히기")
 
-    st.caption("⚡ 원클릭 예시 제품 채우기:")
+    st.caption("⚡ 예시 상품 바로 채우기:")
     pcols = st.columns(4)
     for col, (pk, label) in zip(pcols, [
         ("toner", "💧 딥 토너"),
@@ -540,18 +626,18 @@ else:
 
     ic1, ic2, ic3 = st.columns([1, 1.2, 1.8])
     with ic1:
-        s2_cat = st.selectbox("제품 카테고리", PRODUCT_CATEGORIES, key="s2_cat")
+        s2_cat = st.selectbox("상품 카테고리", PRODUCT_CATEGORIES, key="s2_cat")
     with ic2:
-        s2_name = st.text_input("제품명", placeholder="예: 올리고 히알루론산 딥 토너", key="s2_name")
+        s2_name = st.text_input("홍보할 상품명", placeholder="예: 올리고 히알루론산 딥 토너", key="s2_name")
     with ic3:
-        s2_kw = st.text_input("강조하고 싶은 키워드 / 특징", placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어", key="s2_kw")
+        s2_kw = st.text_input("강조할 핵심 특징", placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어", key="s2_kw")
 
-    if st.button("✨ 이 트렌드로 우리 캠페인·카피 만들기", type="primary", use_container_width=True):
+    if st.button("✨ 이 트렌드로 캠페인·카피 만들기", type="primary", use_container_width=True):
         if not s2_name.strip():
-            st.warning("제품명을 입력해주세요.")
+            st.warning("홍보할 상품명을 입력해주세요.")
         elif s1.get("mode") == "live" and gg_key:
             try:
-                with st.spinner("방금 본 트렌드와 우리 제품을 매칭하고 카피 3종·4단 콘티를 작성 중..."):
+                with st.spinner("방금 본 트렌드와 홍보할 상품을 매칭하고 카피 3종·4단 콘티를 만들고 있어요..."):
                     st.session_state["step2_res"] = pipeline.run_step2_match(
                         s1, product_category=s2_cat, product_name=s2_name.strip(),
                         brand_keywords=s2_kw, api_key=gg_key, model=model_name,

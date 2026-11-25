@@ -112,96 +112,145 @@ def record_youtube_units(
 
 # ── 2. 한국(KR) 기준 2단계 탐색 트리 & 앵커 키워드 ─────────────────────
 KR_EXPLORE_TREE: Dict[str, Dict[str, Any]] = {
-    "all": {
-        "label": "전체",
+    "beauty": {
+        "label": "뷰티 전체",
         "parent": None,
         "level": 0,
-        "mode": "mostPopular",
-        "keywords": [],
-    },
-    "beauty": {
-        "label": "뷰티",
-        "parent": "all",
-        "level": 1,
         "mode": "search",
         "keywords": ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"],
     },
     "beauty/skincare": {
-        "label": "기초화장품",
+        "label": "기초 스킨케어",
         "parent": "beauty",
-        "level": 2,
+        "level": 1,
         "mode": "search",
         "keywords": ["스킨케어", "기초 루틴", "속건조"],
     },
     "beauty/makeup": {
-        "label": "색조메이크업",
+        "label": "색조 메이크업",
         "parent": "beauty",
-        "level": 2,
+        "level": 1,
         "mode": "search",
         "keywords": ["메이크업", "립틴트", "블러셔"],
+    },
+    "beauty/hairbody": {
+        "label": "헤어·바디",
+        "parent": "beauty",
+        "level": 1,
+        "mode": "search",
+        "keywords": ["헤어케어 추천", "바디로션 추천", "샴푸 추천"],
     },
     "beauty/skincare/toner": {
         "label": "토너·패드",
         "parent": "beauty/skincare",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["토너 추천", "토너패드", "닦토"],
     },
     "beauty/skincare/serum": {
         "label": "세럼·앰플",
         "parent": "beauty/skincare",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["수분세럼", "앰플 추천", "진정세럼"],
     },
     "beauty/skincare/cream": {
         "label": "크림·로션",
         "parent": "beauty/skincare",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["수분크림", "장벽크림", "로션 추천"],
     },
     "beauty/skincare/sun": {
         "label": "선크림",
         "parent": "beauty/skincare",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["선크림 추천", "무기자차", "선세럼"],
     },
     "beauty/skincare/mask": {
         "label": "마스크팩",
         "parent": "beauty/skincare",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["마스크팩 추천", "1일1팩", "수분팩"],
+    },
+    "beauty/skincare/cleansing": {
+        "label": "클렌징",
+        "parent": "beauty/skincare",
+        "level": 2,
+        "mode": "search",
+        "keywords": ["클렌징오일 추천", "클렌징폼", "블랙헤드 클렌징"],
     },
     "beauty/makeup/lip": {
         "label": "립·틴트",
         "parent": "beauty/makeup",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["립틴트 추천", "립조합", "글로우립"],
     },
     "beauty/makeup/blush": {
         "label": "블러셔",
         "parent": "beauty/makeup",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["블러셔 추천", "치크 꿀팁", "쿨톤 블러셔"],
     },
     "beauty/makeup/cushion": {
         "label": "쿠션·파데",
         "parent": "beauty/makeup",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["쿠션 추천", "파데 추천", "화잘먹"],
     },
     "beauty/makeup/eye": {
         "label": "아이메이크업",
         "parent": "beauty/makeup",
-        "level": 3,
+        "level": 2,
         "mode": "search",
         "keywords": ["아이섀도우", "속눈썹 꿀팁", "아이라인"],
+    },
+    "beauty/hairbody/hair": {
+        "label": "샴푸·트리트먼트",
+        "parent": "beauty/hairbody",
+        "level": 2,
+        "mode": "search",
+        "keywords": ["샴푸 추천", "트리트먼트 추천", "두피케어"],
+    },
+    "beauty/hairbody/body": {
+        "label": "바디케어",
+        "parent": "beauty/hairbody",
+        "level": 2,
+        "mode": "search",
+        "keywords": ["바디로션 추천", "바디워시 추천", "바디미스트"],
+    },
+}
+
+KR_BEAUTY_QUICK_CHIPS: Dict[str, Dict[str, Any]] = {
+    "chip/oliveyoung": {
+        "label": "올리브영",
+        "mode": "search",
+        "keywords": ["올리브영 추천템", "올영 세일 추천", "올리브영 꿀템"],
+    },
+    "chip/daiso": {
+        "label": "다이소",
+        "mode": "search",
+        "keywords": ["다이소 화장품 추천", "다이소 뷰티 꿀템", "다이소 스킨케어"],
+    },
+    "chip/glowskin": {
+        "label": "속건조·화잘먹",
+        "mode": "search",
+        "keywords": ["속건조 해결", "화잘먹 기초", "속보습 스킨케어"],
+    },
+    "chip/calming": {
+        "label": "트러블·진정",
+        "mode": "search",
+        "keywords": ["트러블 진정", "피부 뒤집어졌을때", "여드름 진정 스킨케어"],
+    },
+    "chip/pore": {
+        "label": "모공·요철",
+        "mode": "search",
+        "keywords": ["모공 줄이기", "블랙헤드 제거", "요철 관리"],
     },
 }
 
@@ -468,106 +517,112 @@ def is_spam_video(row: Dict[str, Any]) -> bool:
     return False
 
 
+def get_beauty_viral_grade(
+    views: int,
+    views_per_day: int,
+    views_per_subscriber: Optional[float] = None,
+) -> Dict[str, str]:
+    """K-뷰티 쇼츠 현실화 등급 판정 (소형 채널 100회/10명=10배 왜곡 방지 포함)."""
+    if views >= 100000 or (
+        views >= 10000
+        and views_per_subscriber is not None
+        and views_per_subscriber >= 5.0
+    ):
+        return {"grade": "S", "label": "🔥 S등급 · 메가 바이럴"}
+    if views >= 30000 or views_per_day >= 3000:
+        return {"grade": "A", "label": "⚡ A등급 · 급상승"}
+    if views >= 10000 or views_per_day >= 1000:
+        return {"grade": "B", "label": "📈 B등급 · 초기 반응"}
+    return {"grade": "C", "label": "🔍 C등급 · 참고용"}
+
+
+def fetch_channel_subscribers(youtube, channel_ids: List[str]) -> Dict[str, Optional[int]]:
+    """최대 50개 채널의 구독자 수를 1회 배치 조회합니다 (비공개/0명은 None)."""
+    unique_ids = list(dict.fromkeys([cid for cid in channel_ids if cid]))[:50]
+    if not unique_ids or not hasattr(youtube, "channels"):
+        return {}
+    try:
+        record_youtube_units(1, action="channels.list", meta={"count": len(unique_ids)})
+        resp = youtube.channels().list(
+            part="statistics",
+            id=",".join(unique_ids),
+        ).execute()
+        out: Dict[str, Optional[int]] = {}
+        for item in resp.get("items", []):
+            cid = item.get("id", "")
+            stats = item.get("statistics", {})
+            if stats.get("hiddenSubscriberCount"):
+                out[cid] = None
+            else:
+                subs = int(stats.get("subscriberCount", 0) or 0)
+                out[cid] = subs if subs > 0 else None
+        return out
+    except RuntimeError:
+        raise
+    except Exception as e:
+        print(f"[KR Step1 Channel Subscribers Error] {e}")
+        return {}
+
+
 def fetch_kr_step1_shorts(
     youtube,
-    path_key: str = "beauty/skincare",
+    path_key: str = "beauty",
     days: int = 30,
-    sort_by: str = "velocity",
+    sort_by: str = "subscriber_ratio",
     min_views: int = 5000,
     use_cache: bool = True,
 ) -> List[Dict[str, Any]]:
-    """한국(KR) 기준 1단계 계층 탐색 쇼츠 수집 (당일 캐시 재사용으로 뒤로가기/재클릭 시 0유닛)."""
-    if path_key not in KR_EXPLORE_TREE:
+    """한국(KR) 뷰티 전용 1단계 계층 탐색 쇼츠 수집 (당일 캐시 재사용)."""
+    node = KR_EXPLORE_TREE.get(path_key) or KR_BEAUTY_QUICK_CHIPS.get(path_key)
+    if not node:
         raise ValueError(f"지원하지 않는 탐색 경로입니다: {path_key}")
 
-    cache_key = f"{date.today()}_kr_step1_v4_{path_key}_{days}_{sort_by}"
+    cache_key = f"{date.today()}_kr_step1_v5_{path_key}_{days}_{sort_by}"
     if use_cache and cache_key in _cache:
         return _cache[cache_key]
 
-    node = KR_EXPLORE_TREE[path_key]
     now_utc = datetime.now(timezone.utc)
+    published_after = recent_published_after(days=days)
+    candidate_ids: List[str] = []
+    for kw in node["keywords"][:3]:
+        try:
+            # 대형 뷰티 유튜버 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
+            # videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration="short"로 순수 검색
+            record_youtube_units(100, action="search.list", meta={"path_key": path_key, "q": kw, "days": days})
+            sr = youtube.search().list(
+                part="snippet",
+                q=kw,
+                type="video",
+                videoDuration="short",
+                order="viewCount",
+                regionCode="KR",
+                relevanceLanguage="ko",
+                maxResults=50,
+                publishedAfter=published_after,
+            ).execute()
+            candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
+        except RuntimeError:
+            raise
+        except Exception as e2:
+            print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
 
-    if node["mode"] == "mostPopular":
-        record_youtube_units(1, action="videos.list.mostPopular", meta={"path_key": path_key, "region": "KR"})
-        det = youtube.videos().list(
-            part="snippet,contentDetails,statistics",
-            chart="mostPopular",
-            regionCode="KR",
-            maxResults=50,
-        ).execute()
-        pop_items = det.get("items", [])
-        short_cnt = sum(
-            1 for it in pop_items
-            if 0 < iso8601_to_seconds(it.get("contentDetails", {}).get("duration", "")) <= 180
-            and is_korean({"title": it.get("snippet", {}).get("title", ""), "description": it.get("snippet", {}).get("description", "")})
-            and not any(k in it.get("snippet", {}).get("title", "") for k in ("예고편", "Covered by", "M/V", "MV", "Teaser"))
-        )
-        if short_cnt < 6:
-            published_after = recent_published_after(days=days)
-            seen_ids = {it["id"] for it in pop_items if it.get("id")}
-            extra_ids: List[str] = []
-            for kw in ("인기 쇼츠", "요즘 뜨는 shorts"):
-                try:
-                    record_youtube_units(100, action="search.list_all_fallback", meta={"q": kw, "days": days})
-                    sr = youtube.search().list(
-                        part="snippet", q=kw, type="video", videoDuration="short",
-                        order="viewCount", regionCode="KR", relevanceLanguage="ko",
-                        maxResults=10, publishedAfter=published_after,
-                    ).execute()
-                    for it in sr.get("items", []):
-                        vid = it.get("id", {}).get("videoId")
-                        if vid and vid not in seen_ids:
-                            seen_ids.add(vid)
-                            extra_ids.append(vid)
-                except RuntimeError:
-                    raise
-                except Exception:
-                    pass
-            if extra_ids:
-                record_youtube_units(1, action="videos.list_all_fallback", meta={"count": len(extra_ids[:30])})
-                extra_det = youtube.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=",".join(extra_ids[:30]),
-                ).execute()
-                det = {"items": pop_items + extra_det.get("items", [])}
-    else:
-        published_after = recent_published_after(days=days)
-        candidate_ids: List[str] = []
-        for kw in node["keywords"][:3]:
-            try:
-                # 대형 뷰티 유튜버 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
-                # videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration="short"로 순수 검색
-                record_youtube_units(100, action="search.list", meta={"path_key": path_key, "q": kw, "days": days})
-                sr = youtube.search().list(
-                    part="snippet",
-                    q=kw,
-                    type="video",
-                    videoDuration="short",
-                    order="viewCount",
-                    regionCode="KR",
-                    relevanceLanguage="ko",
-                    maxResults=50,
-                    publishedAfter=published_after,
-                ).execute()
-                candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
-            except RuntimeError:
-                raise
-            except Exception as e2:
-                print(f"[KR Step1 Search Error] {path_key}/{kw}: {e2}")
+    candidate_ids = list(dict.fromkeys(candidate_ids))
+    if not candidate_ids:
+        return []
 
-        candidate_ids = list(dict.fromkeys(candidate_ids))
-        if not candidate_ids:
-            return []
+    record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})
+    det = youtube.videos().list(
+        part="snippet,contentDetails,statistics",
+        id=",".join(candidate_ids[:50]),
+    ).execute()
 
-        record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})
-        det = youtube.videos().list(
-            part="snippet,contentDetails,statistics",
-            id=",".join(candidate_ids[:50]),
-        ).execute()
+    raw_items = det.get("items", [])
+    channel_ids = [it.get("snippet", {}).get("channelId", "") for it in raw_items]
+    channel_subs = fetch_channel_subscribers(youtube, channel_ids)
 
     max_len = 180
     results: List[Dict[str, Any]] = []
-    for item in det.get("items", []):
+    for item in raw_items:
         secs = iso8601_to_seconds(item.get("contentDetails", {}).get("duration", ""))
         if secs == 0 or secs > max_len:
             continue
@@ -579,11 +634,20 @@ def fetch_kr_step1_shorts(
         pub_raw = sn.get("publishedAt", "")
         metrics = compute_video_metrics(views, likes, pub_raw, now_utc=now_utc)
         metrics["comment_rate"] = round((comments / max(1, views)) * 100.0, 2)
+        cid = sn.get("channelId", "")
+        subs = channel_subs.get(cid)
+        ratio = round(views / subs, 2) if (subs and subs > 0) else None
+        grade_info = get_beauty_viral_grade(views, metrics["views_per_day"], ratio)
         row = {
             "video_id": item["id"],
             "title": sn.get("title", ""),
             "description": sn.get("description", "")[:300],
+            "channel_id": cid,
             "channel_title": sn.get("channelTitle", ""),
+            "subscriber_count": subs,
+            "views_per_subscriber": ratio,
+            "viral_grade": grade_info["grade"],
+            "viral_grade_label": grade_info["label"],
             "views": views,
             "likes": likes,
             "comments": comments,
@@ -611,14 +675,25 @@ def fetch_kr_step1_shorts(
     if len(korean) >= 3:
         results = korean
 
-    # 동일 제목 중복 재업로드 제거 (조회수 높은 1건만 유지)
     if sort_by == "views":
         results.sort(key=lambda r: r["views"], reverse=True)
-    elif sort_by == "like_rate":
-        results.sort(key=lambda r: r["like_rate"], reverse=True)
+    elif sort_by == "comments":
+        results.sort(key=lambda r: (r["comments"], r["views"]), reverse=True)
+    elif sort_by in ("fast", "velocity"):
+        results.sort(key=lambda r: (r["views_per_day"], r["views"]), reverse=True)
     else:
-        results.sort(key=lambda r: (r["views_per_day"] * 0.6 + r["views"] * 0.4), reverse=True)
+        # 기본: 확산력 순 (조회수 1만 이상이면서 구독자 대비 배수가 높은 영상 우선)
+        results.sort(
+            key=lambda r: (
+                1 if (r["views"] >= 10000 and r.get("views_per_subscriber")) else 0,
+                r.get("views_per_subscriber") or 0.0,
+                r["views_per_day"],
+                r["views"],
+            ),
+            reverse=True,
+        )
 
+    # 동일 제목 중복 재업로드 제거 (정렬 상위 1건만 유지)
     deduped = []
     seen_titles = set()
     for r in results:
