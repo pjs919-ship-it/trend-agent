@@ -536,7 +536,7 @@ def fetch_kr_step1_shorts(
                     order="viewCount",
                     regionCode="KR",
                     relevanceLanguage="ko",
-                    maxResults=15,
+                    maxResults=50,
                     publishedAfter=published_after,
                 ).execute()
                 candidate_ids += [it["id"]["videoId"] for it in sr.get("items", [])]
@@ -555,7 +555,7 @@ def fetch_kr_step1_shorts(
             id=",".join(candidate_ids[:50]),
         ).execute()
 
-    max_len = 180 if node["mode"] == "mostPopular" else 120
+    max_len = 180
     results: List[Dict[str, Any]] = []
     for item in det.get("items", []):
         secs = iso8601_to_seconds(item.get("contentDetails", {}).get("duration", ""))

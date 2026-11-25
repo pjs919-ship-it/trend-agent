@@ -582,13 +582,13 @@ async function runStep1Live() {
       for (const kw of node.keywords.slice(0, 3)) {
         // 대형 뷰티 크리에이터 대부분이 People & Blogs(22)로 올리고 제목에 shorts를 쓰지 않으므로
         // videoCategoryId=26 및 " shorts" 강제 접미사를 제거하고 videoDuration=short로 순수 검색
-        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=15&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
+        const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=50&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
         const d = await (await fetch(u)).json();
         const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
         got.forEach(id => idSet.add(id));
-        addLog(`검색 '${kw}' (순수 키워드·쇼츠, ${selectedDays}일): ${got.length}건`);
+        addLog(`검색 '${kw}' (순수 키워드·쇼츠 max=50, ${selectedDays}일): ${got.length}건`);
       }
-      const ids = [...idSet].slice(0, 45);
+      const ids = [...idSet].slice(0, 50);
       addLog(`중복 제거 후 후보 ID: ${ids.length}건`);
       if (!ids.length) { st.textContent = "수집된 쇼츠가 없습니다. 기간을 30일로 늘려보세요."; return; }
       const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
@@ -598,7 +598,7 @@ async function runStep1Live() {
     let dropLen = 0, dropSpam = 0;
     let videos = detItems.map(it => {
       const secs = isoToSec(it.contentDetails?.duration);
-      const maxLen = node.mode === "mostPopular" ? 180 : 120;
+      const maxLen = 180;
       if (secs === 0 || secs > maxLen) { dropLen++; return null; }
       const sn = it.snippet || {}, stats = it.statistics || {};
       const row = computeMetrics({
