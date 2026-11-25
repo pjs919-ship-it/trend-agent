@@ -1,8 +1,13 @@
-# 🎨 Design System v2: K-Beauty TrendSetter Pro (B2B Edition)
+# 🎨 Design System v2.1: K-Beauty TrendSetter Pro (Toss Design & Writing 적용)
 
-> **버전**: v2.0 (Sprint 4 B2B 의사결정 대시보드 표준)  
-> **타깃 페르소나**: K-뷰티 화장품 브랜드사 인하우스 마케터 (예: 더랩바이블랑두 담당자)  
-> **핵심 목표**: 월요일 아침 **10분 안에** "오늘 올라탈 트렌드(Go)"와 "버릴 트렌드(Drop)"를 냉정하게 판단하고, **팀장 보고서와 인플루언서 DM을 원클릭 복사**해 즉시 실행할 수 있는 **극강의 정보 위계(Scannability)**와 **증거 기반 신뢰(Evidence-First Trust)** 구현.
+> **버전**: v2.1 (Toss 디자인 시스템 · 소비자 UX 가이드 · UX 라이팅 8원칙 반영)  
+> **기준 레퍼런스**:
+> - 토스 디자인 컴포넌트(TDS): `https://developers-apps-in-toss.toss.im/design/components` (`Top`, `ListHeader`, `ListRow`, `Badge`, `Border`, `Paragraph`, `Button`, `BottomCTA`)
+> - 토스 소비자 UI/UX 가이드: `https://developers-apps-in-toss.toss.im/design/consumer-ux-guid` (다크패턴 금지, 한 화면 한 목적, 명확한 상태 피드백)
+> - 토스 UX 라이팅 8원칙: `https://toss.tech/article/8-writing-principles-of-toss`
+>   1) 다음 화면 예상하기 · 2) 잡초 제거하기 · 3) 의미 없는 문장 제거 · 4) 핵심 메시지에 집중 · 5) 소리 내어 읽기 편한 문장(능동형·번역투 금지) · 6) 강요 대신 제안 · 7) 보편적 단어(개발자 용어 0건) · 8) 숨겨진 감정 공감
+> **타깃 페르소나**: K-뷰티 화장품 브랜드사 인하우스 마케터  
+> **핵심 목표**: 월요일 아침 **10분 안에** 트렌드 파악부터 우리 제품 캠페인·카피·콘티 작성까지 끝내는 직관적이고 유려한 경험 구현.
 
 ---
 
