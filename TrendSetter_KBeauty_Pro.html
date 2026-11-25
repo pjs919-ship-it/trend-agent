@@ -310,6 +310,15 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   </div>
 
   <div id="step2Area"></div>
+
+  <!-- 수집·분석 상세 로그 (디버깅 및 투명성 검증용) -->
+  <details id="logDetails" class="b2b-details" style="margin-top:20px;">
+    <summary>🧾 수집·분석 상세 로그 보기 (필터링 건수·정렬 근거 확인 / 복사 가능)</summary>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+      <button class="btn btn-outline" style="padding:5px 11px;font-size:0.78rem;" onclick="copyDebugLog()">📋 로그 복사</button>
+    </div>
+    <pre id="debugLogPre" style="margin:8px 0 0;padding:12px;background:#1C1730;color:#E5E7EB;border-radius:10px;font-size:0.78rem;line-height:1.5;max-height:260px;overflow:auto;white-space:pre-wrap;">아직 실행된 로그가 없습니다.</pre>
+  </details>
 </div>
 <div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
 <script src="local_keys.js"></script>
@@ -460,8 +469,31 @@ function isSpam(row) {
 function isKorean(row) {
   return ((`${row.title || ""} ${row.description || ""}`).match(/[가-힣]/g) || []).length >= 2;
 }
+let debugLogs = [];
+function addLog(msg) {
+  const ts = new Date().toTimeString().slice(0, 8);
+  debugLogs.push(`[${ts}] ${msg}`);
+  const pre = document.getElementById("debugLogPre");
+  if (pre) pre.textContent = debugLogs.join("\n");
+}
+function clearLogs() {
+  debugLogs = [];
+  const pre = document.getElementById("debugLogPre");
+  if (pre) pre.textContent = "";
+}
+function copyDebugLog() {
+  copyText(debugLogs.join("\n") || "로그 없음", false);
+}
+
+function getViralGrade(views, vpd) {
+  if (views >= 100000 || vpd >= 10000) return { code: "S", label: "🔥 S등급 · 메가 바이럴", cls: "pill-gold", desc: "검증된 대세 (10만 회↑ 또는 일평균 1만↑)" };
+  if (views >= 30000 || vpd >= 3000) return { code: "A", label: "⚡ A등급 · 급상승", cls: "pill-hot", desc: "빠르게 뜨는 중 (3만 회↑ 또는 일평균 3천↑)" };
+  if (views >= 10000 || vpd >= 1000) return { code: "B", label: "📈 B등급 · 초기 반응", cls: "pill-go", desc: "니치·초기 트렌드 (1만 회↑ 또는 일평균 1천↑)" };
+  return { code: "C", label: "🔍 C등급 · 저유입 참고", cls: "pill-drop", desc: "아직 대중적 대세 아님 (1만 회 미만 · 참고용)" };
+}
+
 function computeMetrics(v) {
-  const views = Number(v.views || 0), likes = Number(v.likes || 0);
+  const views = Number(v.views || 0), likes = Number(v.likes || 0), comments = Number(v.comments || 0);
   let days = Number(v.days_since_published || 0);
   if (!days && v.published_at) {
     const hrs = Math.max(0, (Date.now() - new Date(v.published_at).getTime()) / 3600000);
@@ -469,9 +501,10 @@ function computeMetrics(v) {
   }
   if (!days) days = 1;
   return {
-    ...v, views, likes, days_since_published: days,
+    ...v, views, likes, comments, days_since_published: days,
     views_per_day: Number(v.views_per_day || Math.round(views / days)),
-    like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100
+    like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100,
+    comment_rate: v.comment_rate != null ? Number(v.comment_rate) : Math.round((comments / Math.max(1, views)) * 10000) / 100
   };
 }
 function sortVideos(vids) {
@@ -485,7 +518,7 @@ async function callGeminiJson(apiKey, model, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const resp = await fetch(url, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json" } })
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.25, responseMimeType: "application/json" } })
   });
   if (!resp.ok) throw new Error(`AI 응답 오류 (${resp.status})`);
   const data = await resp.json();
@@ -499,12 +532,16 @@ async function runStep1Live() {
   const st = document.getElementById("step1Status");
   if (!ytKey || !ggKey) { st.textContent = "⚠️ 상단 'API 키 설정'에 유튜브 API 키와 제미나이 API 키를 모두 입력해주세요."; return; }
 
+  clearLogs();
+  addLog(`Step 1 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
+
   const today = new Date().toISOString().slice(0, 10);
-  const cacheKey = `ts_kr_step1_${today}_${currentPath}_${selectedDays}`;
+  const cacheKey = `ts_kr_step1_v2_${today}_${currentPath}_${selectedDays}`;
   try {
     const cached = window.localStorage.getItem(cacheKey);
     if (cached) {
       step1Data = JSON.parse(cached);
+      addLog(`⚡ 당일 캐시 히트 (${cacheKey}) — 유튜브 API 0유닛, 영상 ${step1Data.videos?.length || 0}건 로드`);
       st.textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' 결과를 캐시에서 즉시 불러왔습니다 (유튜브 쿼터 0).`;
       renderStep1Result(step1Data);
       return;
@@ -515,46 +552,92 @@ async function runStep1Live() {
   try {
     st.textContent = `1/2. '${getPathLabel(currentPath)}' 한국 유튜브 쇼츠 수집 중...`;
     let detItems = [];
+    const seenIds = new Set();
     if (node.mode === "mostPopular") {
-      const u = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=KR&maxResults=25&key=${encodeURIComponent(ytKey)}`;
-      detItems = (await (await fetch(u)).json()).items || [];
+      const u = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=KR&maxResults=50&key=${encodeURIComponent(ytKey)}`;
+      const popItems = (await (await fetch(u)).json()).items || [];
+      addLog(`YouTube mostPopular(KR, max=50, 1유닛) 원본 수집: ${popItems.length}건`);
+      popItems.forEach(it => { if (it?.id && !seenIds.has(it.id)) { seenIds.add(it.id); detItems.push(it); } });
+      const shortPopCount = detItems.filter(it => { const s = isoToSec(it.contentDetails?.duration); return s > 0 && s <= 180; }).length;
+      addLog(`mostPopular 중 쇼츠 규격(≤180초): ${shortPopCount}건`);
+      if (shortPopCount < 6) {
+        const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
+        const extraIds = new Set();
+        for (const kw of ["인기 쇼츠", "요즘 뜨는 shorts"]) {
+          const su = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw)}&type=video&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
+          const sd = await (await fetch(su)).json();
+          const got = (sd.items || []).map(it => it?.id?.videoId).filter(Boolean);
+          got.forEach(id => { if (!seenIds.has(id)) extraIds.add(id); });
+          addLog(`보완 검색 '${kw}' (최근 ${selectedDays}일): ${got.length}건`);
+        }
+        if (extraIds.size) {
+          const du = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${[...extraIds].slice(0, 30).join(",")}&key=${encodeURIComponent(ytKey)}`;
+          const extraDet = (await (await fetch(du)).json()).items || [];
+          extraDet.forEach(it => { if (it?.id && !seenIds.has(it.id)) { seenIds.add(it.id); detItems.push(it); } });
+        }
+      }
     } else {
       const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
       const idSet = new Set();
       for (const kw of node.keywords.slice(0, 3)) {
         const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(kw + " shorts")}&type=video&videoCategoryId=26&videoDuration=short&order=viewCount&regionCode=KR&relevanceLanguage=ko&maxResults=10&publishedAfter=${encodeURIComponent(pubAfter)}&key=${encodeURIComponent(ytKey)}`;
         const d = await (await fetch(u)).json();
-        (d.items || []).forEach(it => it?.id?.videoId && idSet.add(it.id.videoId));
+        const got = (d.items || []).map(it => it?.id?.videoId).filter(Boolean);
+        got.forEach(id => idSet.add(id));
+        addLog(`검색 '${kw} shorts' (cat=26, ${selectedDays}일): ${got.length}건`);
       }
       const ids = [...idSet].slice(0, 40);
+      addLog(`중복 제거 후 후보 ID: ${ids.length}건`);
       if (!ids.length) { st.textContent = "수집된 쇼츠가 없습니다. 기간을 30일로 늘려보세요."; return; }
       const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
       detItems = (await (await fetch(detUrl)).json()).items || [];
     }
 
+    let dropLen = 0, dropSpam = 0;
     let videos = detItems.map(it => {
       const secs = isoToSec(it.contentDetails?.duration);
-      if (secs === 0 || secs > 120) return null;
+      const maxLen = node.mode === "mostPopular" ? 180 : 120;
+      if (secs === 0 || secs > maxLen) { dropLen++; return null; }
       const sn = it.snippet || {}, stats = it.statistics || {};
       const row = computeMetrics({
         video_id: it.id, title: sn.title || "", description: (sn.description || "").slice(0, 300),
-        channel_title: sn.channelTitle || "", views: Number(stats.viewCount || 0), likes: Number(stats.likeCount || 0),
+        channel_title: sn.channelTitle || "", views: Number(stats.viewCount || 0),
+        likes: Number(stats.likeCount || 0), comments: Number(stats.commentCount || 0),
         published_at: sn.publishedAt || "", thumbnail_url: sn.thumbnails?.medium?.url || "",
         text_source: "meta", source_text: `${sn.title || ""} ${(sn.description || "").slice(0, 300)}`
       });
-      return isSpam(row) ? null : row;
+      if (isSpam(row)) { dropSpam++; return null; }
+      return row;
     }).filter(Boolean);
 
+    const beforeKor = videos.length;
     const kor = videos.filter(isKorean);
     if (kor.length >= 3) videos = kor;
+    addLog(`필터 결과 | 원본 ${detItems.length}건 → 길이초과 -${dropLen}건 → 스팸 -${dropSpam}건 → 한글필터 ${beforeKor}→${videos.length}건`);
     videos = sortVideos(videos).slice(0, 10);
     if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없습니다."; return; }
+    const avgV = Math.round(videos.reduce((s, v) => s + v.views, 0) / videos.length);
+    const avgVpd = Math.round(videos.reduce((s, v) => s + v.views_per_day, 0) / videos.length);
+    addLog(`최종 상위 ${videos.length}건 선정 | 평균 조회수 ${avgV.toLocaleString()}회 | 하루 평균 ${avgVpd.toLocaleString()}회`);
 
-    st.textContent = "2/2. AI가 요즘 뜨는 포맷과 핵심 흐름을 요약 중...";
-    const p1 = `당신은 브랜드를 모르는 한국 유튜브 쇼츠 트렌드 리서처입니다. 아래 쇼츠 제목·설명만으로 JSON을 반환하세요.
-스키마: {"market_patterns":["요약1","요약2","요약3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
-규칙: 원문 복사 필수, 추측 금지.\n` + videos.map(v => `[${v.video_id}] ${v.title} | ${v.description}`).join("\n");
+    st.textContent = "2/2. AI가 요즘 뜨는 포맷과 실무 인사이트를 분석 중...";
+    const p1 = `당신은 10년차 한국 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 목록(조회수·하루 평균·좋아요율·제목·설명)을 분석해 반드시 JSON으로 반환하세요.
+
+[스키마]
+{"market_patterns":["인사이트1","인사이트2","인사이트3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
+
+[market_patterns 작성 절대 규칙 — 매우 중요]
+1. 단순 단어·명사구 나열 절대 금지! (나쁜 예: "다이소 가성비 뷰티템", "올리브영 추천템", "메이크업 꿀팁")
+2. 각 항목은 반드시 [① 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(구체적 영상 근거 포함)] 3요소를 갖춘 완성된 1~2문장(최소 45자 이상)으로 작성하세요.
+   (좋은 예: "'다이소 3천원 vs 백화점템'처럼 가격 대비 효능을 15초 안에 비교하는 실험 포맷이 높은 좋아요율(3%+)을 얻으며, 고물가 속 실패 없는 구매를 원하는 소비자의 검증 심리를 자극하고 있습니다.")
+3. 제공된 영상 목록에 없는 내용은 추측하지 마세요.
+4. facts의 hook_quote, evidence_quote는 아래 원문에서 그대로 복사하세요.
+
+[수집된 쇼츠 목록]
+` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 일평균:${v.views_per_day.toLocaleString()}회 | 좋아요율:${v.like_rate}% | 제목:${v.title} | 설명:${v.description}`).join("\n");
+    const t0 = Date.now();
     const s1 = await callGeminiJson(ggKey, model, p1);
+    addLog(`Gemini 분석 완료 (${((Date.now() - t0) / 1000).toFixed(1)}초) | 인사이트 ${(s1.market_patterns || []).length}줄, 팩트 ${(s1.facts || []).length}건`);
     const vBy = Object.fromEntries(videos.map(v => [v.video_id, v]));
     const facts = (s1.facts || []).filter(f => vBy[f.video_id]).map(f => {
       const evOk = norm(f.evidence_quote).length >= 4 && norm(vBy[f.video_id].source_text).includes(norm(f.evidence_quote));
@@ -567,9 +650,10 @@ async function runStep1Live() {
     };
     try { window.localStorage.setItem(cacheKey, JSON.stringify(step1Data)); } catch (e) {}
     document.getElementById("apiDetails").open = false;
-    st.textContent = `✅ '${step1Data.path_label}' 트렌드 분석 완료! 아래에서 바로 우리 제품에 입혀보세요.`;
+    st.textContent = `✅ '${step1Data.path_label}' 트렌드 분석 완료 (${videos.length}건)! 아래에서 바로 우리 제품에 입혀보세요.`;
     renderStep1Result(step1Data);
   } catch (e) {
+    addLog(`❌ 오류: ${e.message}`);
     st.textContent = "❌ 분석 중 오류: " + e.message;
   }
 }
@@ -615,18 +699,25 @@ function renderStep1Result(data) {
   ).join("");
   const fmtChips = topFmts.map(([tag, cnt]) => `<span class="pill pill-purple">🎬 ${esc(tag)} (${cnt}건)</span>`).join(" ");
 
+  const avgV = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views, 0) / sorted.length) : 0;
+  const avgVpd = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views_per_day, 0) / sorted.length) : 0;
+  const overallGrade = getViralGrade(avgV, avgVpd);
+
   const cards = sorted.map(v => {
     const f = fBy[v.video_id] || {};
+    const g = getViralGrade(v.views, v.views_per_day);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
     return `<div class="short-card">
       <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
       <div class="short-body">
         <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
         <div class="short-meta">
+          <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
           <span>📺 ${esc(v.channel_title)}</span>
           <span>👀 ${v.views.toLocaleString()}회</span>
           <span class="pill pill-hot">🔥 하루 평균 ${v.views_per_day.toLocaleString()}회</span>
           <span>❤️ ${v.like_rate.toFixed(2)}%</span>
+          ${v.comments ? `<span>💬 ${v.comment_rate.toFixed(2)}%</span>` : ""}
           <span class="pill pill-purple">${esc(f.format_tag || "기타")}</span>
         </div>
         <div class="short-fact">${esc(f.what_happens || "")}</div>
@@ -635,6 +726,13 @@ function renderStep1Result(data) {
   }).join("");
 
   document.getElementById("step1Area").innerHTML = `
+    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;font-size:0.84rem;">
+      <div>
+        <b>📊 트렌드 신뢰도 벤치마크</b> · 현재 수집 ${sorted.length}건 평균: <b>조회수 ${avgV.toLocaleString()}회 · 하루 평균 ${avgVpd.toLocaleString()}회</b>
+        <span class="pill ${overallGrade.cls}" style="margin-left:6px;">${overallGrade.label}</span>
+      </div>
+      <div style="color:var(--muted);font-size:0.78rem;">기준: 🔥S(10만↑/일1만↑) · ⚡A(3만↑/일3천↑) · 📈B(1만↑/일1천↑) · 🔍C(1만 미만 참고용)</div>
+    </div>
     <div class="insight-box">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
         <b style="font-size:1.04rem;color:var(--purple-dark);">🧭 '${esc(data.path_label)}' 요즘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>

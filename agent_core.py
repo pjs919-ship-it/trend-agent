@@ -488,8 +488,38 @@ def fetch_kr_step1_shorts(
             part="snippet,contentDetails,statistics",
             chart="mostPopular",
             regionCode="KR",
-            maxResults=25,
+            maxResults=50,
         ).execute()
+        pop_items = det.get("items", [])
+        short_cnt = sum(1 for it in pop_items if 0 < iso8601_to_seconds(it.get("contentDetails", {}).get("duration", "")) <= 180)
+        if short_cnt < 6:
+            published_after = recent_published_after(days=days)
+            seen_ids = {it["id"] for it in pop_items if it.get("id")}
+            extra_ids: List[str] = []
+            for kw in ("인기 쇼츠", "요즘 뜨는 shorts"):
+                try:
+                    record_youtube_units(100, action="search.list_all_fallback", meta={"q": kw, "days": days})
+                    sr = youtube.search().list(
+                        part="snippet", q=kw, type="video", videoDuration="short",
+                        order="viewCount", regionCode="KR", relevanceLanguage="ko",
+                        maxResults=10, publishedAfter=published_after,
+                    ).execute()
+                    for it in sr.get("items", []):
+                        vid = it.get("id", {}).get("videoId")
+                        if vid and vid not in seen_ids:
+                            seen_ids.add(vid)
+                            extra_ids.append(vid)
+                except RuntimeError:
+                    raise
+                except Exception:
+                    pass
+            if extra_ids:
+                record_youtube_units(1, action="videos.list_all_fallback", meta={"count": len(extra_ids[:30])})
+                extra_det = youtube.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=",".join(extra_ids[:30]),
+                ).execute()
+                det = {"items": pop_items + extra_det.get("items", [])}
     else:
         published_after = recent_published_after(days=days)
         candidate_ids: List[str] = []
@@ -541,17 +571,20 @@ def fetch_kr_step1_shorts(
             id=",".join(candidate_ids[:50]),
         ).execute()
 
+    max_len = 180 if node["mode"] == "mostPopular" else 120
     results: List[Dict[str, Any]] = []
     for item in det.get("items", []):
         secs = iso8601_to_seconds(item.get("contentDetails", {}).get("duration", ""))
-        if secs == 0 or secs > 120:
+        if secs == 0 or secs > max_len:
             continue
         sn = item["snippet"]
         stats = item.get("statistics", {})
         views = int(stats.get("viewCount", 0))
         likes = int(stats.get("likeCount", 0))
+        comments = int(stats.get("commentCount", 0))
         pub_raw = sn.get("publishedAt", "")
         metrics = compute_video_metrics(views, likes, pub_raw, now_utc=now_utc)
+        metrics["comment_rate"] = round((comments / max(1, views)) * 100.0, 2)
         row = {
             "video_id": item["id"],
             "title": sn.get("title", ""),
@@ -559,6 +592,7 @@ def fetch_kr_step1_shorts(
             "channel_title": sn.get("channelTitle", ""),
             "views": views,
             "likes": likes,
+            "comments": comments,
             **metrics,
             "published_at": pub_raw[:10],
             "thumbnail_url": sn.get("thumbnails", {}).get("medium", {}).get("url", ""),
