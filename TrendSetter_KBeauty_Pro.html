@@ -211,87 +211,99 @@ details.b2b-details summary::-webkit-details-marker { display: none; }
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>💄 K-Beauty TrendSetter Pro</h1>
-      <div class="sub">B2B Edition v2 · 2-Stage 편향 차단 분석 · 10분 의사결정 대시보드</div>
+      <h1>💄 K-Beauty TrendSetter</h1>
+      <div class="sub">한국 유튜브 쇼츠 트렌드 파악부터 우리 제품 캠페인 기획까지 10분 안에</div>
     </div>
-    <span id="modeBadge" class="pill pill-purple">준비됨</span>
+    <span id="modeBadge" class="pill pill-purple">분석 대기</span>
   </div>
 
-  <!-- Control Panel -->
+  <!-- Control Panel (인간 마케터 기준 2단 심플 구조) -->
   <div class="panel">
     <div class="panel-grid">
       <div class="field">
-        <label>YouTube Data API v3 Key</label>
-        <input id="ytKey" type="password" placeholder="AIza..." />
-      </div>
-      <div class="field">
-        <label>Google Gemini API Key</label>
-        <input id="ggKey" type="password" placeholder="AIza..." />
-      </div>
-      <div class="field">
-        <label>대상 제품 (products.json 확인 문구 기반)</label>
+        <label>우리 제품 선택</label>
         <select id="productSel"></select>
       </div>
       <div class="field">
-        <label>수집 기간 (최근 N일)</label>
+        <label>분석 기간</label>
         <select id="daysSel">
           <option value="7">최근 7일</option>
           <option value="14">최근 14일</option>
-          <option value="30" selected>최근 30일 (기본)</option>
+          <option value="30" selected>최근 30일 (추천)</option>
         </select>
       </div>
       <div class="field">
         <label>정렬 기준</label>
         <select id="sortSel">
-          <option value="velocity" selected>🔥 일평균 상승속도 (velocity)</option>
-          <option value="views">👀 총 조회수 (views)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Gemini 무료 모델</label>
-        <select id="modelSel">
-          <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
-          <option value="gemini-flash-latest">gemini-flash-latest</option>
+          <option value="velocity" selected>🔥 요즘 빠르게 뜨는 순</option>
+          <option value="views">👀 총 조회수 높은 순</option>
         </select>
       </div>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="runLive2Stage()">🚀 2-Stage 실시간 분석 실행</button>
-      <button class="btn btn-sec" onclick="loadSampleRehearsal()">🧪 샘플 리허설 보기 (쿼터 0)</button>
-      <label class="btn btn-outline" style="margin:0;">
-        📂 pipeline JSON 결과 불러오기
-        <input type="file" accept=".json" style="display:none;" onchange="loadLocalJson(event)" />
-      </label>
-      <button class="btn btn-outline" onclick="downloadExecutiveHtml()">📄 팀장 결재용 1페이지 HTML 보고서 저장</button>
+
+    <div class="btn-row" style="align-items:center;">
+      <button class="btn btn-primary" onclick="runLive2Stage()" style="padding:12px 22px;font-size:0.95rem;">🚀 오늘의 뷰티 트렌드 분석 시작</button>
+      <button class="btn btn-outline" onclick="loadSampleRehearsal()">👀 예시 화면 미리보기</button>
     </div>
     <div id="statusBar" class="status-bar"></div>
-    <details class="b2b-details" style="margin-top:12px;">
-      <summary>▶ ➕ 자사 신제품 / 공식 문구 추가 (localStorage 저장 · confidence=high 승격)</summary>
+
+    <details id="apiKeyDetails" class="b2b-details" open style="margin-top:14px;">
+      <summary>🔑 API 키 설정 (처음 1회 입력)</summary>
       <div class="panel-grid" style="margin-top:12px;">
         <div class="field">
-          <label>제품명 (기존 제품명 입력 시 신뢰도 high 승격)</label>
+          <label>YouTube API 키</label>
+          <input id="ytKey" type="password" placeholder="AIza..." />
+        </div>
+        <div class="field">
+          <label>Gemini API 키</label>
+          <input id="ggKey" type="password" placeholder="AIza..." />
+        </div>
+        <div class="field">
+          <label>AI 모델</label>
+          <select id="modelSel">
+            <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델 (추천)</option>
+            <option value="gemini-flash-latest">표준 무료 모델</option>
+          </select>
+        </div>
+      </div>
+    </details>
+
+    <details class="b2b-details" style="margin-top:10px;">
+      <summary>➕ 우리 제품 추가 / 공식 설명 수정 · 저장된 결과 열기</summary>
+      <div class="panel-grid" style="margin-top:12px;">
+        <div class="field">
+          <label>제품명</label>
           <input id="obName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
         </div>
         <div class="field">
-          <label>적합 영역 (쉼표 구분)</label>
+          <label>어울리는 고민/상황 (쉼표 구분)</label>
           <input id="obFit" type="text" placeholder="속건조, 수분 보충, 토너 팩" />
         </div>
         <div class="field">
-          <label>부적합 영역 (쉼표 구분)</label>
+          <label>어울리지 않는 영역 (쉼표 구분)</label>
           <input id="obNonFit" type="text" placeholder="색조 메이크업, 헤어/바디" />
         </div>
       </div>
       <div class="field" style="margin-top:10px;">
-        <label>공식 상세페이지 확인 문구 (줄바꿈 구분)</label>
+        <label>공식 상세페이지 핵심 문구 (한 줄에 하나씩)</label>
         <textarea id="obClaims" rows="3" style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:10px;font-size:0.86rem;" placeholder="저분자 히알루론산 워터 제형 토너&#10;소듐하이알루로네이트 2,700ppm"></textarea>
       </div>
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="saveCustomProduct()">💾 저장 및 신뢰도 high 승격</button>
+        <button class="btn btn-sec" onclick="saveCustomProduct()">💾 제품 정보 저장</button>
+        <label class="btn btn-outline" style="margin:0;">
+          📂 저장된 분석 파일(.json) 열기
+          <input type="file" accept=".json" style="display:none;" onchange="loadLocalJson(event)" />
+        </label>
       </div>
     </details>
   </div>
 
-  <div id="dashboard"></div>
+  <div id="dashboard">
+    <div style="text-align:center;padding:56px 20px;color:var(--muted);background:#fff;border:1px dashed var(--line-strong);border-radius:16px;">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;">아직 분석 전입니다</div>
+      <div style="font-size:0.9rem;">위에서 우리 제품을 고르고 <b>[오늘의 뷰티 트렌드 분석 시작]</b>을 누르거나, <b>[예시 화면 미리보기]</b>로 결과 화면을 먼저 확인해 보세요.</div>
+    </div>
+  </div>
 </div>
 <div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
 
@@ -1062,7 +1074,7 @@ function renderDashboard(res, opts = {}) {
   const prod = PRODUCTS[res.product] || { banned: [] };
 
   const badge = document.getElementById("modeBadge");
-  badge.textContent = res._mode === "live" ? "🟢 LIVE 분석 결과" : res._mode === "json_loaded" ? "📂 JSON 로드 뷰어" : "🧪 샘플 리허설 (쿼터 0)";
+  badge.textContent = res._mode === "live" ? "🟢 실시간 분석" : res._mode === "json_loaded" ? "📂 불러온 결과" : "👀 예시 미리보기";
   badge.className = res._mode === "live" ? "pill pill-go" : "pill pill-warn";
 
   const totalV = videos.length;
@@ -1077,7 +1089,7 @@ function renderDashboard(res, opts = {}) {
   const dropItems = judgements.filter(j => j.decision === "Drop");
 
   const confBanner = res.product_confidence && res.product_confidence !== "high"
-    ? `<div class="alert-banner alert-warn">⚠️ <b>[제품 정보 확인 필요]</b> 현재 제품 문구는 요약 기반(신뢰도: ${esc(res.product_confidence)})입니다. 최종 광고·시딩 집행 전 공식 상세페이지 원문 및 임상 시험 조건을 반드시 확인하세요.</div>` : "";
+    ? `<div style="font-size:0.82rem;color:var(--muted);margin:0 0 12px 4px;">ℹ️ 현재 기본 제품 요약 문구 기준입니다. 위 [우리 제품 추가 / 공식 설명 수정]에 공식 상세페이지 문구를 넣으면 더 정확해집니다.</div>` : "";
   const lowViewsBanner = videos.some(v => v.low_views_fallback)
     ? `<div class="alert-banner alert-info">ℹ️ 저유입 기준 완화 포함: 최소 조회수 기준을 넘는 영상이 부족해 일부 저유입 영상이 포함되었습니다.</div>` : "";
 
@@ -1282,27 +1294,27 @@ function renderDashboard(res, opts = {}) {
 
     <div class="insight-box">
       <div class="insight-head">
-        <div class="insight-title">🧭 이번 주 K-뷰티 시장 관통 패턴</div>
-        <span class="pill pill-purple">브랜드 편향 0% · Stage 1 객관 추출</span>
+        <div class="insight-title">🧭 이번 주 뷰티 쇼츠 핵심 흐름</div>
+        <button class="btn btn-outline" style="padding:6px 12px;font-size:0.8rem;" onclick="downloadExecutiveHtml()">📄 1페이지 보고서 저장</button>
       </div>
       ${patternsHtml}
     </div>
 
     ${matrixSectionHtml}
 
-    <div class="sec-heading">🎯 Go 판정 캠페인 컨셉 (${goItems.length}건)</div>
+    <div class="sec-heading">🎯 우리 제품과 잘 맞는 추천 캠페인 (${goItems.length}건)</div>
     ${goHtml}
     ${pivotHtml}
 
     <details class="b2b-details">
-      <summary>▶ ❌ 부적합 탈락 ${dropItems.length}건 — 억지 연결 차단 내역 보기 (기본 접힘)</summary>
-      ${dropItems.length ? `<table class="b2b-table"><thead><tr><th>도메인</th><th>영상 제목 (쇼츠 링크)</th><th>조회수</th><th>탈락 사유</th></tr></thead><tbody>${dropRows}</tbody></table>` : `<div style="margin-top:10px;color:var(--muted);">탈락 항목이 없습니다.</div>`}
+      <summary>❌ 우리 제품과 안 맞아 제외한 영상 ${dropItems.length}건 보기</summary>
+      ${dropItems.length ? `<table class="b2b-table"><thead><tr><th>영역</th><th>영상 제목 (쇼츠 링크)</th><th>조회수</th><th>제외 이유</th></tr></thead><tbody>${dropRows}</tbody></table>` : `<div style="margin-top:10px;color:var(--muted);">제외된 항목이 없습니다.</div>`}
     </details>
 
     <details id="rawDetails" class="b2b-details" ${opts.openRaw ? "open" : ""}>
-      <summary>▶ 📊 클리핑 원본 Top ${totalV} 전체 보기 (정렬 가능)</summary>
+      <summary>📊 수집한 쇼츠 전체 목록 (${totalV}건)</summary>
       <div class="sort-bar">
-        <button class="sort-btn ${rawSortKey==='views_per_day'?'active':''}" onclick="setRawSort('views_per_day')">🔥 일평균 조회수순</button>
+        <button class="sort-btn ${rawSortKey==='views_per_day'?'active':''}" onclick="setRawSort('views_per_day')">🔥 빠르게 뜨는 순</button>
         <button class="sort-btn ${rawSortKey==='views'?'active':''}" onclick="setRawSort('views')">👀 총 조회수순</button>
         <button class="sort-btn ${rawSortKey==='like_rate'?'active':''}" onclick="setRawSort('like_rate')">❤️ 좋아요율순</button>
       </div>
@@ -1314,10 +1326,9 @@ function renderDashboard(res, opts = {}) {
   `;
 }
 
-// Init custom products, dropdown & load sample rehearsal
+// Init custom products & dropdown (열자마자 결과를 자동 로드하지 않고 깨끗한 대기 화면 유지)
 loadCustomProducts();
 refreshProductDropdown();
-loadSampleRehearsal();
 </script>
 </body>
 </html>
