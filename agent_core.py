@@ -124,7 +124,7 @@ KR_EXPLORE_TREE: Dict[str, Dict[str, Any]] = {
         "parent": "all",
         "level": 1,
         "mode": "search",
-        "keywords": ["올리브영", "화장품 추천", "메이크업"],
+        "keywords": ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"],
     },
     "beauty/skincare": {
         "label": "기초화장품",
@@ -286,11 +286,16 @@ def clear_cache():
 
 # ── 5. 유튜브 메가 쇼츠 수집 유틸리티 ───────────────────────────────────
 _HANGUL = re.compile(r"[가-힣]")
-MIN_HANGUL = 2
+_HASHTAG_RE = re.compile(r"#\S+")
+MIN_HANGUL = 4
 
 def is_korean(row: dict, min_hangul: int = MIN_HANGUL) -> bool:
-    text = f"{row.get('title', '')} {row.get('description', '')}"
-    return len(_HANGUL.findall(text)) >= min_hangul
+    """해시태그를 제외한 제목+설명에서 완성형 한글이 min_hangul자 이상인지 확인 (해외 #메이크업 낚시 차단)."""
+    title_clean = _HASHTAG_RE.sub("", row.get("title", ""))
+    desc_clean = _HASHTAG_RE.sub("", row.get("description", ""))
+    if len(_HANGUL.findall(title_clean)) >= min_hangul:
+        return True
+    return len(_HANGUL.findall(f"{title_clean} {desc_clean}")) >= max(min_hangul, 6)
 
 def recent_published_after(days: int = 7) -> str:
     days = max(1, min(days, 30))
@@ -475,7 +480,7 @@ def fetch_kr_step1_shorts(
     if path_key not in KR_EXPLORE_TREE:
         raise ValueError(f"지원하지 않는 탐색 경로입니다: {path_key}")
 
-    cache_key = f"{date.today()}_kr_step1_v3_{path_key}_{days}_{sort_by}"
+    cache_key = f"{date.today()}_kr_step1_v4_{path_key}_{days}_{sort_by}"
     if use_cache and cache_key in _cache:
         return _cache[cache_key]
 
@@ -491,7 +496,12 @@ def fetch_kr_step1_shorts(
             maxResults=50,
         ).execute()
         pop_items = det.get("items", [])
-        short_cnt = sum(1 for it in pop_items if 0 < iso8601_to_seconds(it.get("contentDetails", {}).get("duration", "")) <= 180)
+        short_cnt = sum(
+            1 for it in pop_items
+            if 0 < iso8601_to_seconds(it.get("contentDetails", {}).get("duration", "")) <= 180
+            and is_korean({"title": it.get("snippet", {}).get("title", ""), "description": it.get("snippet", {}).get("description", "")})
+            and not any(k in it.get("snippet", {}).get("title", "") for k in ("예고편", "Covered by", "M/V", "MV", "Teaser"))
+        )
         if short_cnt < 6:
             published_after = recent_published_after(days=days)
             seen_ids = {it["id"] for it in pop_items if it.get("id")}
@@ -601,6 +611,7 @@ def fetch_kr_step1_shorts(
     if len(korean) >= 3:
         results = korean
 
+    # 동일 제목 중복 재업로드 제거 (조회수 높은 1건만 유지)
     if sort_by == "views":
         results.sort(key=lambda r: r["views"], reverse=True)
     elif sort_by == "like_rate":
@@ -608,7 +619,17 @@ def fetch_kr_step1_shorts(
     else:
         results.sort(key=lambda r: (r["views_per_day"] * 0.6 + r["views"] * 0.4), reverse=True)
 
-    final_rows = results[:10]
+    deduped = []
+    seen_titles = set()
+    for r in results:
+        tkey = re.sub(r"[\s\W_]+", "", r.get("title", "")).lower()[:28]
+        if tkey and tkey in seen_titles:
+            continue
+        if tkey:
+            seen_titles.add(tkey)
+        deduped.append(r)
+
+    final_rows = deduped[:10]
     if use_cache and final_rows:
         _cache.set(cache_key, final_rows, expire=43200)
     return final_rows

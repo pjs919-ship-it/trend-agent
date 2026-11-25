@@ -326,7 +326,7 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 <script>
 const KR_TREE = {
   "all": { label: "전체", parent: null, mode: "mostPopular", keywords: [], children: ["beauty"] },
-  "beauty": { label: "뷰티", parent: "all", mode: "search", keywords: ["올리브영", "화장품 추천", "메이크업"], children: ["beauty/skincare", "beauty/makeup"] },
+  "beauty": { label: "뷰티", parent: "all", mode: "search", keywords: ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup"] },
   "beauty/skincare": { label: "기초화장품", parent: "beauty", mode: "search", keywords: ["스킨케어", "기초 루틴", "속건조"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask"] },
   "beauty/makeup": { label: "색조메이크업", parent: "beauty", mode: "search", keywords: ["메이크업", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
   "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너 추천", "토너패드", "닦토"], children: [] },
@@ -467,7 +467,10 @@ function isSpam(row) {
   return SPAM_KWS.some(k => blob.includes(k));
 }
 function isKorean(row) {
-  return ((`${row.title || ""} ${row.description || ""}`).match(/[가-힣]/g) || []).length >= 2;
+  const tClean = (row.title || "").replace(/#\S+/g, "");
+  const dClean = (row.description || "").replace(/#\S+/g, "");
+  if ((tClean.match(/[가-힣]/g) || []).length >= 4) return true;
+  return (`${tClean} ${dClean}`.match(/[가-힣]/g) || []).length >= 6;
 }
 let debugLogs = [];
 function addLog(msg) {
@@ -536,7 +539,7 @@ async function runStep1Live() {
   addLog(`Step 1 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort} | 모델: ${model}`);
 
   const today = new Date().toISOString().slice(0, 10);
-  const cacheKey = `ts_kr_step1_v3_${today}_${currentPath}_${selectedDays}`;
+  const cacheKey = `ts_kr_step1_v4_${today}_${currentPath}_${selectedDays}`;
   try {
     const cached = window.localStorage.getItem(cacheKey);
     if (cached) {
@@ -558,7 +561,11 @@ async function runStep1Live() {
       const popItems = (await (await fetch(u)).json()).items || [];
       addLog(`YouTube mostPopular(KR, max=50, 1유닛) 원본 수집: ${popItems.length}건`);
       popItems.forEach(it => { if (it?.id && !seenIds.has(it.id)) { seenIds.add(it.id); detItems.push(it); } });
-      const shortPopCount = detItems.filter(it => { const s = isoToSec(it.contentDetails?.duration); return s > 0 && s <= 180; }).length;
+      const shortPopCount = detItems.filter(it => {
+        const s = isoToSec(it.contentDetails?.duration);
+        const t = it.snippet?.title || "";
+        return s > 0 && s <= 180 && isKorean({ title: t, description: it.snippet?.description || "" }) && !/예고편|Covered by|M\/V|\bMV\b|Teaser/i.test(t);
+      }).length;
       addLog(`mostPopular 중 쇼츠 규격(≤180초): ${shortPopCount}건`);
       if (shortPopCount < 6) {
         const pubAfter = new Date(Date.now() - selectedDays * 86400000).toISOString();
@@ -616,7 +623,14 @@ async function runStep1Live() {
     const kor = videos.filter(isKorean);
     if (kor.length >= 3) videos = kor;
     addLog(`필터 결과 | 원본 ${detItems.length}건 → 길이초과 -${dropLen}건 → 스팸 -${dropSpam}건 → 한글필터 ${beforeKor}→${videos.length}건`);
-    videos = sortVideos(videos).slice(0, 10);
+    const sortedAll = sortVideos(videos);
+    const seenT = new Set();
+    videos = sortedAll.filter(v => {
+      const tk = (v.title || "").replace(/[\s\W_]+/g, "").toLowerCase().slice(0, 28);
+      if (tk && seenT.has(tk)) return false;
+      if (tk) seenT.add(tk);
+      return true;
+    }).slice(0, 10);
     if (!videos.length) { st.textContent = "조건에 맞는 한국어 쇼츠가 없습니다."; return; }
     const avgV = Math.round(videos.reduce((s, v) => s + v.views, 0) / videos.length);
     const avgVpd = Math.round(videos.reduce((s, v) => s + v.views_per_day, 0) / videos.length);
