@@ -629,13 +629,44 @@ function formatYoutubeApiError(status, errObj) {
   return `⚠️ 유튜브 데이터를 불러오지 못했어요 (오류 ${status}${reason ? ` · ${reason}` : ""}). 잠시 후 다시 시도해 주세요.`;
 }
 
+const REMOTE_SNAPSHOT_URL = "https://raw.githubusercontent.com/pjs919-ship-it/trend-agent/main/data/trends_snapshot.json";
+let _remoteSnapChecked = false;
+
+async function ensureLatestSnapshot() {
+  if (_remoteSnapChecked) return window.SHORTFORM_RADAR_SNAPSHOT || null;
+  _remoteSnapChecked = true;
+  try {
+    const resp = await fetch(`${REMOTE_SNAPSHOT_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!resp.ok) return window.SHORTFORM_RADAR_SNAPSHOT || null;
+    const remote = await resp.json();
+    if (remote && remote.entries && Object.keys(remote.entries).length) {
+      const localTs = window.SHORTFORM_RADAR_SNAPSHOT?.updated_at_kst || "";
+      const remoteTs = remote.updated_at_kst || "";
+      if (!localTs || remoteTs >= localTs) {
+        window.SHORTFORM_RADAR_SNAPSHOT = remote;
+        try { window.localStorage.setItem("sr_remote_snapshot_v1", JSON.stringify(remote)); } catch (e) {}
+      }
+    }
+  } catch (e) {
+    // 오프라인이거나 깃허브에 아직 스냅샷이 없으면 조용히 로컬/실시간 조회로 진행
+  }
+  if (!window.SHORTFORM_RADAR_SNAPSHOT) {
+    try {
+      const cached = window.localStorage.getItem("sr_remote_snapshot_v1");
+      if (cached) window.SHORTFORM_RADAR_SNAPSHOT = JSON.parse(cached);
+    } catch (e) {}
+  }
+  return window.SHORTFORM_RADAR_SNAPSHOT || null;
+}
+
 async function runStep1Live() {
   const st = document.getElementById("step1Status");
   clearLogs();
   addLog(`1단계 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort}`);
 
-  // 1) 배치 스냅샷이 있으면 토큰 0으로 즉시 로드
-  const snapEntry = window.SHORTFORM_RADAR_SNAPSHOT?.entries?.[`${currentPath}_${selectedDays}`];
+  // 1) GitHub 최신 배치 스냅샷 확인 후 있으면 토큰 0으로 즉시 로드
+  const snap = await ensureLatestSnapshot();
+  const snapEntry = snap?.entries?.[`${currentPath}_${selectedDays}`];
   if (snapEntry && Array.isArray(snapEntry.videos) && snapEntry.videos.length) {
     step1Data = {
       ...snapEntry,
