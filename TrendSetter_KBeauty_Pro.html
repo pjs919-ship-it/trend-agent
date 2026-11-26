@@ -77,20 +77,21 @@ body {
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   margin-top: 14px;
 }
-.crumb-inline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-.crumb-btn {
-  background: none; border: none; padding: 4px 6px; font-size: 13.5px; font-weight: 500;
-  color: var(--muted); cursor: pointer; border-radius: 6px; font-family: inherit;
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cat-tab {
+  background: #F4F4F1; border: 1px solid transparent; border-radius: 8px;
+  padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--ink-secondary);
+  cursor: pointer; font-family: inherit; transition: all 0.12s ease;
 }
-.crumb-btn:hover { background: #F5F5F3; color: var(--ink); }
-.crumb-btn.current { color: var(--ink); font-weight: 600; background: #F4F4F1; }
-.crumb-sep { color: #C4C4BE; font-size: 12px; }
-.sub-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cat-tab:hover { background: #EAEAE5; color: var(--ink); }
+.cat-tab.active { background: var(--ink); color: #FFF; font-weight: 600; }
+.sub-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
 .sub-chip {
-  background: #FAFAF8; border: 1px solid #E5E5E0; border-radius: 6px; padding: 4px 10px;
+  background: #FFF; border: 1px solid #E2E2DC; border-radius: 6px; padding: 4px 10px;
   font-size: 12.5px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
 }
 .sub-chip:hover { border-color: var(--ink); color: var(--ink); }
+.sub-chip.active { background: #F4F4F1; border-color: var(--ink); color: var(--ink); font-weight: 600; }
 
 .controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .sort-select {
@@ -278,7 +279,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     </div>
 
     <div class="nav-row">
-      <div id="crumbBar" class="crumb-inline"></div>
+      <div id="crumbBar" class="cat-tabs"></div>
       <div class="controls-right">
         <select id="sortSel" class="sort-select" onchange="setSort(this.value)" title="정렬 기준 선택">
           <option value="grade" selected>정렬: 등급·인기 순</option>
@@ -288,7 +289,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
           <option value="views">정렬: 누적 조회수 순</option>
           <option value="comments">정렬: 댓글 많은 순</option>
         </select>
-        <button class="btn btn-primary" onclick="runStep1Live()">트렌드 보기</button>
+        <button class="btn btn-outline" onclick="runStep1Live(true)" title="선택한 카테고리를 실시간 API로 새로 조회합니다">실시간 재조회</button>
         <button class="btn btn-outline" onclick="runStep1Preview()">예시 보기</button>
       </div>
     </div>
@@ -463,20 +464,25 @@ function getPathLabel(key) {
   return getPathChain(key).map(k => getNode(k).label).join(" > ");
 }
 function renderExplorerNav() {
-  const chain = getPathChain(currentPath);
-  document.getElementById("crumbBar").innerHTML = chain.map((k, idx) => {
-    const isCur = idx === chain.length - 1;
-    return `${idx > 0 ? '<span class="crumb-sep">/</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(getNode(k).label)}</button>`;
+  const topCats = ["beauty", "beauty/skincare", "beauty/makeup", "beauty/hairbody"];
+  const activeTop = topCats.find(tc => currentPath === tc || (tc !== "beauty" && currentPath.startsWith(tc + "/"))) || "beauty";
+
+  document.getElementById("crumbBar").innerHTML = topCats.map(tc => {
+    const isAct = activeTop === tc;
+    return `<button class="cat-tab ${isAct ? 'active' : ''}" onclick="selectPath('${tc}')">${esc(getNode(tc).label)}</button>`;
   }).join("");
 
-  const children = getNode(currentPath).children || [];
+  const subParent = activeTop !== "beauty" ? activeTop : null;
+  const children = subParent ? (getNode(subParent).children || []) : [];
   const childEl = document.getElementById("childChips");
   if (!children.length) {
     childEl.innerHTML = "";
   } else {
-    childEl.innerHTML = children.map(ck =>
-      `<button class="sub-chip" onclick="selectPath('${ck}')">+ ${esc(getNode(ck).label)}</button>`
-    ).join("");
+    childEl.innerHTML = `<span style="font-size:12px;color:var(--muted);margin-right:2px;">세부 품목</span>` +
+      `<button class="sub-chip ${currentPath === subParent ? 'active' : ''}" onclick="selectPath('${subParent}')">전체</button>` +
+      children.map(ck =>
+        `<button class="sub-chip ${currentPath === ck ? 'active' : ''}" onclick="selectPath('${ck}')">${esc(getNode(ck).label)}</button>`
+      ).join("");
   }
 }
 function tryApplySnapshotEntry(pathKey, days) {
@@ -496,11 +502,9 @@ function tryApplySnapshotEntry(pathKey, days) {
 function selectPath(key) {
   currentPath = key;
   renderExplorerNav();
-  if (step1Data) {
-    if (tryApplySnapshotEntry(key, selectedDays)) return;
-    if (step1Data.path_key !== key) {
-      document.getElementById("step1Status").textContent = `'${getPathLabel(key)}' 카테고리를 선택했어요. [트렌드 보기]를 눌러 불러오세요.`;
-    }
+  if (tryApplySnapshotEntry(key, selectedDays)) return;
+  if (step1Data && step1Data.path_key !== key) {
+    document.getElementById("step1Status").textContent = `'${getPathLabel(key)}' 카테고리는 저장된 배치에 없어요. [실시간 재조회]를 눌러 가져올 수 있어요.`;
   }
 }
 function toggleApiPanel() {
@@ -516,21 +520,19 @@ function setDays(d) {
   if (d1) d1.classList.toggle("active", d === 1);
   document.getElementById("days7").classList.toggle("active", d === 7);
   document.getElementById("days30").classList.toggle("active", d === 30);
-  if (step1Data && step1Data.days_range !== d) {
-    if (tryApplySnapshotEntry(currentPath, d)) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${d}`;
-    try {
-      const cached = window.localStorage.getItem(cacheKey);
-      if (cached) {
-        step1Data = JSON.parse(cached);
-        document.getElementById("step1Status").textContent = `오늘 조회한 '${getPathLabel(currentPath)}' (${d}일 기준) 결과를 불러왔어요.`;
-        renderStep1Result(step1Data);
-        return;
-      }
-    } catch (e) {}
-    document.getElementById("step1Status").textContent = `기간을 최근 ${d}일로 바꿨어요. [트렌드 보기]를 눌러 새 결과를 불러오세요.`;
-  }
+  if (tryApplySnapshotEntry(currentPath, d)) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const cacheKey = `ts_kr_step1_v5_${today}_${currentPath}_${d}`;
+  try {
+    const cached = window.localStorage.getItem(cacheKey);
+    if (cached) {
+      step1Data = JSON.parse(cached);
+      document.getElementById("step1Status").textContent = `오늘 조회한 '${getPathLabel(currentPath)}' (${d}일 기준) 결과를 불러왔어요.`;
+      renderStep1Result(step1Data);
+      return;
+    }
+  } catch (e) {}
+  document.getElementById("step1Status").textContent = `기간을 최근 ${d}일로 바꿨어요. 저장된 배치에 없으면 [실시간 재조회]를 눌러보세요.`;
 }
 function setSort(s) {
   selectedSort = s;
@@ -761,23 +763,25 @@ async function syncSnapshotFromGitHub() {
   }
 }
 
-async function runStep1Live() {
+async function runStep1Live(forceLive = false) {
   const st = document.getElementById("step1Status");
   clearLogs();
   addLog(`1단계 시작 | 경로: ${currentPath} (${getPathLabel(currentPath)}) | 기간: ${selectedDays}일 | 정렬: ${selectedSort}`);
 
-  // 1) GitHub 최신 배치 스냅샷 확인 후 있으면 토큰 0으로 즉시 로드
-  const snap = await ensureLatestSnapshot();
-  const snapEntry = snap?.entries?.[`${currentPath}_${selectedDays}`];
-  if (snapEntry && Array.isArray(snapEntry.videos) && snapEntry.videos.length) {
-    step1Data = {
-      ...snapEntry,
-      videos: snapEntry.videos.map(computeMetrics)
-    };
-    addLog(`⚡ 자동 배치 스냅샷 사용 (${snapEntry.updated_at_kst || snapEntry.report_date}) — 영상 ${step1Data.videos.length}건`);
-    st.textContent = `⚡ 최신 배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date})을 바로 불러왔어요. (API 한도 0 사용)`;
-    renderStep1Result(step1Data);
-    return;
+  if (!forceLive) {
+    // 1) GitHub 최신 배치 스냅샷 확인 후 있으면 토큰 0으로 즉시 로드
+    const snap = await ensureLatestSnapshot();
+    const snapEntry = snap?.entries?.[`${currentPath}_${selectedDays}`];
+    if (snapEntry && Array.isArray(snapEntry.videos) && snapEntry.videos.length) {
+      step1Data = {
+        ...snapEntry,
+        videos: snapEntry.videos.map(computeMetrics)
+      };
+      addLog(`자동 배치 스냅샷 사용 (${snapEntry.updated_at_kst || snapEntry.report_date}) — 영상 ${step1Data.videos.length}건`);
+      st.textContent = `배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date}) · ${getPathLabel(currentPath)} (${selectedDays}일 기준)`;
+      renderStep1Result(step1Data);
+      return;
+    }
   }
 
   const ytKey = document.getElementById("ytKey").value.trim();
@@ -1383,6 +1387,18 @@ function initLocalKeys() {
 
 initLocalKeys();
 renderExplorerNav();
+(async function initDefaultView() {
+  const snap = await ensureLatestSnapshot();
+  if (!snap || !snap.entries) return;
+  if (tryApplySnapshotEntry(currentPath, selectedDays)) return;
+  // 기본 30일 스냅샷이 아직 없으면 7일(또는 1일) 실데이터 스냅샷을 바로 노출
+  for (const fallbackDays of [7, 1]) {
+    if (snap.entries[`${currentPath}_${fallbackDays}`]) {
+      setDays(fallbackDays);
+      return;
+    }
+  }
+})();
 </script>
 </body>
 </html>
