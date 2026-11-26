@@ -4,38 +4,42 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>숏폼레이더 (ShortformRadar) — K-뷰티 유튜브 쇼츠 트렌드 분석</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <style>
 :root {
-  --purple: #6C2BD9;
-  --purple-dark: #4C1D95;
-  --purple-soft: #F3EEFD;
-  --gold: #BF8A12;
-  --gold-soft: #FFFDF5;
-  --ink: #1C1730;
-  --ink-secondary: #374151;
-  --muted: #6B7280;
-  --bg: #FAF9FE;
+  --purple: #BE185D;
+  --purple-dark: #9D174D;
+  --purple-soft: #FDF2F8;
+  --gold: #A16207;
+  --gold-soft: #FEFCE8;
+  --ink: #18181B;
+  --ink-secondary: #3F3F46;
+  --muted: #71717A;
+  --bg: #FAF9F6;
   --surface: #FFFFFF;
-  --surface-subtle: #FBF9FF;
-  --line: #ECE9F5;
-  --line-strong: #D8D3E8;
-  --go: #0F766E;
-  --go-soft: #E6F6F4;
+  --surface-subtle: #F4F2ED;
+  --line: #E7E5DF;
+  --line-strong: #D4D1C9;
+  --go: #047857;
+  --go-soft: #ECFDF5;
   --warn: #B45309;
-  --warn-soft: #FEF3C7;
-  --drop: #4B5563;
-  --drop-soft: #F3F4F6;
+  --warn-soft: #FFFBEB;
+  --drop: #52525B;
+  --drop-soft: #F4F4F5;
   --danger: #B91C1C;
   --danger-soft: #FEF2F2;
-  --hot: #C2410C;
-  --hot-soft: #FFF7ED;
+  --hot: #BE185D;
+  --hot-soft: #FDF2F8;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
-  line-height: 1.5;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  letter-spacing: -0.02em;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
 }
+.ico { width: 15px; height: 15px; vertical-align: -2.5px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 18px 64px; }
 .tnum { font-variant-numeric: tabular-nums; }
 
@@ -135,9 +139,22 @@ body {
 .pill-gold { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
 .pill-hot { background: var(--hot-soft); color: var(--hot); }
 
+.seg-track {
+  display: inline-flex; gap: 2px; background: var(--surface-subtle);
+  padding: 3px; border-radius: 12px; border: 1px solid var(--line);
+}
+.seg-track .seg-btn {
+  border: none; background: transparent; color: var(--muted);
+  padding: 6px 12px; border-radius: 9px; font-size: 0.81rem; font-weight: 600;
+}
+.seg-track .seg-btn.active {
+  background: #FFF; color: var(--ink); font-weight: 700;
+  box-shadow: 0 1px 3px rgba(24,24,27,0.08);
+}
+.pill-editorial { background: var(--ink); color: #FFF; }
 .insight-box {
-  background: linear-gradient(135deg, #F6F2FF 0%, #FFFFFF 100%);
-  border: 1px solid #E0D8F5; border-left: 5px solid var(--purple);
+  background: #FFFFFF;
+  border: 1px solid var(--line); border-left: 3px solid var(--purple);
   border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
 }
 .pattern-row { display: flex; gap: 10px; align-items: flex-start; font-size: 0.91rem; color: var(--ink-secondary); margin-bottom: 7px; }
@@ -245,20 +262,26 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>📡 숏폼레이더 <span style="font-size:0.95rem;font-weight:700;color:var(--muted);">ShortformRadar</span></h1>
-      <div class="sub">K-뷰티 마케터의 데일리 쇼츠 브리핑 &amp; 캠페인 기획</div>
+      <h1 style="letter-spacing:-0.03em;">숏폼레이더 <span style="font-size:0.9rem;font-weight:600;color:var(--muted);margin-left:4px;">ShortformRadar</span></h1>
+      <div class="sub">K-뷰티 마케터를 위한 데일리 쇼츠 브리핑 및 캠페인 기획</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span id="topStatusBadge" class="pill pill-purple">한국 뷰티 전용</span>
-      <button id="syncSnapBtn" class="btn btn-sec" style="padding:7px 13px;font-size:0.82rem;" onclick="syncSnapshotFromGitHub()"
-        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">🔄 최신 트렌드 업데이트</button>
-      <button id="toggleApiBtn" class="btn btn-outline" style="padding:7px 12px;font-size:0.82rem;" onclick="toggleApiPanel()">⚙️ API 설정</button>
+      <span id="topStatusBadge" class="pill pill-drop">한국 뷰티</span>
+      <button id="syncSnapBtn" class="btn btn-sec" style="padding:7px 13px;font-size:0.82rem;display:inline-flex;align-items:center;gap:6px;" onclick="syncSnapshotFromGitHub()"
+        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        최신 트렌드 업데이트
+      </button>
+      <button id="toggleApiBtn" class="btn btn-outline" style="padding:7px 12px;font-size:0.82rem;display:inline-flex;align-items:center;gap:5px;" onclick="toggleApiPanel()">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        API 설정
+      </button>
     </div>
   </div>
 
   <!-- API 키 설정 (기본 숨김 — 설정 버튼 클릭 시 열림) -->
   <details id="apiDetails" class="b2b-details" style="display:none;margin-bottom:14px;">
-    <summary id="apiSummary">🔑 API 키 설정</summary>
+    <summary id="apiSummary">API 키 설정</summary>
     <div class="grid-3" style="margin-top:12px;">
       <div class="field">
         <label>유튜브 API 키</label>
@@ -285,10 +308,10 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
         <span class="step-badge">1단계 · 데일리 브리핑</span>
         <h2 class="step-title" style="margin-bottom:0;">오늘 뜨는 K-뷰티 쇼츠 브리핑</h2>
       </div>
-      <div class="seg-group">
-        <button id="days1" class="seg-btn" onclick="setDays(1)">⚡ 1일 (오늘)</button>
-        <button id="days7" class="seg-btn" onclick="setDays(7)">🔥 7일 (이번 주)</button>
-        <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 30일 (대세)</button>
+      <div class="seg-track">
+        <button id="days1" class="seg-btn" onclick="setDays(1)">1일 · 오늘</button>
+        <button id="days7" class="seg-btn" onclick="setDays(7)">7일 · 이번 주</button>
+        <button id="days30" class="seg-btn active" onclick="setDays(30)">30일 · 대세</button>
       </div>
     </div>
 
@@ -299,26 +322,26 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
       <div class="seg-group">
         <button id="sortGrade" class="seg-btn active" onclick="setSort('grade')"
           data-tip="등급 높은 순(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순서로 보여드려요."
-          aria-label="등급·인기 순">🏆 등급·인기 순</button>
+          aria-label="등급·인기 순">등급·인기 순</button>
         <button id="sortVsAvg" class="seg-btn" onclick="setSort('vs_avg')"
           data-tip="이 채널의 평소 평균 조회수보다 몇 배나 더 터졌는지 순이에요. 기획·소재 자체가 먹힌 영상을 먼저 찾아요."
-          aria-label="평소 대비 순">📈 평소 대비 순</button>
+          aria-label="평소 대비 순">평소 대비 순</button>
         <button id="sortRatio" class="seg-btn" onclick="setSort('subscriber_ratio')"
           data-tip="구독자 수 대비 조회수가 몇 배나 터졌는지 순이에요. 작은 채널인데 알고리즘을 타 크게 뜬 영상을 먼저 찾아요."
-          aria-label="구독자 대비 순">👥 구독자 대비 순</button>
+          aria-label="구독자 대비 순">구독자 대비 순</button>
         <button id="sortFast" class="seg-btn" onclick="setSort('fast')"
           data-tip="올라온 뒤 하루 평균 조회수가 높은 순이에요. 지금 가장 빠르게 치고 올라오는 영상을 먼저 봐요."
-          aria-label="하루 평균 순">🔥 하루 평균 순</button>
+          aria-label="하루 평균 순">하루 평균 순</button>
         <button id="sortViews" class="seg-btn" onclick="setSort('views')"
           data-tip="누적 조회수가 가장 높은 영상부터 보여드려요."
-          aria-label="조회수 순">👀 조회수 순</button>
+          aria-label="조회수 순">조회수 순</button>
         <button id="sortComments" class="seg-btn" onclick="setSort('comments')"
           data-tip="시청자 질문과 반응(댓글)이 가장 많이 달린 영상부터 보여드려요."
-          aria-label="댓글 많은 순">💬 댓글 많은 순</button>
+          aria-label="댓글 많은 순">댓글 많은 순</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" style="padding:8px 14px;font-size:0.84rem;" onclick="runStep1Live()">🚀 이 카테고리 트렌드 보기</button>
-        <button class="btn btn-sec" style="padding:8px 12px;font-size:0.84rem;" onclick="runStep1Preview()">👀 예시 미리보기</button>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:0.84rem;" onclick="runStep1Live()">이 카테고리 트렌드 보기</button>
+        <button class="btn btn-outline" style="padding:8px 12px;font-size:0.84rem;" onclick="runStep1Preview()">예시 미리보기</button>
       </div>
     </div>
     <div id="step1Status" class="status-bar"></div>
@@ -328,8 +351,8 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   <div id="step1Area">
     <div class="welcome-box">
       <h3>어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
-      <p style="margin:0;">위에서 <b>뷰티 전체 → 기초 스킨케어 / 색조 메이크업 / 헤어·바디 → 세부 품목</b>을 고르고<br>
-      <b>[🚀 이 카테고리 트렌드 보기]</b>를 눌러보세요. API 키가 없다면 <b>[👀 예시 화면 미리보기]</b>로 먼저 둘러볼 수 있어요.</p>
+      <p style="margin:0;">상단 <b>최신 트렌드 업데이트</b>를 누르거나 아래에서 카테고리를 고른 뒤 <b>이 카테고리 트렌드 보기</b>를 눌러보세요.<br>
+      API 키가 없다면 <b>예시 미리보기</b>로 바로 둘러볼 수 있어요.</p>
     </div>
   </div>
 
@@ -628,15 +651,15 @@ function copyDebugLog() {
 
 function getViralGrade(views, vpd, ratio) {
   if (views >= 100000 || (views >= 10000 && ratio != null && ratio >= 5)) {
-    return { code: "S", label: "🔥 S등급 · 메가 바이럴", cls: "pill-gold", desc: "조회수 10만 이상이거나 조회수 1만 이상·구독자 대비 5배 이상" };
+    return { code: "S", label: "S등급 · 메가 바이럴", cls: "pill-editorial", desc: "조회수 10만 이상이거나 조회수 1만 이상·구독자 대비 5배 이상" };
   }
   if (views >= 30000 || vpd >= 3000) {
-    return { code: "A", label: "⚡ A등급 · 급상승", cls: "pill-hot", desc: "조회수 3만 이상 또는 하루 평균 3천 이상" };
+    return { code: "A", label: "A등급 · 급상승", cls: "pill-hot", desc: "조회수 3만 이상 또는 하루 평균 3천 이상" };
   }
   if (views >= 10000 || vpd >= 1000) {
-    return { code: "B", label: "📈 B등급 · 초기 반응", cls: "pill-go", desc: "조회수 1만 이상 또는 하루 평균 1천 이상" };
+    return { code: "B", label: "B등급 · 초기 반응", cls: "pill-go", desc: "조회수 1만 이상 또는 하루 평균 1천 이상" };
   }
-  return { code: "C", label: "🔍 C등급 · 참고용", cls: "pill-drop", desc: "조회수 1만 미만 참고용 영상" };
+  return { code: "C", label: "C등급 · 참고용", cls: "pill-drop", desc: "조회수 1만 미만 참고용 영상" };
 }
 
 function computeMetrics(v) {
@@ -1044,7 +1067,7 @@ function renderStep1Result(data) {
   const pats = (data.market_patterns || []).map((p, i) =>
     `<div class="pattern-row"><span class="pattern-num">${i+1}</span><div>${esc(p)}</div></div>`
   ).join("");
-  const fmtChips = topFmts.map(([tag, cnt]) => `<span class="pill pill-purple">🎬 ${esc(tag)} (${cnt}건)</span>`).join(" ");
+  const fmtChips = topFmts.map(([tag, cnt]) => `<span class="pill pill-drop">${esc(tag)} · ${cnt}건</span>`).join(" ");
 
   const avgV = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views, 0) / sorted.length) : 0;
   const avgVpd = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views_per_day, 0) / sorted.length) : 0;
@@ -1071,29 +1094,29 @@ function renderStep1Result(data) {
       ? `<span class="pill pill-warn" title="유튜버가 유료 광고(협찬)를 표시한 영상이에요">유료광고</span>`
       : `<span class="pill pill-go" title="유료 광고 표시가 없는 순수 오가닉 영상이에요">오가닉</span>`;
     const vsAvgBadge = v.views_vs_channel_avg != null
-      ? `<span class="pill pill-purple" title="${vsAvgTooltip}">📈 평소 대비 ${v.views_vs_channel_avg}배</span>`
+      ? `<span class="pill pill-purple" title="${vsAvgTooltip}">평소 대비 ${v.views_vs_channel_avg}배</span>`
       : "";
     const ratioBadge = v.views_per_subscriber != null
-      ? `<span class="pill pill-drop" title="${ratioTooltip}">👥 구독자 대비 ${v.views_per_subscriber}배</span>`
+      ? `<span class="pill pill-drop" title="${ratioTooltip}">구독자 대비 ${v.views_per_subscriber}배</span>`
       : "";
     const deltaChip = v.views_delta && v.views_delta > 0
-      ? `<span class="pill pill-go">⬆️ 이전보다 +${formatKoNum(v.views_delta)}</span>`
+      ? `<span class="pill pill-go">+${formatKoNum(v.views_delta)} 증가</span>`
       : "";
     return `<div class="tds-row">
       <div class="tds-rank tnum">${idx + 1}</div>
       <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
       <div class="short-body">
         <div class="short-title-row">
-          <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
+          <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a>
           ${promoBadge}
         </div>
         ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
         <div class="short-meta">
-          ${pubDateStr ? `<span>📅 ${pubDateStr}</span><span>·</span>` : ""}
-          <b style="color:var(--ink);">👀 ${formatKoNum(v.views)}</b>
-          <span>· 🔥 일평균 ${formatKoNum(v.views_per_day)}</span>
-          <span>· ❤️ ${formatKoNum(v.likes)}</span>
-          <span>· 💬 ${(v.comments || 0).toLocaleString()}</span>
+          ${pubDateStr ? `<span>${pubDateStr}</span><span>·</span>` : ""}
+          <b style="color:var(--ink);">조회수 ${formatKoNum(v.views)}</b>
+          <span>· 일평균 ${formatKoNum(v.views_per_day)}</span>
+          <span>· 좋아요 ${formatKoNum(v.likes)}</span>
+          <span>· 댓글 ${(v.comments || 0).toLocaleString()}</span>
           ${deltaChip}
           <span>· ${esc(f.format_tag || "기타")}</span>
         </div>
@@ -1109,7 +1132,7 @@ function renderStep1Result(data) {
   document.getElementById("step1Area").innerHTML = `
     <div class="insight-box">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <b style="font-size:1.04rem;color:var(--purple-dark);">🧭 '${esc(data.path_label)}' 오늘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
+        <b style="font-size:1.02rem;color:var(--ink);">'${esc(data.path_label)}' 오늘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
         <div>${fmtChips}</div>
       </div>
       ${pats}
@@ -1119,9 +1142,9 @@ function renderStep1Result(data) {
       <span class="pill ${overallGrade.cls}">${overallGrade.label}</span>
     </div>
     <div class="metric-guide">
-      <span>💡 <b>지표 보는 법</b></span>
-      <span><b>📈 평소 대비 N배</b>: 채널 평소 평균보다 터진 <b>기획·소재빨</b></span>
-      <span><b>👥 구독자 대비 N배</b>: 작은 채널의 <b>알고리즘 확산</b></span>
+      <span><b>지표 안내</b></span>
+      <span><b>평소 대비 N배</b> — 채널 평균보다 터진 기획·소재빨</span>
+      <span><b>구독자 대비 N배</b> — 작은 채널의 알고리즘 확산</span>
     </div>
     <div class="tds-list">${rows}</div>
     <div id="bottomCtaBar" class="bottom-cta show">
@@ -1129,7 +1152,7 @@ function renderStep1Result(data) {
         <b style="font-size:0.95rem;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</b>
         <div style="font-size:0.8rem;color:var(--muted);">추가 유튜브 한도 없이 맞춤 카피와 4단 촬영 콘티를 바로 만들어요.</div>
       </div>
-      <button class="btn btn-primary" onclick="openStep2Panel()">✨ 우리 상품 기획안 만들기</button>
+      <button class="btn btn-primary" onclick="openStep2Panel()">우리 상품 기획안 만들기</button>
     </div>
   `;
   if (!document.getElementById("prodName").value) applyPreset("toner");
