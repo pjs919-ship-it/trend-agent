@@ -211,11 +211,17 @@ body {
 .page-btn:disabled { opacity: 0.4; cursor: default; }
 
 .bottom-cta {
-  position: sticky; bottom: 14px; z-index: 40; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px);
-  border: 1px solid #FBCFE8; border-radius: 14px; padding: 14px 20px; margin-top: 18px;
-  box-shadow: 0 8px 24px rgba(190,24,93,0.10);
+  background: #FDF2F8; border: 1px solid #FBCFE8; border-radius: 14px;
+  padding: 16px 22px; margin-top: 18px;
   display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
 }
+.ref-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: #FDF2F8; border: 1px solid #FBCFE8; border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 14px;
+}
+.ref-banner-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ref-banner img { width: 40px; height: 54px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 
 /* Step 2 Section */
 .step2-section {
@@ -273,8 +279,16 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 }
 .toast.show { opacity: 1; }
 @media (max-width: 860px) {
+  .wrap { padding: 0 14px 64px; }
+  .app-bar-inner { padding: 12px 14px; }
   .insights-grid, .grid-3, .sb-grid { grid-template-columns: 1fr; }
-  .table-wrap { overflow-x: auto; }
+  .feed-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .feed-mid { width: 100%; }
+  .feed-right {
+    width: 100%; flex-direction: row; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; min-width: 0; padding-top: 8px; border-top: 1px dashed #ECEAE4;
+  }
+  .stat-grid { text-align: left; grid-template-columns: repeat(2, minmax(90px, 1fr)); }
 }
 </style>
 </head>
@@ -362,14 +376,16 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 
   <section id="step2Panel" class="step2-section" style="display:none;">
     <div class="section-head">
-      <h3>홍보할 상품에 트렌드 입히기</h3>
+      <div>
+        <span class="journey-step">2단계 · 우리 브랜드 맞춤 기획</span>
+        <h3 style="margin:0;">홍보할 상품에 트렌드 입히기</h3>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline" style="padding:6px 11px;font-size:12.5px;" onclick="applyPreset('toner')">샘플: 딥 토너</button>
+        <button class="btn btn-outline" style="padding:6px 11px;font-size:12.5px;" onclick="applyPreset('lip')">샘플: 립틴트</button>
+      </div>
     </div>
-    <div class="preset-row">
-      <button class="preset-btn" onclick="applyPreset('toner')">예시: 딥 토너</button>
-      <button class="preset-btn" onclick="applyPreset('pad')">예시: 그린 2.5 패드</button>
-      <button class="preset-btn" onclick="applyPreset('mask')">예시: 워터리 마스크</button>
-      <button class="preset-btn" onclick="applyPreset('lip')">예시: 촉촉한 립틴트</button>
-    </div>
+    <div id="selectedRefBox"></div>
     <div class="grid-3">
       <div class="field">
         <label>상품 카테고리</label>
@@ -388,11 +404,33 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
           <option value="헤어·바디 > 바디케어">헤어·바디 &gt; 바디케어</option>
         </select>
       </div>
-      <div class="field"><label>홍보할 상품명</label><input id="prodName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" /></div>
-      <div class="field"><label>강조할 핵심 특징</label><input id="prodKeywords" type="text" placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어" /></div>
+      <div class="field"><label>홍보할 상품명</label><input id="prodName" type="text" placeholder="예: 우리 브랜드 수분 토너" /></div>
+      <div class="field">
+        <label>타겟 고객 · 톤앤매너</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <select id="prodTarget">
+            <option value="전체 K-뷰티 관심층">타겟: 전체</option>
+            <option value="2030 속건조·수부지">2030 속건조</option>
+            <option value="1020 지성·트러블">1020 트러블</option>
+            <option value="3040 탄력·진정">3040 진정·탄력</option>
+            <option value="올영·다이소 가성비층">올영·가성비</option>
+          </select>
+          <select id="prodTone">
+            <option value="공감·일상 루틴형">톤: 공감 루틴</option>
+            <option value="성분·팩트체크형">성분 팩트체크</option>
+            <option value="솔직 후기·비교형">솔직 비교</option>
+            <option value="짧고 강한 훅 중심형">강한 훅 중심</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div style="margin-top:14px;">
+    <div class="field" style="margin-top:12px;">
+      <label>강조할 핵심 특징 (확인된 성분·사용감만 입력)</label>
+      <textarea id="prodKeywords" rows="2" placeholder="예: 저분자 히알루론산 워터 제형, 화장 전 속건조 케어, 화장솜 5분 토너팩 활용"></textarea>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="runStep2Match()">캠페인·카피 만들기</button>
+      <span style="font-size:12.5px;color:var(--muted);">카피 3종, 4단 촬영 콘티, 시딩 DM 초안을 한 번에 생성합니다.</span>
     </div>
     <div id="step2Status" class="status-bar"></div>
   </section>
@@ -474,6 +512,7 @@ let selectedSort = "grade";
 let selectedPromoFilter = "all";
 let currentPage = 1;
 const PAGE_SIZE = 10;
+let selectedRefVideoId = null;
 let step1Data = null;
 let step2Data = null;
 
@@ -1095,7 +1134,7 @@ function renderStep1Result(data) {
   const pats = (data.market_patterns || []).map((p, i) =>
     `<div class="insight-item"><span class="insight-idx">흐름 ${i + 1}</span>${esc(p)}</div>`
   ).join("");
-  const fmtChips = topFmts.map(([tag, cnt]) => `${esc(tag)} (${cnt})`).join(" · ");
+  const fmtChips = topFmts.length ? "주요 포맷: " + topFmts.map(([tag, cnt]) => `${esc(tag)} (${cnt})`).join(" · ") : "";
 
   const avgV = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views, 0) / filtered.length) : 0;
   const avgVpd = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views_per_day, 0) / filtered.length) : 0;
@@ -1150,7 +1189,7 @@ function renderStep1Result(data) {
           <div class="stat-cell"><span class="stat-lbl" title="채널 평소 평균 대비 배수">평소 대비</span><span class="stat-num">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></div>
           <div class="stat-cell"><span class="stat-lbl" title="채널 구독자 수 대비 배수">구독자 대비</span><span class="stat-num">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></div>
         </div>
-        <button class="row-cta" onclick="openStep2Panel()">이 영상으로 기획하기</button>
+        <button class="row-cta" onclick="openStep2Panel('${esc(v.video_id)}')">이 영상으로 기획하기</button>
       </div>
     </div>`;
   }).join("") : `<div style="padding:36px 12px;text-align:center;color:var(--muted);">해당 조건에 맞는 영상이 없어요. 상단에서 '전체' 탭을 눌러보세요.</div>`;
@@ -1195,12 +1234,41 @@ function renderStep1Result(data) {
       <button class="btn btn-primary" onclick="openStep2Panel()">2단계 · 우리 상품 기획안 만들기</button>
     </div>
   `;
-  if (!document.getElementById("prodName").value) applyPreset("toner");
 }
-function openStep2Panel() {
+function renderSelectedRefBox() {
+  const box = document.getElementById("selectedRefBox");
+  if (!box || !step1Data) return;
+  if (!selectedRefVideoId) {
+    box.innerHTML = "";
+    return;
+  }
+  const v = (step1Data.videos || []).find(x => x.video_id === selectedRefVideoId);
+  if (!v) { box.innerHTML = ""; return; }
+  const f = (step1Data.facts || []).find(x => x.video_id === selectedRefVideoId) || {};
+  const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
+  box.innerHTML = `<div class="ref-banner">
+    <div class="ref-banner-left">
+      <img src="${esc(thumb)}" alt="ref"/>
+      <div style="min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--purple);">선택한 참고 쇼츠 · ${esc(f.format_tag || "인기 포맷")}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.title)}</div>
+      </div>
+    </div>
+    <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="clearSelectedRef()">전체 트렌드 기준으로 보기</button>
+  </div>`;
+}
+function clearSelectedRef() {
+  selectedRefVideoId = null;
+  renderSelectedRefBox();
+}
+function openStep2Panel(videoId) {
+  if (videoId) selectedRefVideoId = videoId;
   const p = document.getElementById("step2Panel");
+  const cta = document.getElementById("bottomCtaBar");
+  if (cta) cta.style.display = "none";
   if (!p) return;
   p.style.display = "block";
+  renderSelectedRefBox();
   p.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -1226,8 +1294,10 @@ async function runStep2Match() {
   const cat = document.getElementById("prodCat").value;
   const prodName = document.getElementById("prodName").value.trim();
   const prodKw = document.getElementById("prodKeywords").value.trim();
+  const prodTarget = document.getElementById("prodTarget")?.value || "전체 K-뷰티 관심층";
+  const prodTone = document.getElementById("prodTone")?.value || "공감·일상 루틴형";
   const st = document.getElementById("step2Status");
-  if (!prodName) { st.textContent = "⚠️ 홍보할 상품명을 입력해주세요."; return; }
+  if (!prodName) { st.textContent = "홍보할 상품명을 먼저 입력하거나 상단 샘플 버튼을 눌러보세요."; return; }
 
   const expDomain = expectedDomainFromCat(cat);
   const presetMatch = Object.values(PRESETS).find(p => p.name === prodName);
@@ -1235,19 +1305,26 @@ async function runStep2Match() {
   const allowedClaims = prodKw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
   const ggKey = document.getElementById("ggKey").value.trim();
   const model = document.getElementById("modelSel").value;
+  const factsPool = (step1Data.facts && step1Data.facts.length)
+    ? step1Data.facts
+    : (step1Data.videos || []).map(v => ({
+        video_id: v.video_id, domain: expDomain, format_tag: "제품 리뷰형",
+        what_happens: v.title, hook_quote: v.title, evidence_quote: v.title,
+        evidence_ok: true, text_source: v.text_source || "meta"
+      }));
 
   let judgements = [], briefs = [];
-  if (step1Data.mode === "live" && ggKey) {
+  if ((step1Data.mode === "live" || step1Data.mode === "snapshot") && ggKey) {
     try {
-      st.textContent = "✨ 방금 본 트렌드와 홍보할 상품을 매칭하고 카피·콘티를 만들고 있어요...";
-      const p2 = `당신은 '${prodName}' (${cat}) 담당 마케터입니다. 아래 팩트를 보고 Go/Pivot/Drop 판정과 Go 항목의 카피 3종 + 4단 촬영 콘티를 JSON으로 반환하세요.
-[제품 특징 — 이 범위 안에서만 작성] ${allowedClaims.join(" / ")}
+      st.textContent = "선택한 트렌드와 상품 특징을 맞춰 카피와 촬영 콘티를 작성하고 있어요...";
+      const refHint = selectedRefVideoId ? `\n[우선 참고 요청 영상 ID] ${selectedRefVideoId} (영역이 맞으면 우선적으로 Go 추천과 콘티 작성)` : "";
+      const p2 = `당신은 '${prodName}' (${cat}) 담당 K-뷰티 마케터입니다. 타겟(${prodTarget})과 톤(${prodTone})에 맞춰 Go/Pivot/Drop 판정과 Go 항목의 카피 3종 + 4단 촬영 콘티를 JSON으로 반환하세요.${refHint}
+[제품 특징 — 이 범위 안에서만 작성] ${allowedClaims.join(" / ") || prodName}
 [금지 표현] ${bannedList.join(", ")} / 1위·1등·즉각·완벽·치료·완치·아토피 금지
 JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score":1,"reason":"","linked_claim":""}],"briefs":[{"video_id":"","hook":"","before":"","product_moment":"","cta":"","creator_note":"","copy_ideas":["카피1","카피2","카피3"]}]}
-[시장 팩트]\n` + step1Data.facts.map(f => `[${f.video_id}] 영역=${f.domain} | 포맷=${f.format_tag} | 내용=${f.what_happens}`).join("\n");
+[시장 팩트]\n` + factsPool.map(f => `[${f.video_id}] 영역=${f.domain} | 포맷=${f.format_tag} | 내용=${f.what_happens}`).join("\n");
       const s2 = await callGeminiJson(ggKey, model, p2);
-      const fBy = Object.fromEntries(step1Data.facts.map(f => [f.video_id, f]));
-      judgements = step1Data.facts.map(f => {
+      judgements = factsPool.map(f => {
         const raw = (s2.judgements || []).find(j => j.video_id === f.video_id) || { score: 1, reason: "판정 누락", linked_claim: "" };
         let score = Math.max(1, Math.min(5, Number(raw.score) || 1));
         let reason = raw.reason || "";
@@ -1261,42 +1338,43 @@ JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score"
         const violations = checkViolations(b, allowedClaims, bannedList);
         return { ...b, violations, needs_review: violations.length > 0 };
       });
-      st.textContent = "✅ 맞춤 캠페인·카피가 완성됐어요!";
+      st.textContent = "맞춤 캠페인과 카피를 만들었어요. 아래에서 바로 복사해 쓸 수 있어요.";
     } catch (e) {
-      st.textContent = "❌ 기획 생성 오류: " + e.message;
+      st.textContent = "기획 생성 오류: " + e.message;
       return;
     }
   } else {
-    // 예시 화면 미리보기 (오프라인 즉시 매칭)
-    judgements = step1Data.facts.map(f => {
-      if (f.domain !== expDomain) {
+    // 오프라인/키 미입력 시에도 영역 일치 영상에 대해 즉시 실행 가능한 초안 제공
+    judgements = factsPool.map(f => {
+      const isSelected = selectedRefVideoId && f.video_id === selectedRefVideoId;
+      if (!isSelected && f.domain && f.domain !== expDomain) {
         return { video_id: f.video_id, decision: "Drop", score: 1, reason: `영상 영역(${f.domain})이 상품 영역(${expDomain})과 달라 억지 연결을 막았어요.`, linked_claim: "" };
       }
-      if (f.text_source !== "caption") {
-        return { video_id: f.video_id, decision: "Pivot", score: 3, reason: "영역은 맞지만 자막이 없어 직접 시청 후 결정하는 것을 권장해요.", linked_claim: allowedClaims[0] || prodName };
-      }
-      return { video_id: f.video_id, decision: "Go", score: 5, reason: `'${f.format_tag}' 포맷이 '${prodName}'의 핵심 특징과 자연스럽게 연결돼요.`, linked_claim: allowedClaims[0] || prodName };
+      const note = f.text_source !== "caption" ? " (자막 미확인 · 촬영 전 원본 영상 확인 권장)" : "";
+      return { video_id: f.video_id, decision: "Go", score: isSelected ? 5 : 4, reason: `'${f.format_tag || "인기"}' 포맷이 '${prodName}' (${prodTone}) 기획과 잘 맞아요.${note}`, linked_claim: allowedClaims[0] || prodName };
     });
-    const goList = judgements.filter(j => j.decision === "Go").slice(0, 3);
+    const goList = judgements.filter(j => j.decision === "Go")
+      .sort((a, b) => (a.video_id === selectedRefVideoId ? -1 : b.video_id === selectedRefVideoId ? 1 : b.score - a.score))
+      .slice(0, 3);
     briefs = goList.map(g => {
-      const f = step1Data.facts.find(x => x.video_id === g.video_id);
+      const f = factsPool.find(x => x.video_id === g.video_id) || {};
       const b = {
         video_id: g.video_id,
-        hook: `첫 3초: "${f.hook_quote || f.what_happens}" 자막과 함께 상품 사용 직전 클로즈업`,
-        before: `평소 ${cat} 고민이 드러나는 공감 비포 장면`,
+        hook: `첫 3초(${prodTone}): "${f.hook_quote || f.what_happens || prodName}" 자막과 함께 제품 사용 직전 클로즈업`,
+        before: `${prodTarget}의 평소 ${cat} 고민이 드러나는 공감 비포 장면`,
         product_moment: `${prodName} — ${allowedClaims[0] || prodName} 특징을 자연스럽게 시연`,
         cta: "프로필 링크 또는 올리브영에서 데일리 루틴 상품 확인해보세요",
         creator_note: "확인되지 않은 순위·즉각 효과·의약품 오인 표현 절대 금지",
         copy_ideas: [
-          `${prodName}, ${f.format_tag}으로 바로 따라 해보는 데일리 루틴`,
-          `복잡한 단계 대신 딱 하나, ${allowedClaims[0] || prodName}`,
+          `${prodName}, ${f.format_tag || "루틴"}으로 바로 따라 해보는 데일리 케어`,
+          `${prodTarget}을 위한 한 가지 선택, ${allowedClaims[0] || prodName}`,
           `요즘 뜨는 쇼츠 포맷 그대로 담은 ${prodName} 리얼 사용기`
         ]
       };
       const violations = checkViolations(b, allowedClaims, bannedList);
       return { ...b, violations, needs_review: violations.length > 0 };
     });
-    st.textContent = "👀 예시 화면 기준 맞춤 캠페인·카피를 만들었어요.";
+    st.textContent = "선택한 조건 기준으로 맞춤 캠페인과 카피 초안을 만들었어요.";
   }
 
   step2Data = { product: prodName, cat, expDomain, bannedList, allowedClaims, judgements, briefs };
@@ -1447,9 +1525,9 @@ function renderStep2Result(s2) {
     <h3 style="margin:6px 0 12px;">🎯 '${esc(s2.product)}' 맞춤 추천 컨셉 (${go.length}건)</h3>
     ${goHtml}
     <div class="action-bar">
-      <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false)">📋 팀장 보고 요약 복사</button>
-      <button class="btn ${anyRev?'btn-danger':'btn-primary'}" onclick="copyText(window._step2Reports.dm, ${anyRev})">${anyRev?'⚠️ 검수 후 인플루언서 DM 복사':'💌 인플루언서 DM 복사'}</button>
-      <button class="btn btn-outline" onclick="downloadStep2Html()">📄 1페이지 보고서 HTML 저장</button>
+      <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false)">팀장 보고 요약 복사</button>
+      <button class="btn ${anyRev?'btn-danger':'btn-primary'}" onclick="copyText(window._step2Reports.dm, ${anyRev})">${anyRev?'검수 후 인플루언서 DM 복사':'인플루언서 DM 복사'}</button>
+      <button class="btn btn-sec" onclick="downloadStep2Html()">1페이지 보고서 HTML 저장</button>
     </div>
     ${pvHtml}
     <details class="b2b-details">
