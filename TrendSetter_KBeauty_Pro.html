@@ -80,30 +80,50 @@ body {
   content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2.5px; background: var(--purple);
 }
 
+.explore-bar {
+  background: #FFFFFF; border: 1px solid #E7E5DF; border-radius: 14px;
+  padding: 14px 20px; margin-top: 4px;
+}
 .nav-row {
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  border-bottom: 1px solid #F1F0EC; padding-bottom: 10px;
 }
-.cat-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cat-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ctrl-lbl { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .cat-tab {
-  background: #FFFFFF; border: 1px solid #E2E0D8; border-radius: 9px;
-  padding: 8px 16px; font-size: 14.5px; font-weight: 500; color: var(--ink-secondary);
+  background: transparent; border: none; border-radius: 8px; position: relative;
+  padding: 7px 14px; font-size: 14.5px; font-weight: 500; color: #52525B;
   cursor: pointer; font-family: inherit; transition: all 0.12s ease;
 }
-.cat-tab:hover { background: #FDF2F8; border-color: #FBCFE8; color: var(--purple); }
-.cat-tab.active { background: var(--purple); border-color: var(--purple); color: #FFF; font-weight: 600; }
-.sub-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; align-items: center; }
-.sub-chip {
-  background: #FFF; border: 1px solid #DCDAD2; border-radius: 7px; padding: 6px 12px;
-  font-size: 13.5px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
+.cat-tab:hover { background: #FDF2F8; color: var(--purple); }
+.cat-tab.active { background: var(--purple); color: #FFF; font-weight: 600; }
+.sub-row {
+  display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; align-items: center;
 }
-.sub-chip:hover { border-color: var(--purple); color: var(--purple); }
+.sub-chip {
+  background: #FAF9F6; border: 1px solid #E2E0D8; border-radius: 999px; padding: 4px 12px;
+  font-size: 13px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
+}
+.sub-chip:hover { border-color: var(--purple); color: var(--purple); background: #FDF2F8; }
 .sub-chip.active { background: #FDF2F8; border-color: var(--purple); color: var(--purple); font-weight: 600; }
+.sub-hint { font-size: 12.5px; color: var(--muted); padding-top: 9px; }
 
-.controls-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.period-select, .sort-select {
-  padding: 8px 12px; border: 1px solid #DCDAD2; border-radius: 8px; background: #FFF;
+.controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.period-select {
+  padding: 7px 12px; border: 1.5px solid #FBCFE8; border-radius: 8px; background: #FDF2F8;
+  font-size: 13.5px; font-weight: 600; color: var(--purple); font-family: inherit; cursor: pointer;
+}
+.sort-select {
+  padding: 7px 12px; border: 1px solid #DCDAD2; border-radius: 8px; background: #FFF;
   font-size: 13.5px; font-weight: 500; color: var(--ink); font-family: inherit; cursor: pointer;
 }
+.grade-guide-bar {
+  background: #FAF9F6; border: 1px solid #ECEAE4; border-radius: 9px;
+  padding: 10px 14px; margin: 8px 0 6px; font-size: 12.5px; color: var(--ink-secondary);
+  display: none; line-height: 1.6;
+}
+.grade-guide-bar.open { display: block; }
 .journey-bar {
   display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
   font-size: 12.5px; color: var(--muted);
@@ -113,21 +133,6 @@ body {
   font-weight: 500; border: none; font-family: inherit; font-size: 12.5px; cursor: pointer;
 }
 .j-pill.active { background: #FDF2F8; color: var(--purple); font-weight: 600; }
-.search-bar-row {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px;
-}
-.search-input {
-  flex: 1; min-width: 220px; max-width: 420px; padding: 8px 12px;
-  border: 1px solid #DCDAD2; border-radius: 8px; background: #FFF;
-  font-size: 13.5px; color: var(--ink); font-family: inherit;
-}
-.search-input:focus { outline: none; border-color: var(--purple); }
-.kw-feedback-banner {
-  background: #FDF2F8; border: 1px solid #FBCFE8; border-radius: 10px;
-  padding: 12px 16px; margin-bottom: 14px;
-  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
-  font-size: 13.5px; color: var(--ink);
-}
 .btn {
   padding: 9px 15px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer;
   border: 1px solid transparent; transition: all 0.12s ease; font-family: inherit;
@@ -424,26 +429,27 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     <div class="filter-top">
       <div>
         <h2 class="page-title">오늘의 K-뷰티 쇼츠 트렌드</h2>
-        <div class="page-sub">한국 뷰티 키워드 상위 쇼츠에서 해외·비뷰티 영상을 빼고 골라왔어요</div>
+        <div class="page-sub">1. 카테고리와 기간을 고른 뒤 → 2. 아래 쇼츠에서 <b>이 영상으로 기획하기</b>를 눌러보세요</div>
       </div>
       <div id="step1Status" style="font-size:13px;color:var(--ink-secondary);font-weight:500;"></div>
     </div>
 
-    <div class="nav-row">
-      <div id="crumbBar" class="cat-tabs"></div>
-      <div class="controls-right">
-        <select id="daysSel" class="period-select" onchange="setDays(Number(this.value))" title="트렌드 기간 선택">
-          <option value="1">기간: 최근 1일 · 오늘 급상승</option>
-          <option value="7">기간: 최근 7일 · 이번 주</option>
-          <option value="30" selected>기간: 최근 30일 · 대세</option>
-        </select>
+    <div class="explore-bar">
+      <div class="nav-row">
+        <div class="cat-group">
+          <span class="ctrl-lbl">카테고리</span>
+          <div id="crumbBar" class="cat-tabs"></div>
+        </div>
+        <div class="controls-right">
+          <span class="ctrl-lbl">기준 기간</span>
+          <select id="daysSel" class="period-select" onchange="setDays(Number(this.value))" title="트렌드 집계 기간 선택">
+            <option value="1">최근 1일 · 오늘 급상승</option>
+            <option value="7">최근 7일 · 이번 주</option>
+            <option value="30" selected>최근 30일 · 대세</option>
+          </select>
+        </div>
       </div>
-    </div>
-    <div id="childChips" class="sub-chips"></div>
-    <div class="search-bar-row">
-      <input id="kwSearchInput" class="search-input" type="text" placeholder="찾는 성분·제품 키워드로 바로 찾아보기 (예: PDRN, 톤업, 수분패드)" onkeydown="if(event.key==='Enter')searchSnapshotKeywords()" />
-      <button class="btn btn-outline" onclick="searchSnapshotKeywords()">키워드 찾기</button>
-      <button id="kwClearBtn" class="btn btn-outline" style="display:none;" onclick="clearKeywordSearch()">전체 목록으로</button>
+      <div id="childChips"></div>
     </div>
   </section>
 
@@ -592,7 +598,7 @@ let selectedDays = 30;
 let selectedSort = "grade";
 let selectedPromoFilter = "all";
 let selectedFormatFilter = "all";
-let currentSearchKeyword = "";
+let showGradeGuide = false;
 let currentPage = 1;
 const PAGE_SIZE = 10;
 let selectedRefVideoId = null;
@@ -650,17 +656,20 @@ function renderExplorerNav() {
 
   document.getElementById("crumbBar").innerHTML = topCats.map(tc => {
     const isAct = activeTop === tc;
-    return `<button class="cat-tab ${isAct ? 'active' : ''}" onclick="selectPath('${tc}')">${esc(getNode(tc).label)}</button>`;
+    const label = tc === "beauty" ? "전체" : getNode(tc).label + " ▾";
+    return `<button class="cat-tab ${isAct ? 'active' : ''}" onclick="selectPath('${tc}')">${esc(label)}</button>`;
   }).join("");
 
   const subParent = activeTop !== "beauty" ? activeTop : null;
   const children = subParent ? (getNode(subParent).children || []) : [];
   const childEl = document.getElementById("childChips");
   if (!children.length) {
-    childEl.innerHTML = "";
+    childEl.className = "sub-hint";
+    childEl.innerHTML = `기초·색조·헤어 탭을 누르면 <b>토너·패드, 세럼·앰플, 립·틴트</b> 등 세부 품목까지 좁혀볼 수 있어요.`;
   } else {
-    childEl.innerHTML = `<span style="font-size:12px;color:var(--muted);margin-right:2px;">세부 품목</span>` +
-      `<button class="sub-chip ${currentPath === subParent ? 'active' : ''}" onclick="selectPath('${subParent}')">전체</button>` +
+    childEl.className = "sub-row";
+    childEl.innerHTML = `<span class="ctrl-lbl">└ ${esc(getNode(subParent).label)} 세부 품목</span>` +
+      `<button class="sub-chip ${currentPath === subParent ? 'active' : ''}" onclick="selectPath('${subParent}')">${esc(getNode(subParent).label)} 전체</button>` +
       children.map(ck =>
         `<button class="sub-chip ${currentPath === ck ? 'active' : ''}" onclick="selectPath('${ck}')">${esc(getNode(ck).label)}</button>`
       ).join("");
@@ -710,14 +719,19 @@ function focusSeedingRoadmap() {
   if (road) road.scrollIntoView({ behavior: "smooth", block: "center" });
   showToast("2단계 맞춤 기획 후 3단계 시딩 크리에이터 추천까지 확장될 예정이에요.");
 }
+function toggleGradeGuide() {
+  showGradeGuide = !showGradeGuide;
+  const el = document.getElementById("gradeGuideBar");
+  if (el) el.classList.toggle("open", showGradeGuide);
+}
+function formatRatio(n) {
+  const num = Number(n);
+  if (!isFinite(num) || num <= 0) return "";
+  return num >= 10 ? String(Math.round(num)) : String(Math.round(num * 10) / 10);
+}
 function selectPath(key) {
   currentPath = key;
   selectedFormatFilter = "all";
-  currentSearchKeyword = "";
-  const kwIn = document.getElementById("kwSearchInput");
-  if (kwIn) kwIn.value = "";
-  const kwClr = document.getElementById("kwClearBtn");
-  if (kwClr) kwClr.style.display = "none";
   currentPage = 1;
   renderExplorerNav();
   if (tryApplySnapshotEntry(key, selectedDays)) return;
@@ -735,9 +749,6 @@ function toggleApiPanel() {
 function setDays(d) {
   selectedDays = d;
   currentPage = 1;
-  currentSearchKeyword = "";
-  const kwClr = document.getElementById("kwClearBtn");
-  if (kwClr) kwClr.style.display = "none";
   const dSel = document.getElementById("daysSel");
   if (dSel && Number(dSel.value) !== d) dSel.value = String(d);
   if (tryApplySnapshotEntry(currentPath, d)) return;
@@ -760,76 +771,6 @@ function setSort(s) {
   const sel = document.getElementById("sortSel");
   if (sel && sel.value !== s) sel.value = s;
   if (step1Data) renderStep1Result(step1Data);
-}
-function submitKeywordRequest(kw) {
-  const cleanKw = String(kw || "").trim();
-  if (!cleanKw) return;
-  try {
-    const prev = JSON.parse(window.localStorage.getItem("sr_keyword_requests_v1") || "[]");
-    if (!prev.some(x => x.keyword === cleanKw)) {
-      prev.push({ keyword: cleanKw, requested_at: new Date().toISOString() });
-      window.localStorage.setItem("sr_keyword_requests_v1", JSON.stringify(prev.slice(-50)));
-    }
-  } catch (e) {}
-  showToast(`요청하신 '${cleanKw}'은 다음 트렌드 수집에 반영할게요.`);
-  const btn = document.getElementById("kwReqBtn");
-  if (btn) { btn.textContent = "의견 반영 완료"; btn.disabled = true; }
-}
-function searchSnapshotKeywords() {
-  const kw = (document.getElementById("kwSearchInput")?.value || "").trim();
-  if (!kw) { clearKeywordSearch(); return; }
-  currentSearchKeyword = kw;
-  currentPage = 1;
-  const clrBtn = document.getElementById("kwClearBtn");
-  if (clrBtn) clrBtn.style.display = "inline-flex";
-
-  const entries = window.SHORTFORM_RADAR_SNAPSHOT?.entries || {};
-  const qNorm = kw.replace(/\s+/g, "").toLowerCase();
-  const seen = new Set();
-  const matchedVideos = [];
-  const matchedFacts = [];
-
-  const searchPools = Object.values(entries);
-  if (step1Data && Array.isArray(step1Data.videos)) searchPools.unshift(step1Data);
-
-  for (const ent of searchPools) {
-    const fMap = Object.fromEntries((ent.facts || []).map(f => [f.video_id, f]));
-    for (const v of (ent.videos || [])) {
-      if (seen.has(v.video_id)) continue;
-      if (isSpam(v) || !isKorean(v)) continue;
-      const f = fMap[v.video_id] || {};
-      const hay = `${v.title || ""} ${v.description || ""} ${(v.tags || []).join(" ")} ${f.what_happens || ""}`.replace(/\s+/g, "").toLowerCase();
-      if (hay.includes(qNorm)) {
-        seen.add(v.video_id);
-        matchedVideos.push(computeMetrics(v));
-        if (f.video_id) matchedFacts.push(f);
-      }
-    }
-  }
-
-  if (matchedVideos.length < 3) submitKeywordRequest(kw);
-  step1Data = {
-    mode: "search",
-    path_key: currentPath,
-    path_label: `'${kw}' 키워드 검색`,
-    days_range: selectedDays,
-    report_date: new Date().toISOString().slice(0, 10),
-    videos: matchedVideos,
-    facts: matchedFacts,
-    market_patterns: matchedVideos.length
-      ? [`저장된 전체 뷰티 트렌드에서 '${kw}' 관련 쇼츠 ${matchedVideos.length}편을 찾았어요. 반응이 높은 순으로 바로 참고해 보세요.`]
-      : []
-  };
-  document.getElementById("step1Status").textContent = `'${kw}' 검색 결과 · 추가 API 한도 소모 없음`;
-  renderStep1Result(step1Data);
-}
-function clearKeywordSearch() {
-  currentSearchKeyword = "";
-  const kwIn = document.getElementById("kwSearchInput");
-  if (kwIn) kwIn.value = "";
-  const clrBtn = document.getElementById("kwClearBtn");
-  if (clrBtn) clrBtn.style.display = "none";
-  if (!tryApplySnapshotEntry(currentPath, selectedDays)) renderExplorerNav();
 }
 function applyPreset(key) {
   const p = PRESETS[key];
@@ -1298,7 +1239,6 @@ function runStep1Preview() {
 }
 
 function getBriefingHeadline(data) {
-  if (data.mode === "search") return `${esc(data.path_label)} 요약`;
   const d = Number(data.days_range || 30);
   if (!data.path_key || data.path_key === "beauty") {
     if (d === 1) return "오늘 바로 뜨는 뷰티 쇼츠 포인트";
@@ -1340,13 +1280,6 @@ function renderStep1Result(data) {
   const pats = (data.market_patterns || []).map((p, i) =>
     `<div class="insight-item"><span class="insight-idx">0${i + 1}</span><div>${esc(p)}</div></div>`
   ).join("");
-  const topVideo = filtered[0] || allSorted[0];
-  const briefFootHtml = topVideo
-    ? `<div class="brief-foot">
-        <span>실제 유튜브 조회수·반응 기준 · ${allSorted.length}편 분석</span>
-        <button class="text-action-btn" onclick="openStep2Panel('${esc(topVideo.video_id)}')">1위 영상으로 바로 기획하기 →</button>
-      </div>`
-    : "";
 
   const fmtToolbarHtml = topFmts.length ? `
     <div class="fmt-filter-row">
@@ -1358,12 +1291,15 @@ function renderStep1Result(data) {
     </div>
   ` : "";
 
-  const kwNoticeHtml = (currentSearchKeyword && filtered.length < 3)
-    ? `<div class="kw-feedback-banner">
-        <span>찾으시는 <b>'${esc(currentSearchKeyword)}'</b> 관련 영상이 아직 충분하지 않아요. <b>요청하신 키워드는 다음 트렌드 수집에 반영할게요.</b></span>
-        <button class="btn btn-outline" style="padding:5px 11px;font-size:12.5px;" onclick="clearKeywordSearch()">전체 트렌드로 돌아가기</button>
-      </div>`
-    : "";
+  const gradeGuideHtml = `
+    <div id="gradeGuideBar" class="grade-guide-bar ${showGradeGuide ? 'open' : ''}">
+      <b>등급 기준</b> ·
+      <b>S등급</b> 조회수 10만↑ (또는 1만↑ · 구독자 5배↑) ·
+      <b>A등급</b> 조회수 3만↑ (또는 하루 3천↑) ·
+      <b>B등급</b> 조회수 1만↑ (또는 하루 1천↑) ·
+      <b>C등급</b> 조회수 1만 미만
+    </div>
+  `;
 
   const formatPubDate = (iso) => {
     if (!iso) return "";
@@ -1383,9 +1319,11 @@ function renderStep1Result(data) {
     const promoTag = v.has_paid_promotion
       ? `<span class="tag-mini tag-ad" title="유튜브 유료 프로모션 설정 또는 제목·설명란 협찬 표기 감지">광고</span>`
       : `<span class="tag-mini tag-org" title="유료 프로모션 및 설명란 광고·협찬 표기가 확인되지 않은 영상">오가닉</span>`;
-    const riseTag = (v.views >= 10000 && v.views_per_subscriber != null && v.views_per_subscriber >= 5)
-      ? `<span class="tag-mini tag-rise" title="채널 구독자 수 대비 조회수가 크게 터진 영상">소형 채널 급상승</span>`
+    const subRatioStr = formatRatio(v.views_per_subscriber);
+    const riseTag = (v.views >= 10000 && subRatioStr && v.views_per_subscriber >= 5)
+      ? `<span class="tag-mini tag-rise" title="채널 구독자 수보다 ${subRatioStr}배 많이 본 영상">구독자 수 대비 ${subRatioStr}배</span>`
       : "";
+    const avgRatioStr = formatRatio(v.views_vs_channel_avg);
     const deltaTxt = v.views_delta && v.views_delta > 0 ? ` <span style="font-size:12px;color:var(--purple);font-weight:600;">(어제보다 +${formatKoNum(v.views_delta)})</span>` : "";
     return `<div class="feed-item">
       <div class="feed-left">
@@ -1406,16 +1344,16 @@ function renderStep1Result(data) {
           ${v.channel_title ? `<span>${esc(v.channel_title)}</span><span>·</span>` : ""}
           ${pubDateStr ? `<span>${pubDateStr}</span><span>·</span>` : ""}
           <span>${esc(f.format_tag || "기타")}</span>
-          <span>· 좋아요 ${formatKoNum(v.likes)}</span>
-          <span>· 댓글 ${(v.comments || 0).toLocaleString()}</span>
+          ${avgRatioStr ? `<span>· 채널 평소보다 ${avgRatioStr}배 더 봄</span>` : ""}
+          ${subRatioStr ? `<span>· 구독자 대비 ${subRatioStr}배 조회</span>` : ""}
         </div>
       </div>
       <div class="feed-right">
         <div class="stat-grid">
-          <div class="stat-cell"><span class="stat-lbl">조회수</span><span class="stat-num primary">${formatKoNum(v.views)}${deltaTxt}</span></div>
-          <div class="stat-cell"><span class="stat-lbl">일평균</span><span class="stat-num">${formatKoNum(v.views_per_day)}</span></div>
-          <div class="stat-cell"><span class="stat-lbl" title="이 채널의 평소 평균 조회수와 비교한 수치">채널 평균 대비</span><span class="stat-num ${v.views_vs_channel_avg >= 5 ? 'hot' : ''}">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></div>
-          <div class="stat-cell"><span class="stat-lbl" title="채널 구독자 수보다 얼마나 더 많은 사람이 봤는지 나타낸 수치">채널 규모 대비</span><span class="stat-num ${v.views_per_subscriber >= 5 ? 'hot' : ''}">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">누적 조회수</span><span class="stat-num primary">${formatKoNum(v.views)}${deltaTxt}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">일평균 조회수</span><span class="stat-num">${formatKoNum(v.views_per_day)}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">좋아요</span><span class="stat-num">${formatKoNum(v.likes)}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">댓글</span><span class="stat-num">${(v.comments || 0).toLocaleString()}개</span></div>
         </div>
         <button class="row-cta" onclick="openStep2Panel('${esc(v.video_id)}')">이 영상으로 기획하기 →</button>
       </div>
@@ -1435,9 +1373,9 @@ function renderStep1Result(data) {
   const sortSelectHtml = `
     <select id="sortSel" class="sort-select" onchange="setSort(this.value)" title="정렬 기준 선택">
       <option value="grade" ${selectedSort === 'grade' ? 'selected' : ''}>정렬: 등급·인기 순</option>
-      <option value="vs_avg" ${selectedSort === 'vs_avg' ? 'selected' : ''}>정렬: 채널 평균 대비 순</option>
-      <option value="subscriber_ratio" ${selectedSort === 'subscriber_ratio' ? 'selected' : ''}>정렬: 작은 채널 급상승 순</option>
-      <option value="fast" ${selectedSort === 'fast' ? 'selected' : ''}>정렬: 하루 평균 순</option>
+      <option value="vs_avg" ${selectedSort === 'vs_avg' ? 'selected' : ''}>정렬: 채널 평소 대비 순</option>
+      <option value="subscriber_ratio" ${selectedSort === 'subscriber_ratio' ? 'selected' : ''}>정렬: 구독자 수 대비 순</option>
+      <option value="fast" ${selectedSort === 'fast' ? 'selected' : ''}>정렬: 일평균 조회수 순</option>
       <option value="views" ${selectedSort === 'views' ? 'selected' : ''}>정렬: 누적 조회수 순</option>
       <option value="comments" ${selectedSort === 'comments' ? 'selected' : ''}>정렬: 댓글 많은 순</option>
     </select>
@@ -1447,14 +1385,13 @@ function renderStep1Result(data) {
     <section class="insights-wrap">
       <div class="section-head">
         <h3>${getBriefingHeadline(data)}</h3>
+        <span style="font-size:12.5px;color:var(--muted);">실제 유튜브 조회수·반응 기준 · ${allSorted.length}편 분석</span>
       </div>
       <div class="insights-list">${pats}</div>
-      ${briefFootHtml}
     </section>
   ` : "";
 
   document.getElementById("step1Area").innerHTML = `
-    ${kwNoticeHtml}
     ${insightsHtml}
     <section class="feed-wrap">
       <div class="feed-toolbar">
@@ -1465,16 +1402,18 @@ function renderStep1Result(data) {
             <button class="promo-tab ${selectedPromoFilter === 'ad' ? 'active' : ''}" onclick="setPromoFilter('ad')">광고 (${adCnt})</button>
           </div>
           ${fmtToolbarHtml}
+          <button class="fmt-pill" onclick="toggleGradeGuide()">? 등급 기준</button>
         </div>
         ${sortSelectHtml}
       </div>
+      ${gradeGuideHtml}
       ${feedHtml}
       ${pagerHtml}
     </section>
     <div id="bottomCtaBar" class="bottom-cta">
       <div>
         <div style="font-size:15px;font-weight:600;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</div>
-        <div style="font-size:13px;color:var(--muted);">상품 특징만 넣으면 맞춤 카피 3종과 4단 촬영 콘티를 바로 만들어 드려요.</div>
+        <div style="font-size:13px;color:var(--muted);">상품 특징만 넣으면 맞춤 자막과 4컷 촬영 대본을 바로 만들어 드려요.</div>
       </div>
       <button class="btn btn-primary" onclick="openStep2Panel()">2단계 · 우리 상품 기획안 만들기</button>
     </div>
@@ -1760,7 +1699,7 @@ function renderStep2Result(s2) {
         <div>
           <span class="pill pill-purple">3단계 확장 예정</span>
           <div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:4px;">이 콘셉트에 맞는 시딩 인플루언서 추천 · 맞춤 DM</div>
-          <div style="font-size:13px;color:var(--muted);">추천 기준: ${esc(p.seeding_fit || "소형 채널 급상승 크리에이터 중 동일 포맷 강점 보유자")}</div>
+          <div style="font-size:13px;color:var(--muted);">추천 기준: ${esc(p.seeding_fit || "구독자 수 대비 조회수가 크게 터진 동일 포맷 크리에이터")}</div>
         </div>
       </div>
     </section>

@@ -847,9 +847,9 @@ def test_step1_step2_kr_flow(products):
 
     # 5) HTML 고객 화면 내부 용어·속어·중복 위계 노출 차단 + 1초 JS 함수 단위 검증
     html_text = open(os.path.join(ROOT, "TrendSetter_KBeauty_Pro.html"), encoding="utf-8").read()
-    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도", "kpi-strip", "인기 영상 유형 ·", "일반(미표시)", "광고 표시"]:
+    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도", "kpi-strip", "인기 영상 유형 ·", "일반(미표시)", "광고 표시", "kwSearchInput", "소형 채널 급상승"]:
         _assert(forbidden_ui not in html_text, f"고객 화면에 금지/내부/중복 요소 노출: {forbidden_ui}")
-    for required_ui in ["daysSel", "sortSel", "kwSearchInput", "이번 주 뷰티 쇼츠, 이렇게 찍어야 터집니다", "오가닉"]:
+    for required_ui in ["daysSel", "sortSel", "이번 주 뷰티 쇼츠, 이렇게 찍어야 터집니다", "오가닉", "누적 조회수", "일평균 조회수", "구독자 수 대비", "등급 기준"]:
         _assert(required_ui in html_text, f"개편 UI 필수 요소 누락: {required_ui}")
 
     import shutil, subprocess, re as _re
