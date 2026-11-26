@@ -839,7 +839,7 @@ def test_step1_step2_kr_flow(products):
 
     # 5) HTML 고객 화면 내부 용어·속어 노출 차단 자동 회귀 검증 (문서 규칙 대신 테스트로 강제)
     html_text = open(os.path.join(ROOT, "TrendSetter_KBeauty_Pro.html"), encoding="utf-8").read()
-    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다"]:
+    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도"]:
         _assert(forbidden_ui not in html_text, f"고객 화면에 금지/내부 용어 노출: {forbidden_ui}")
 
     return "PASS (16 KR paths, spam filter, color-product jfsweQpxqsY=Go & serum=Drop, copy_ideas 3x + UI jargon guard)"

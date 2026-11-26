@@ -1152,12 +1152,12 @@ function renderStep1Result(data) {
 
   const fmtCount = {};
   (data.facts || []).forEach(f => { fmtCount[f.format_tag || "기타"] = (fmtCount[f.format_tag || "기타"] || 0) + 1; });
-  const topFmts = Object.entries(fmtCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const topFmts = Object.entries(fmtCount).filter(([tag]) => tag && tag !== "기타").sort((a, b) => b[1] - a[1]).slice(0, 3);
 
   const pats = (data.market_patterns || []).map((p, i) =>
     `<div class="insight-item"><span class="insight-idx">0${i + 1}</span><div>${esc(p)}</div></div>`
   ).join("");
-  const fmtChips = topFmts.length ? "주요 포맷: " + topFmts.map(([tag, cnt]) => `${esc(tag)} (${cnt})`).join(" · ") : "";
+  const fmtChips = topFmts.length ? "인기 영상 유형 · " + topFmts.map(([tag, cnt]) => `${esc(tag)} ${cnt}편`).join(" · ") : "";
 
   const avgV = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views, 0) / filtered.length) : 0;
   const avgVpd = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views_per_day, 0) / filtered.length) : 0;
@@ -1257,7 +1257,7 @@ function renderStep1Result(data) {
     <div id="bottomCtaBar" class="bottom-cta">
       <div>
         <div style="font-size:15px;font-weight:600;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</div>
-        <div style="font-size:13px;color:var(--muted);">추가 유튜브 한도 없이 맞춤 카피와 4단 촬영 콘티를 바로 만듭니다.</div>
+        <div style="font-size:13px;color:var(--muted);">상품 특징만 넣으면 맞춤 카피 3종과 4단 촬영 콘티를 바로 만들어 드려요.</div>
       </div>
       <button class="btn btn-primary" onclick="openStep2Panel()">2단계 · 우리 상품 기획안 만들기</button>
     </div>
