@@ -60,20 +60,19 @@ body {
 .brand h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.025em; color: var(--ink); }
 .brand span { font-size: 13px; font-weight: 400; color: var(--muted); }
 
-/* Step 1: Clear Journey & Filter Bar */
+/* Figure-Ground Canvas Filter Area (No outer box around header/filters) */
 .filter-section {
-  background: #FFFFFF; border: 1px solid #E7E5DF; border-radius: 14px;
-  padding: 22px 24px 18px; margin-top: 20px;
+  padding: 28px 0 18px;
 }
-.filter-top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.filter-top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
 .journey-step { font-size: 12.5px; font-weight: 600; color: var(--purple); margin-bottom: 4px; display: block; }
-.page-title { font-size: 26px; font-weight: 600; margin: 0; color: var(--ink); letter-spacing: -0.03em; }
-.page-sub { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 400; }
+.page-title { font-size: 28px; font-weight: 600; margin: 0; color: var(--ink); letter-spacing: -0.03em; line-height: 1.25; }
+.page-sub { font-size: 14.5px; color: #52525B; margin-top: 6px; font-weight: 400; }
 
-.underline-tabs { display: flex; gap: 20px; border-bottom: 1px solid #ECECE8; }
+.underline-tabs { display: flex; gap: 16px; border-bottom: 1px solid #E5E3DC; }
 .utab {
-  background: none; border: none; padding: 8px 4px 11px; font-size: 14.5px; font-weight: 500;
-  color: var(--muted); cursor: pointer; position: relative; font-family: inherit;
+  background: none; border: none; padding: 7px 2px 10px; font-size: 14.5px; font-weight: 500;
+  color: #71717A; cursor: pointer; position: relative; font-family: inherit;
 }
 .utab:hover { color: var(--ink); }
 .utab.active { color: var(--purple); font-weight: 600; }
@@ -83,12 +82,11 @@ body {
 
 .nav-row {
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-  margin-top: 16px;
 }
 .cat-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .cat-tab {
-  background: #F4F3EF; border: 1px solid #E5E3DC; border-radius: 8px;
-  padding: 8px 15px; font-size: 14px; font-weight: 500; color: var(--ink-secondary);
+  background: #FFFFFF; border: 1px solid #E2E0D8; border-radius: 9px;
+  padding: 8px 16px; font-size: 14.5px; font-weight: 500; color: var(--ink-secondary);
   cursor: pointer; font-family: inherit; transition: all 0.12s ease;
 }
 .cat-tab:hover { background: #FDF2F8; border-color: #FBCFE8; color: var(--purple); }
@@ -96,16 +94,25 @@ body {
 .sub-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; align-items: center; }
 .sub-chip {
   background: #FFF; border: 1px solid #DCDAD2; border-radius: 7px; padding: 6px 12px;
-  font-size: 13px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
+  font-size: 13.5px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
 }
 .sub-chip:hover { border-color: var(--purple); color: var(--purple); }
 .sub-chip.active { background: #FDF2F8; border-color: var(--purple); color: var(--purple); font-weight: 600; }
 
-.controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.controls-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .sort-select {
   padding: 8px 12px; border: 1px solid #DCDAD2; border-radius: 8px; background: #FFF;
   font-size: 13.5px; font-weight: 500; color: var(--ink); font-family: inherit; cursor: pointer;
 }
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;
+}
+.kpi-card {
+  background: #FFFFFF; border: 1px solid #E7E5DF; border-radius: 12px; padding: 14px 18px;
+}
+.kpi-lbl { font-size: 12.5px; color: #52525B; font-weight: 500; display: block; margin-bottom: 4px; }
+.kpi-val { font-size: 21px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.kpi-val.accent { color: var(--purple); }
 .btn {
   padding: 9px 15px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer;
   border: 1px solid transparent; transition: all 0.12s ease; font-family: inherit;
@@ -185,11 +192,13 @@ body {
   display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; min-width: 240px;
 }
 .stat-grid {
-  display: grid; grid-template-columns: repeat(2, minmax(105px, auto)); gap: 8px 16px; text-align: right;
+  display: grid; grid-template-columns: repeat(2, minmax(105px, auto)); gap: 8px 18px; text-align: right;
 }
 .stat-cell { font-variant-numeric: tabular-nums; }
-.stat-lbl { font-size: 11.5px; color: var(--muted); display: block; }
+.stat-lbl { font-size: 12px; color: #71717A; display: block; }
 .stat-num { font-size: 15px; font-weight: 600; color: var(--ink); }
+.stat-num.primary { font-size: 18px; color: var(--ink); }
+.stat-num.hot { color: var(--purple); }
 .tag-mini {
   display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 5px;
 }
@@ -289,7 +298,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 @media (max-width: 860px) {
   .wrap { padding: 0 14px 64px; }
   .app-bar-inner { padding: 12px 14px; }
-  .insights-grid, .grid-3, .sb-grid { grid-template-columns: 1fr; }
+  .insights-grid, .kpi-strip, .grid-3, .sb-grid { grid-template-columns: 1fr; }
   .feed-item { flex-direction: column; align-items: flex-start; gap: 12px; }
   .feed-mid { width: 100%; }
   .feed-right {
@@ -317,21 +326,19 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
       <button id="syncSnapBtn" class="btn btn-sec" onclick="syncSnapshotFromGitHub()"
         title="GitHub에 저장된 최신 트렌드 데이터를 불러옵니다">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-        최신 데이터 불러오기
+        최신 데이터 업데이트
       </button>
-      <button class="btn btn-outline" onclick="runStep1Live(true)" title="선택한 카테고리를 실시간 API로 새로 조회합니다">실시간 재조회</button>
-      <button class="btn btn-outline" onclick="runStep1Preview()">예시 보기</button>
       <button id="toggleApiBtn" class="btn btn-outline" onclick="toggleApiPanel()">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        API 설정
+        설정
       </button>
     </div>
   </div>
 </header>
 
 <div class="wrap">
-  <details id="apiDetails" class="b2b-details" style="display:none;border-top:none;border-bottom:1px solid #ECECE8;">
-    <summary id="apiSummary">API 키 설정</summary>
+  <details id="apiDetails" class="b2b-details" style="display:none;background:#FFF;border:1px solid #E7E5DF;border-radius:12px;padding:16px 20px;margin-top:14px;">
+    <summary id="apiSummary">API 키 및 고급 도구 설정</summary>
     <div class="grid-3" style="margin-top:12px;">
       <div class="field"><label>유튜브 API 키</label><input id="ytKey" type="password" placeholder="AIza..." /></div>
       <div class="field"><label>제미나이 AI API 키</label><input id="ggKey" type="password" placeholder="AIza..." /></div>
@@ -341,6 +348,10 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
           <option value="gemini-flash-latest">표준 무료 모델</option>
         </select>
       </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="runStep1Live(true)">현재 카테고리 실시간 재조회</button>
+      <button class="btn btn-outline" onclick="runStep1Preview()">예시 화면 미리보기</button>
     </div>
   </details>
 
@@ -377,7 +388,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
   <div id="step1Area">
     <div class="welcome-box">
       <h3>어떤 뷰티 카테고리의 쇼츠를 볼까요?</h3>
-      <p style="margin:0;">상단 <b>최신 데이터 불러오기</b>를 누르거나 카테고리를 선택해 보세요.<br>API 키 없이 둘러보려면 상단 <b>예시 보기</b>를 누르면 됩니다.</p>
+      <p style="margin:0;">상단 <b>최신 데이터 업데이트</b>를 누르거나 카테고리를 선택해 보세요.<br>API 키 없이 둘러보려면 상단 <b>설정 → 예시 화면 미리보기</b>를 누르면 됩니다.</p>
     </div>
   </div>
 
@@ -1195,12 +1206,12 @@ function renderStep1Result(data) {
       </div>
       <div class="feed-right">
         <div class="stat-grid">
-          <div class="stat-cell"><span class="stat-lbl">조회수</span><span class="stat-num">${formatKoNum(v.views)}${deltaTxt}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">조회수</span><span class="stat-num primary">${formatKoNum(v.views)}${deltaTxt}</span></div>
           <div class="stat-cell"><span class="stat-lbl">일평균</span><span class="stat-num">${formatKoNum(v.views_per_day)}</span></div>
-          <div class="stat-cell"><span class="stat-lbl" title="채널 평소 평균 대비 배수">평소 대비</span><span class="stat-num">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></div>
-          <div class="stat-cell"><span class="stat-lbl" title="채널 구독자 수 대비 배수">구독자 대비</span><span class="stat-num">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></div>
+          <div class="stat-cell"><span class="stat-lbl" title="채널 평소 평균 대비 배수">평소 대비</span><span class="stat-num ${v.views_vs_channel_avg >= 5 ? 'hot' : ''}">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></div>
+          <div class="stat-cell"><span class="stat-lbl" title="채널 구독자 수 대비 배수">구독자 대비</span><span class="stat-num ${v.views_per_subscriber >= 5 ? 'hot' : ''}">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></div>
         </div>
-        <button class="row-cta" onclick="openStep2Panel('${esc(v.video_id)}')">이 영상으로 기획하기</button>
+        <button class="row-cta" onclick="openStep2Panel('${esc(v.video_id)}')">이 영상으로 기획하기 →</button>
       </div>
     </div>`;
   }).join("") : `<div style="padding:36px 12px;text-align:center;color:var(--muted);">해당 조건에 맞는 영상이 없어요. 상단에서 '전체' 탭을 눌러보세요.</div>`;
@@ -1216,6 +1227,11 @@ function renderStep1Result(data) {
   ` : "";
 
   document.getElementById("step1Area").innerHTML = `
+    <div class="kpi-strip">
+      <div class="kpi-card"><span class="kpi-lbl">분석 쇼츠</span><span class="kpi-val">${filtered.length}건</span></div>
+      <div class="kpi-card"><span class="kpi-lbl">평균 조회수</span><span class="kpi-val accent">${formatKoNum(avgV)}</span></div>
+      <div class="kpi-card"><span class="kpi-lbl">하루 평균 조회수</span><span class="kpi-val">${formatKoNum(avgVpd)}</span></div>
+    </div>
     <section class="insights-wrap">
       <div class="section-head">
         <h3>${esc(data.path_label)} 핵심 흐름 (${data.days_range}일 기준)</h3>
@@ -1388,7 +1404,7 @@ async function runStep2Match() {
       const p2 = `당신은 마케터의 일을 대신 끝내주는 시니어 K-뷰티 마케팅 전략가입니다. 아래 쇼츠 인사이트와 '${prodName}' (${cat}) 제품 특징을 비교·결합해 타겟(${prodTarget})과 톤(${prodTone})에 맞는 기획안을 JSON으로 반환하세요.${refHint}
 [제품 특징 — 이 범위 안에서만 작성] ${allowedClaims.join(" / ") || prodName}
 [금지 표현] ${bannedList.join(", ")} / 1위·1등·즉각·완벽·치료·완치·아토피 금지
-[작성 규칙] 모든 항목은 반드시 자연스러운 한국어로만 작성하고, '[제품명]' 같은 대괄호 플레이스홀더 대신 실제 상품명('${prodName}')을 그대로 쓰세요.
+[작성 규칙] 모든 항목은 반드시 자연스러운 한국어로만 작성하고, '[제품명]' 같은 대괄호 플레이스홀더 대신 실제 상품명('${prodName}')을 그대로 쓰세요. 금지 표현은 creator_note에만 적고 hook·before·product_moment·cta·copy_ideas 본문에는 절대 언급하지 마세요.
 JSON 스키마: {"judgements":[{"video_id":"","decision":"Go|Pivot|Drop","score":4,"reason":"","linked_claim":""}],"briefs":[{"video_id":"","hook":"","before":"","product_moment":"","cta":"","creator_note":"","copy_ideas":["카피1","카피2","카피3"]}]}
 [참고 쇼츠 인사이트]\n` + factsPool.slice(0, 12).map(f => `[${f.video_id}] 영역=${f.domain} | 포맷=${f.format_tag} | 내용=${f.what_happens}`).join("\n");
       const s2 = await callGeminiJson(ggKey, model, p2);
