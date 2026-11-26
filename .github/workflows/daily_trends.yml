@@ -58,6 +58,7 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           python batch_update.py --days "${{ steps.cfg.outputs.days }}" --paths "${{ github.event.inputs.paths || '' }}"
+          python batch_update.py --verify
 
       - name: 변경된 스냅샷 커밋 및 푸시
         run: |

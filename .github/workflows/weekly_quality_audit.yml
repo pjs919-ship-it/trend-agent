@@ -1,0 +1,30 @@
+name: 숏폼레이더 주간 품질·개선 점검
+
+on:
+  schedule:
+    # 매주 월요일 오전 09:05 KST (UTC 00:05) — 0유닛 회귀·스냅샷 순도·누락 경로 점검
+    - cron: '5 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  weekly-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 오프라인 회귀 테스트
+        run: python qa/eval_golden.py
+
+      - name: 스냅샷 실물·분포 주간 점검 리포트 생성 (0유닛)
+        run: |
+          python batch_update.py --verify --audit >> "$GITHUB_STEP_SUMMARY"

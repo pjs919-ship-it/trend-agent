@@ -6,6 +6,7 @@ data/trends_snapshot.json, data/trends_snapshot.js, beauty_channels.json 을 갱
 import argparse
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -108,7 +109,7 @@ def _build_fast_fallback_step1(
     org_cnt = len(vids) - ad_cnt
     patterns = [
         f"'{path_label}' 상위 {len(vids)}편 중 최고 조회수는 {top_views:,}회로, 짧은 도입부에서 피부 고민이나 사용 결과를 바로 보여주는 구성이 강세예요.",
-        f"현재 수집된 영상은 일반(미표시) {org_cnt}편, 광고 표시 {ad_cnt}편 비중으로 실제 사용감 중심 리뷰가 주로 반응하고 있어요.",
+        f"현재 수집된 영상은 오가닉 {org_cnt}편, 광고 {ad_cnt}편 비중으로 실제 사용감 중심 리뷰가 주로 반응하고 있어요.",
         "아래 영상에서 '이 영상으로 기획하기'를 누르면 AI가 우리 제품 특징에 맞춰 카피와 4단 촬영 콘티를 바로 만들어 드려요.",
     ]
     facts = [
@@ -165,17 +166,54 @@ def _run_ai_with_fallback(
     return _build_fast_fallback_step1(vids, path_key, path_label, days_val)
 
 
+_BEAUTY_SIGNAL_RE = re.compile(
+    r"올영|올리브영|뷰티|화장품|메이크업|스킨케어|립|틴트|토너|세럼|크림|선크림|쿠션|파데|블러셔|밤티|클렌징|샴푸|헤어|바디|내돈내산|추천템"
+)
+
+
 def _filter_beauty_only(entry: Dict[str, Any]) -> Dict[str, Any]:
-    """AI 판정 결과 '기타/뷰티무관' 영상을 스냅샷에서 제외합니다."""
+    """AI 판정 '기타/뷰티무관'(실제 뷰티 키워드 없는 순수 비뷰티)과 스팸·해외(비한국어) 영상 및 오염 인사이트를 제외합니다."""
     facts = entry.get("facts", [])
-    non_beauty_ids = {f.get("video_id") for f in facts if f.get("domain") == "기타/뷰티무관"}
     vids = entry.get("videos", [])
-    clean_vids = [v for v in vids if v.get("video_id") not in non_beauty_ids]
-    if len(clean_vids) >= 3:
-        vids = clean_vids
-        facts = [f for f in facts if f.get("video_id") not in non_beauty_ids]
-    entry["videos"] = vids[:30]
-    entry["facts"] = facts
+    v_by_id = {v.get("video_id"): v for v in vids}
+    non_beauty_ids: Set[str] = set()
+    for f in facts:
+        if f.get("domain") != "기타/뷰티무관":
+            continue
+        vid = f.get("video_id")
+        v = v_by_id.get(vid, {})
+        blob = f"{v.get('title', '')} {v.get('description', '')}"
+        if not _BEAUTY_SIGNAL_RE.search(blob):
+            non_beauty_ids.add(vid)
+    clean_vids = [
+        v for v in vids
+        if v.get("video_id") not in non_beauty_ids
+        and not agent_core.is_spam_video(v)
+        and agent_core.is_korean(v)
+    ]
+    kept_ids = {v.get("video_id") for v in clean_vids[:30]}
+    entry["videos"] = clean_vids[:30]
+    entry["facts"] = [f for f in facts if f.get("video_id") in kept_ids]
+
+    stale_noise_terms = ("알바생", "알바공감", "알바 공감", "서비스직", "다우니", "자막뉴스", "스케치코미디")
+    raw_pats = entry.get("market_patterns") or []
+    clean_pats = [
+        p for p in raw_pats
+        if not any(t in re.sub(r"\s+", "", p) or t in p for t in stale_noise_terms)
+    ]
+    if len(clean_pats) < len(raw_pats) and clean_vids:
+        fb = _build_fast_fallback_step1(
+            clean_vids,
+            entry.get("path_key", "beauty"),
+            entry.get("path_label", "뷰티 전체"),
+            int(entry.get("days_range", 30) or 30),
+        )
+        for p in fb["market_patterns"]:
+            if len(clean_pats) >= 3:
+                break
+            if p not in clean_pats:
+                clean_pats.append(p)
+    entry["market_patterns"] = clean_pats[:3]
     return entry
 
 
@@ -245,12 +283,112 @@ def _strip_heavy_fields(entry: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def verify_snapshot(snap: Dict[str, Any], clean: bool = False) -> Dict[str, Any]:
+    """스냅샷 내 해외/비뷰티 혼입, 카테고리 누락, 활성 증가 여부를 점검하고 필요 시 정화합니다."""
+    entries = snap.get("entries", {})
+    dirty_spam = 0
+    dirty_non_ko = 0
+    low_paths: List[str] = []
+    active_delta_vids = 0
+    total_vids = 0
+
+    for k, entry in list(entries.items()):
+        if clean:
+            entry = _filter_beauty_only(entry)
+            entries[k] = entry
+        vids = entry.get("videos", [])
+        total_vids += len(vids)
+        if len(vids) < 3:
+            low_paths.append(f"{k}({len(vids)}건)")
+        for v in vids:
+            if agent_core.is_spam_video(v):
+                dirty_spam += 1
+            if not agent_core.is_korean(v):
+                dirty_non_ko += 1
+            if (v.get("views_delta") or 0) > 0:
+                active_delta_vids += 1
+
+    return {
+        "entries": len(entries),
+        "total_videos": total_vids,
+        "dirty_spam": dirty_spam,
+        "dirty_non_korean": dirty_non_ko,
+        "active_delta_videos": active_delta_vids,
+        "low_count_entries": low_paths,
+        "passed": dirty_spam == 0 and dirty_non_ko == 0 and len(entries) > 0,
+    }
+
+
+def format_weekly_audit_md(snap: Dict[str, Any], report: Dict[str, Any]) -> str:
+    """@[Quote] 기준: 영역·포맷 분포, 상위 15개 실물 표본, 누락 경로를 한눈에 보는 주간 점검 리포트."""
+    from collections import Counter
+
+    entries = snap.get("entries", {})
+    dom_cnt: Counter = Counter()
+    fmt_cnt: Counter = Counter()
+    uniq_vids: Dict[str, Dict[str, Any]] = {}
+    fact_by_id: Dict[str, Dict[str, Any]] = {}
+    for entry in entries.values():
+        for f in entry.get("facts", []):
+            dom_cnt[f.get("domain", "미분류")] += 1
+            fmt_cnt[f.get("format_tag", "기타")] += 1
+            fact_by_id[f.get("video_id", "")] = f
+        for v in entry.get("videos", []):
+            vid = v.get("video_id")
+            if vid and (vid not in uniq_vids or v.get("views", 0) > uniq_vids[vid].get("views", 0)):
+                uniq_vids[vid] = v
+
+    top15 = sorted(uniq_vids.values(), key=lambda x: x.get("views", 0), reverse=True)[:15]
+    lines = [
+        f"## 숏폼레이더 주간 데이터 점검 ({snap.get('updated_at_kst', '-')})",
+        f"- 고유 영상: **{len(uniq_vids)}편** | 스팸/해외 혼입: **{report['dirty_spam']}/{report['dirty_non_korean']}건** | 부족 경로: `{', '.join(report['low_count_entries']) or '없음'}`",
+        f"- 영역 분포: {', '.join(f'{k}({v})' for k, v in dom_cnt.most_common())}",
+        f"- 포맷 분포: {', '.join(f'{k}({v})' for k, v in fmt_cnt.most_common())}",
+        "",
+        "### 조회수 상위 15개 실물 점검 (가짜·비뷰티·광고 분류 확인)",
+        "| # | 조회수 | 영역 | 포맷 | 구분 | 제목 |",
+        "|---|---|---|---|---|---|",
+    ]
+    for idx, v in enumerate(top15, 1):
+        f = fact_by_id.get(v["video_id"], {})
+        ad_lbl = "광고" if agent_core.detect_paid_promotion(v.get("title", ""), v.get("description", ""), bool(v.get("has_paid_promotion"))) else "오가닉"
+        title = (v.get("title") or "").replace("|", " ")[:48]
+        lines.append(f"| {idx} | {int(v.get('views', 0)):,} | {f.get('domain', '-')} | {f.get('format_tag', '-')} | {ad_lbl} | {title} |")
+    return "\n".join(lines)
+
+
+def _save_snapshot(snap: Dict[str, Any]):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(SNAPSHOT_JSON, "w", encoding="utf-8") as f:
+        json.dump(snap, f, ensure_ascii=False, indent=2)
+    with open(SNAPSHOT_JS, "w", encoding="utf-8") as f:
+        f.write("window.SHORTFORM_RADAR_SNAPSHOT = ")
+        json.dump(snap, f, ensure_ascii=False)
+        f.write(";\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description="숏폼레이더 1단계 배치 업데이트")
     parser.add_argument("--days", choices=["1", "7", "30", "both"], default="30")
     parser.add_argument("--paths", default="", help="쉼표로 구분된 경로 키(비우면 전체 16개)")
     parser.add_argument("--skip-ai", action="store_true", help="YouTube 수집만 테스트")
+    parser.add_argument("--verify", action="store_true", help="API 호출 없이 저장된 스냅샷 품질 검증")
+    parser.add_argument("--clean", action="store_true", help="스냅샷에서 해외/비뷰티 노이즈 즉시 정리 후 저장")
+    parser.add_argument("--audit", action="store_true", help="영역·포맷 분포 및 상위 15개 실물 점검표(Markdown) 출력")
     args = parser.parse_args()
+
+    if args.verify or args.clean or args.audit:
+        snap = _load_existing_snapshot()
+        report = verify_snapshot(snap, clean=args.clean)
+        if args.clean:
+            _save_snapshot(snap)
+        if args.audit:
+            print(format_weekly_audit_md(snap, report))
+        else:
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+        if args.verify and not report["passed"]:
+            raise SystemExit("스냅샷 품질 검증 실패: 해외 또는 비뷰티 영상이 남아 있습니다.")
+        return
 
     yt_key = os.getenv("YOUTUBE_API_KEY", "").strip()
     gg_key = os.getenv("GOOGLE_API_KEY", "").strip()
@@ -292,11 +430,11 @@ def main():
                 if vids and gg_key and not args.skip_ai:
                     s1 = _run_ai_with_fallback(vids[:15], pk, label, d, gg_key)
                     s1["videos"] = vids
-                    s1 = _filter_beauty_only(s1)
                     if pk in CORE_AI_PATHS:
                         time.sleep(1.0)
                 else:
                     s1 = _build_fast_fallback_step1(vids[:30], pk, label, d)
+                s1 = _filter_beauty_only(s1)
                 s1["path_key"] = pk
                 s1["days_range"] = d
                 s1["updated_at_kst"] = now_kst
@@ -312,14 +450,9 @@ def main():
     _update_beauty_channels_pool(snap["entries"])
     snap["updated_at_kst"] = now_kst
     snap["prev_views"] = prev_views
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(SNAPSHOT_JSON, "w", encoding="utf-8") as f:
-        json.dump(snap, f, ensure_ascii=False, indent=2)
-    with open(SNAPSHOT_JS, "w", encoding="utf-8") as f:
-        f.write("window.SHORTFORM_RADAR_SNAPSHOT = ")
-        json.dump(snap, f, ensure_ascii=False)
-        f.write(";\n")
-    print(f"스냅샷 저장 완료: {ok_count}개 경로 갱신 ({now_kst})")
+    report = verify_snapshot(snap, clean=True)
+    _save_snapshot(snap)
+    print(f"스냅샷 저장 완료: {ok_count}개 경로 갱신 ({now_kst}) | 검증: {json.dumps(report, ensure_ascii=False)}")
 
 
 if __name__ == "__main__":

@@ -312,12 +312,13 @@ _HASHTAG_RE = re.compile(r"#\S+")
 MIN_HANGUL = 4
 
 def is_korean(row: dict, min_hangul: int = MIN_HANGUL) -> bool:
-    """해시태그를 제외한 제목+설명에서 완성형 한글이 min_hangul자 이상인지 확인 (해외 #메이크업 낚시 차단)."""
+    """해시태그를 제외한 제목에서 완성형 한글이 min_hangul자 이상인지 확인 (해외 #뷰티 낚시 차단)."""
     title_clean = _HASHTAG_RE.sub("", row.get("title", ""))
     desc_clean = _HASHTAG_RE.sub("", row.get("description", ""))
     if len(_HANGUL.findall(title_clean)) >= min_hangul:
         return True
-    return len(_HANGUL.findall(f"{title_clean} {desc_clean}")) >= max(min_hangul, 6)
+    # 영어 제목이라도 본문 설명이 충분한 한국어 문장일 때만 예외 허용
+    return len(_HANGUL.findall(desc_clean)) >= 18
 
 def recent_published_after(days: int = 7) -> str:
     days = max(1, min(days, 30))
@@ -464,9 +465,8 @@ def fetch_mega_kbeauty_shorts(
                 r["low_views_fallback"] = True
 
     # 한글 필터링
-    korean = [r for r in results if is_korean(r)]
-    if len(korean) >= 3:
-        results = korean
+    # 한글 필터링 (해외 영어 쇼츠가 뷰티 상위권에 섞이지 않도록 예외 없이 적용)
+    results = [r for r in results if is_korean(r)]
 
     # 3) 정렬 (기본: 급상승 속도 + 총조회수 복합 점수 / 선택: views 단독)
     if sort_by == "views":
@@ -477,16 +477,29 @@ def fetch_mega_kbeauty_shorts(
 
 
 NON_BEAUTY_NOISE_KEYWORDS = (
-    "알바 공감",
+    "알바공감",
     "알바생",
-    "알바 썰",
-    "면접 팁",
+    "알바썰",
+    "올리브영알바",
+    "올영알바",
+    "스케치코미디",
+    "자막뉴스",
+    "tjbnews",
+    "면접팁",
     "직캠",
     "먹방",
     "게임",
     "주식",
     "부동산",
-    "연애 상담",
+    "연애상담",
+    "섬유유연제",
+    "다우니",
+    "몰입형",
+    "실리콘가짜코",
+    "한가인미친재능",
+    "퇴근10분전",
+    "칼퇴하고싶으면",
+    "pov",
 )
 
 
@@ -494,13 +507,20 @@ PAID_DISCLOSURE_KEYWORDS = (
     "#광고",
     "#유료광고",
     "#협찬",
-    "유료광고 포함",
-    "유료 광고 포함",
+    "유료광고",
+    "유료 광고",
     "제품 제공",
     "제품제공",
+    "무상 제공",
+    "무상제공",
+    "단순 선물",
+    "지원을 받아",
+    "지원받아",
+    "제작 지원",
     "원고료",
     "제작비 지원",
     "소정의 원고료",
+    "경제적 이해관계",
 )
 ORGANIC_OVERRIDE_KEYWORDS = ("광고 아님", "광고아님", "협찬 아님", "협찬아님", "내돈내산")
 
@@ -524,9 +544,11 @@ def is_spam_video(row: Dict[str, Any]) -> bool:
     if title.count("#") >= 8:
         return True
     blob = f"{title} {desc}"
+    compact_blob = re.sub(r"\s+", "", blob).lower()
+    compact_title = re.sub(r"\s+", "", title).lower()
     if any(kw in blob for kw in SPAM_KEYWORDS):
         return True
-    if any(kw in title for kw in NON_BEAUTY_NOISE_KEYWORDS):
+    if any(kw in compact_title or f"#{kw}" in compact_blob for kw in NON_BEAUTY_NOISE_KEYWORDS):
         return True
     return False
 
@@ -551,32 +573,34 @@ def get_beauty_viral_grade(
 
 
 def fetch_channel_profiles(youtube, channel_ids: List[str]) -> Dict[str, Dict[str, Any]]:
-    """최대 50개 채널의 구독자 수·채널 누적 조회수·총 영상 수·핸들(@)을 1유닛으로 배치 조회합니다."""
-    unique_ids = list(dict.fromkeys([cid for cid in channel_ids if cid]))[:50]
+    """50개씩 끊어 채널의 구독자 수·채널 누적 조회수·총 영상 수·핸들(@)을 조회합니다 (50채널당 1유닛)."""
+    unique_ids = list(dict.fromkeys([cid for cid in channel_ids if cid]))[:150]
     if not unique_ids or not hasattr(youtube, "channels"):
         return {}
     try:
-        record_youtube_units(1, action="channels.list", meta={"count": len(unique_ids)})
-        resp = youtube.channels().list(
-            part="statistics,snippet,contentDetails",
-            id=",".join(unique_ids),
-        ).execute()
         out: Dict[str, Dict[str, Any]] = {}
-        for item in resp.get("items", []):
-            cid = item.get("id", "")
-            stats = item.get("statistics", {})
-            sn = item.get("snippet", {})
-            rel = item.get("contentDetails", {}).get("relatedPlaylists", {})
-            subs = None if stats.get("hiddenSubscriberCount") else (int(stats.get("subscriberCount", 0) or 0) or None)
-            total_views = int(stats.get("viewCount", 0) or 0)
-            video_count = int(stats.get("videoCount", 0) or 0)
-            avg_views = int(round(total_views / video_count)) if (total_views > 0 and video_count > 0) else None
-            out[cid] = {
-                "subscriber_count": subs,
-                "channel_avg_views": avg_views,
-                "channel_handle": sn.get("customUrl", ""),
-                "uploads_playlist_id": rel.get("uploads", ""),
-            }
+        for i in range(0, len(unique_ids), 50):
+            chunk = unique_ids[i : i + 50]
+            record_youtube_units(1, action="channels.list", meta={"count": len(chunk)})
+            resp = youtube.channels().list(
+                part="statistics,snippet,contentDetails",
+                id=",".join(chunk),
+            ).execute()
+            for item in resp.get("items", []):
+                cid = item.get("id", "")
+                stats = item.get("statistics", {})
+                sn = item.get("snippet", {})
+                rel = item.get("contentDetails", {}).get("relatedPlaylists", {})
+                subs = None if stats.get("hiddenSubscriberCount") else (int(stats.get("subscriberCount", 0) or 0) or None)
+                total_views = int(stats.get("viewCount", 0) or 0)
+                video_count = int(stats.get("videoCount", 0) or 0)
+                avg_views = int(round(total_views / video_count)) if (total_views > 0 and video_count > 0) else None
+                out[cid] = {
+                    "subscriber_count": subs,
+                    "channel_avg_views": avg_views,
+                    "channel_handle": sn.get("customUrl", ""),
+                    "uploads_playlist_id": rel.get("uploads", ""),
+                }
         return out
     except RuntimeError:
         raise
@@ -657,13 +681,15 @@ def fetch_kr_step1_shorts(
             raise RuntimeError(_format_youtube_api_error(last_search_err))
         return []
 
-    record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})
-    det = youtube.videos().list(
-        part="snippet,contentDetails,statistics,paidProductPlacementDetails",
-        id=",".join(candidate_ids[:50]),
-    ).execute()
-
-    raw_items = det.get("items", [])
+    raw_items: List[Dict[str, Any]] = []
+    for i in range(0, min(len(candidate_ids), 150), 50):
+        chunk = candidate_ids[i : i + 50]
+        record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(chunk)})
+        det = youtube.videos().list(
+            part="snippet,contentDetails,statistics,paidProductPlacementDetails",
+            id=",".join(chunk),
+        ).execute()
+        raw_items.extend(det.get("items", []))
     channel_ids = [it.get("snippet", {}).get("channelId", "") for it in raw_items]
     channel_profiles = fetch_channel_profiles(youtube, channel_ids)
 
@@ -733,9 +759,8 @@ def fetch_kr_step1_shorts(
             if r["views"] < min_views:
                 r["low_views_fallback"] = True
 
-    korean = [r for r in results if is_korean(r)]
-    if len(korean) >= 3:
-        results = korean
+    # 한글 필터링 (해외 영어 쇼츠가 뷰티 상위권에 섞이지 않도록 예외 없이 적용)
+    results = [r for r in results if is_korean(r)]
 
     if sort_by == "views":
         results.sort(key=lambda r: r["views"], reverse=True)

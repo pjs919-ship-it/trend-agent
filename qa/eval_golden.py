@@ -754,11 +754,16 @@ def test_step1_step2_kr_flow(products):
     _assert(agent_core.get_beauty_viral_grade(35000, 1200, 1.2)["grade"] == "A", "3만 조회수 A등급 실패")
     _assert(agent_core.get_beauty_viral_grade(12000, 500, 1.2)["grade"] == "B", "1만 조회수 B등급 실패")
 
-    # 2) is_spam_video() 필터 검증 (비뷰티 노이즈 포함)
+    # 2) is_spam_video() 및 is_korean() 필터 검증 (비뷰티·해외 노이즈 차단)
     _assert(agent_core.is_spam_video({"views": 0, "title": "정상 제목"}), "조회수 0 스팸 미탐")
     _assert(agent_core.is_spam_video({"views": 5000, "title": "#a #b #c #d #e #f #g #h 과다태그"}), "해시태그 8개 스팸 미탐")
     _assert(agent_core.is_spam_video({"views": 5000, "title": "올영 무료나눔 이벤트 참여하세요"}), "스팸 키워드 미탐")
     _assert(agent_core.is_spam_video({"views": 50000, "title": "[알바공감] 올리브영 알바생 웃음기 사라지는 순간"}), "비뷰티 알바 노이즈 미탐")
+    _assert(agent_core.is_spam_video({"views": 746019, "title": "메이크업 튜토리얼 공유~ #몰입형 메이크업", "description": ""}), "#몰입형 노이즈 미탐")
+    _assert(agent_core.is_spam_video({"views": 698782, "title": "#POV 퇴근 10분 전. 칼퇴하고 싶으면 블러셔를 팔아라."}), "#POV 퇴근 노이즈 미탐")
+    _assert(agent_core.is_spam_video({"views": 1762950, "title": "다우니 덕분에 우리 사이 더 깊어졌다❤️"}), "비뷰티 생활용품(다우니) 노이즈 미탐")
+    _assert(not agent_core.is_korean({"title": "Expired Makeup Keep Or Toss! #스킨케어", "description": "skincare routine"}), "해외 영어 쇼츠 차단 실패")
+    _assert(agent_core.is_korean({"title": "올리브영 세일 추천템 3가지", "description": "내돈내산"}), "한국어 쇼츠 오탐")
     _assert(not agent_core.is_spam_video({"views": 12000, "title": "속건조 토너팩 추천 #shorts #스킨케어"}), "정상 영상 스팸 오탐")
 
     # 3) 색조 제품('촉촉한 탕후루 립틴트', '색조 > 립·틴트') 양방향 Step 2 매칭 검증
@@ -837,10 +842,15 @@ def test_step1_step2_kr_flow(products):
     v_copy = " | ".join(pipeline._brief_violations(bad_copy_sb, {"verified_claims": ["맑은 과즙 광택 글로우 립틴트"], "unverified_removed_from_v1": []}))
     _assert("완치" in v_copy and "1등" in v_copy and "3초" in v_copy, f"copy_ideas 금지어 미탐: {v_copy}")
 
-    # 5) HTML 고객 화면 내부 용어·속어 노출 차단 자동 회귀 검증 (문서 규칙 대신 테스트로 강제)
+    _assert(agent_core.detect_paid_promotion("세럼 리뷰", "브랜드로부터 제품을 무상 제공받아 작성", False), "설명란 무상 제공 광고 미탐")
+    _assert(not agent_core.detect_paid_promotion("내돈내산 리뷰", "광고 아님 직접 구매함", False), "내돈내산 오탐")
+
+    # 5) HTML 고객 화면 내부 용어·속어·중복 위계 노출 차단 자동 회귀 검증
     html_text = open(os.path.join(ROOT, "TrendSetter_KBeauty_Pro.html"), encoding="utf-8").read()
-    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도"]:
-        _assert(forbidden_ui not in html_text, f"고객 화면에 금지/내부 용어 노출: {forbidden_ui}")
+    for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도", "kpi-strip", "인기 영상 유형 ·", "일반(미표시)", "광고 표시"]:
+        _assert(forbidden_ui not in html_text, f"고객 화면에 금지/내부/중복 요소 노출: {forbidden_ui}")
+    for required_ui in ["daysSel", "sortSel", "kwSearchInput", "이번 주 뷰티 쇼츠, 이렇게 찍어야 터집니다", "오가닉"]:
+        _assert(required_ui in html_text, f"개편 UI 필수 요소 누락: {required_ui}")
 
     return "PASS (16 KR paths, spam filter, color-product jfsweQpxqsY=Go & serum=Drop, copy_ideas 3x + UI jargon guard)"
 
