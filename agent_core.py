@@ -490,6 +490,31 @@ NON_BEAUTY_NOISE_KEYWORDS = (
 )
 
 
+PAID_DISCLOSURE_KEYWORDS = (
+    "#광고",
+    "#유료광고",
+    "#협찬",
+    "유료광고 포함",
+    "유료 광고 포함",
+    "제품 제공",
+    "제품제공",
+    "원고료",
+    "제작비 지원",
+    "소정의 원고료",
+)
+ORGANIC_OVERRIDE_KEYWORDS = ("광고 아님", "광고아님", "협찬 아님", "협찬아님", "내돈내산")
+
+
+def detect_paid_promotion(title: str, description: str, api_flag: bool) -> bool:
+    """YouTube 유료 프로모션 API 플래그 + 한국어 제목/설명 협찬 표기를 결합해 판별합니다."""
+    if api_flag:
+        return True
+    blob = f"{title or ''} {description or ''}"
+    if any(neg in blob for neg in ORGANIC_OVERRIDE_KEYWORDS):
+        return False
+    return any(kw in blob for kw in PAID_DISCLOSURE_KEYWORDS)
+
+
 def is_spam_video(row: Dict[str, Any]) -> bool:
     """조회수 0, 과도한 해시태그(8개 이상), 낚시 스팸·비뷰티 노이즈 영상을 판별합니다."""
     if int(row.get("views", 0)) <= 0:
@@ -676,7 +701,11 @@ def fetch_kr_step1_shorts(
             "channel_avg_views": ch_avg,
             "views_vs_channel_avg": vs_avg,
             "views_per_subscriber": ratio,
-            "has_paid_promotion": bool(paid.get("hasPaidProductPlacement", False)),
+            "has_paid_promotion": detect_paid_promotion(
+                sn.get("title", ""),
+                sn.get("description", ""),
+                bool(paid.get("hasPaidProductPlacement", False)),
+            ),
             "has_caption": str(cd.get("caption", "")).lower() == "true",
             "tags": (sn.get("tags") or [])[:8],
             "viral_grade": grade_info["grade"],
@@ -737,7 +766,7 @@ def fetch_kr_step1_shorts(
             seen_titles.add(tkey)
         deduped.append(r)
 
-    final_rows = deduped[:10]
+    final_rows = deduped[:30]
     if use_cache and final_rows:
         _cache.set(cache_key, final_rows, expire=43200)
     return final_rows

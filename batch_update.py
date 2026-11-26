@@ -126,7 +126,7 @@ def _filter_beauty_only(entry: Dict[str, Any]) -> Dict[str, Any]:
     if len(clean_vids) >= 3:
         vids = clean_vids
         facts = [f for f in facts if f.get("video_id") not in non_beauty_ids]
-    entry["videos"] = vids[:10]
+    entry["videos"] = vids[:30]
     entry["facts"] = facts
     return entry
 
@@ -161,8 +161,8 @@ def _derive_daily_1d_entries(snap: Dict[str, Any], path_keys: List[str], now_kst
             ),
             reverse=True,
         )
-        top10 = cands[:10]
-        top_ids = {v["video_id"] for v in top10}
+        top30 = cands[:30]
+        top_ids = {v["video_id"] for v in top30}
         entries[f"{pk}_1"] = _strip_heavy_fields({
             "mode": "snapshot",
             "path_key": pk,
@@ -170,7 +170,7 @@ def _derive_daily_1d_entries(snap: Dict[str, Any], path_keys: List[str], now_kst
             "days_range": 1,
             "report_date": datetime.now(KST).date().isoformat(),
             "updated_at_kst": now_kst,
-            "videos": top10,
+            "videos": top30,
             "facts": [pool_facts[vid] for vid in top_ids if vid in pool_facts],
             "market_patterns": base_patterns[:3],
         })
@@ -242,7 +242,8 @@ def main():
                     prev_views[vid] = cur_v
 
                 if vids and gg_key and not args.skip_ai:
-                    s1 = _run_ai_with_fallback(vids, label, d, gg_key)
+                    s1 = _run_ai_with_fallback(vids[:15], label, d, gg_key)
+                    s1["videos"] = vids
                     s1 = _filter_beauty_only(s1)
                     time.sleep(1.5)
                 else:
@@ -250,7 +251,7 @@ def main():
                         "path_label": label,
                         "days_range": d,
                         "report_date": datetime.now(KST).date().isoformat(),
-                        "videos": vids[:10],
+                        "videos": vids[:30],
                         "facts": [],
                         "market_patterns": [],
                     }

@@ -2,10 +2,10 @@ name: 숏폼레이더 일일 트렌드 배치 업데이트
 
 on:
   schedule:
-    # 매일 오전 08:00 KST (UTC 23:00) — 최근 30일(대세) 전체 갱신
-    - cron: '0 23 * * *'
-    # 매일 오후 17:00 KST (UTC 08:00, 유튜브 쿼터 초기화 직후) — 최근 7일(급상승) 전체 갱신
-    - cron: '0 8 * * *'
+    # 매일 아침 (UTC 23:17 = KST 08:17) — 최근 30일(대세) 전체 갱신
+    - cron: '17 23 * * *'
+    # 매일 저녁 (UTC 08:23 = KST 17:23, 유튜브 쿼터 초기화 직후) — 최근 7일(급상승) 전체 갱신
+    - cron: '23 8 * * *'
   workflow_dispatch:
     inputs:
       days:
@@ -46,7 +46,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "days=${{ github.event.inputs.days }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "0 8 * * *" ]; then
+          elif [ "${{ github.event.schedule }}" = "23 8 * * *" ]; then
             echo "days=7" >> $GITHUB_OUTPUT
           else
             echo "days=30" >> $GITHUB_OUTPUT

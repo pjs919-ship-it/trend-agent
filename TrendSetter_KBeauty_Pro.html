@@ -141,51 +141,74 @@ body {
 .insight-item { font-size: 14px; color: var(--ink); line-height: 1.6; }
 .insight-idx { font-size: 12px; font-weight: 600; color: var(--purple); display: block; margin-bottom: 4px; }
 
-/* Data Table (Large, Scannable) */
-.table-wrap {
+/* 3-Zone Scannable Feed (Replacing cramped 9-col table) */
+.feed-wrap {
   background: #FFFFFF; border: 1px solid #E7E5DF; border-radius: 14px;
-  padding: 18px 20px 8px; margin-top: 16px;
+  padding: 18px 22px; margin-top: 16px;
 }
-.table-meta-bar {
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-  margin-bottom: 12px; font-size: 13.5px; color: var(--muted);
+.feed-toolbar {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding-bottom: 14px; border-bottom: 1px solid #ECECE8; margin-bottom: 4px;
 }
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table th {
-  font-size: 12.5px; font-weight: 500; color: var(--muted); text-align: left;
-  padding: 10px 10px; border-bottom: 1px solid #E5E3DC; white-space: nowrap;
+.promo-tabs { display: inline-flex; gap: 4px; background: #F4F3EF; padding: 3px; border-radius: 9px; }
+.promo-tab {
+  border: none; background: transparent; padding: 5px 12px; border-radius: 7px;
+  font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; font-family: inherit;
 }
-.data-table th.num, .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.data-table td {
-  padding: 18px 10px; border-bottom: 1px solid #F1F0EC; vertical-align: middle;
+.promo-tab.active { background: #FFF; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+.feed-meta { font-size: 13px; color: var(--muted); }
+.feed-item {
+  display: flex; gap: 18px; align-items: center; padding: 18px 4px;
+  border-bottom: 1px solid #F1F0EC; transition: background 0.12s ease;
 }
-.data-table tbody tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover { background: #FCFAF9; }
-.td-rank { width: 34px; font-size: 15px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.feed-item:last-child { border-bottom: none; }
+.feed-item:hover { background: #FCFAF9; }
+.feed-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.td-rank { width: 24px; font-size: 15px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
 .td-rank.top1 { color: var(--purple); }
-.vid-cell { display: flex; gap: 14px; align-items: center; min-width: 320px; }
-.short-thumb { width: 72px; height: 96px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #F0F0EC; border: 1px solid #ECEAE4; }
-.short-title { font-size: 15.5px; font-weight: 600; color: var(--ink); text-decoration: none; line-height: 1.4; }
+.short-thumb { width: 80px; height: 108px; border-radius: 9px; object-fit: cover; flex-shrink: 0; background: #F0F0EC; border: 1px solid #ECEAE4; display: block; }
+.feed-mid { flex: 1; min-width: 0; }
+.feed-tags { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.short-title { font-size: 16px; font-weight: 600; color: var(--ink); text-decoration: none; line-height: 1.4; display: inline-block; }
 .short-title:hover { color: var(--purple); text-decoration: underline; }
-.short-fact { font-size: 14px; color: var(--ink-secondary); margin-top: 4px; line-height: 1.5; }
+.short-fact { font-size: 14px; color: var(--ink-secondary); margin-top: 5px; line-height: 1.5; }
 .short-sub { font-size: 13px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.feed-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; min-width: 240px;
+}
+.stat-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(105px, auto)); gap: 8px 16px; text-align: right;
+}
+.stat-cell { font-variant-numeric: tabular-nums; }
+.stat-lbl { font-size: 11.5px; color: var(--muted); display: block; }
+.stat-num { font-size: 15px; font-weight: 600; color: var(--ink); }
 .tag-mini {
   display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 5px;
 }
 .tag-ad { background: #FEF3C7; color: #92400E; }
 .tag-org { background: #ECFDF5; color: #065F46; }
-.grade-txt { font-size: 12.5px; font-weight: 600; padding: 4px 9px; border-radius: 6px; white-space: nowrap; display: inline-block; }
+.grade-txt { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 5px; white-space: nowrap; display: inline-block; }
 .g-s { background: var(--purple); color: #FFF; }
 .g-a { background: #FDF2F8; color: var(--purple); border: 1px solid #FBCFE8; }
 .g-b { background: #ECFDF5; color: #047857; }
 .g-c { background: #F4F4F5; color: #52525B; }
-.td-val { font-size: 15px; font-weight: 600; color: var(--ink); }
-.td-sub { font-size: 12.5px; color: var(--muted); display: block; margin-top: 2px; }
 .row-cta {
-  padding: 6px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 500; cursor: pointer;
+  padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer;
   background: #FFF; color: var(--purple); border: 1px solid #FBCFE8; font-family: inherit; white-space: nowrap;
 }
 .row-cta:hover { background: var(--purple); color: #FFF; border-color: var(--purple); }
+.pager {
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  padding-top: 16px; margin-top: 8px; border-top: 1px solid #F1F0EC;
+}
+.page-btn {
+  min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px;
+  border: 1px solid #E2E2DC; background: #FFF; color: var(--ink-secondary);
+  font-size: 13.5px; font-weight: 500; cursor: pointer; font-family: inherit;
+}
+.page-btn:hover { border-color: var(--purple); color: var(--purple); }
+.page-btn.active { background: var(--purple); border-color: var(--purple); color: #FFF; font-weight: 600; }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
 
 .bottom-cta {
   position: sticky; bottom: 14px; z-index: 40; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px);
@@ -268,11 +291,14 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
       <span>K-뷰티 쇼츠 데일리 브리핑</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span class="pill pill-drop" title="매일 아침·저녁으로 최신 트렌드를 자동 수집합니다">매일 아침·저녁 업데이트</span>
       <button id="syncSnapBtn" class="btn btn-sec" onclick="syncSnapshotFromGitHub()"
         title="GitHub에 저장된 최신 트렌드 데이터를 불러옵니다">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
         최신 데이터 불러오기
       </button>
+      <button class="btn btn-outline" onclick="runStep1Live(true)" title="선택한 카테고리를 실시간 API로 새로 조회합니다">실시간 재조회</button>
+      <button class="btn btn-outline" onclick="runStep1Preview()">예시 보기</button>
       <button id="toggleApiBtn" class="btn btn-outline" onclick="toggleApiPanel()">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         API 설정
@@ -321,8 +347,6 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
           <option value="views">정렬: 누적 조회수 순</option>
           <option value="comments">정렬: 댓글 많은 순</option>
         </select>
-        <button class="btn btn-outline" onclick="runStep1Live(true)" title="선택한 카테고리를 실시간 API로 새로 조회합니다">실시간 재조회</button>
-        <button class="btn btn-outline" onclick="runStep1Preview()">예시 보기</button>
       </div>
     </div>
     <div id="childChips" class="sub-chips"></div>
@@ -332,7 +356,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
   <div id="step1Area">
     <div class="welcome-box">
       <h3>어떤 뷰티 카테고리의 쇼츠를 볼까요?</h3>
-      <p style="margin:0;">상단 <b>최신 데이터 불러오기</b>를 누르거나 카테고리를 고른 뒤 <b>트렌드 보기</b>를 눌러보세요.<br>API 키 없이 둘러보려면 <b>예시 보기</b>를 누르면 됩니다.</p>
+      <p style="margin:0;">상단 <b>최신 데이터 불러오기</b>를 누르거나 카테고리를 선택해 보세요.<br>API 키 없이 둘러보려면 상단 <b>예시 보기</b>를 누르면 됩니다.</p>
     </div>
   </div>
 
@@ -447,6 +471,9 @@ const DIR_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:�
 let currentPath = "beauty";
 let selectedDays = 30;
 let selectedSort = "grade";
+let selectedPromoFilter = "all";
+let currentPage = 1;
+const PAGE_SIZE = 10;
 let step1Data = null;
 let step2Data = null;
 
@@ -531,12 +558,24 @@ function tryApplySnapshotEntry(pathKey, days) {
   }
   return false;
 }
+function setPromoFilter(f) {
+  selectedPromoFilter = f;
+  currentPage = 1;
+  if (step1Data) renderStep1Result(step1Data);
+}
+function setPage(p) {
+  currentPage = Math.max(1, Number(p) || 1);
+  if (step1Data) renderStep1Result(step1Data);
+  const fw = document.querySelector(".feed-wrap");
+  if (fw) fw.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 function selectPath(key) {
   currentPath = key;
+  currentPage = 1;
   renderExplorerNav();
   if (tryApplySnapshotEntry(key, selectedDays)) return;
   if (step1Data && step1Data.path_key !== key) {
-    document.getElementById("step1Status").textContent = `'${getPathLabel(key)}' 카테고리는 저장된 배치에 없어요. [실시간 재조회]를 눌러 가져올 수 있어요.`;
+    document.getElementById("step1Status").textContent = `'${getPathLabel(key)}' 카테고리는 저장된 배치에 없어요. 상단 [실시간 재조회]를 눌러 가져올 수 있어요.`;
   }
 }
 function toggleApiPanel() {
@@ -548,6 +587,7 @@ function toggleApiPanel() {
 }
 function setDays(d) {
   selectedDays = d;
+  currentPage = 1;
   const d1 = document.getElementById("days1");
   if (d1) d1.classList.toggle("active", d === 1);
   document.getElementById("days7").classList.toggle("active", d === 7);
@@ -568,6 +608,7 @@ function setDays(d) {
 }
 function setSort(s) {
   selectedSort = s;
+  currentPage = 1;
   const sel = document.getElementById("sortSel");
   if (sel && sel.value !== s) sel.value = s;
   if (step1Data) renderStep1Result(step1Data);
@@ -626,6 +667,14 @@ function getViralGrade(views, vpd, ratio) {
   return { code: "C", label: "C등급 · 참고용", cls: "pill-drop", desc: "조회수 1만 미만 참고용 영상" };
 }
 
+const PAID_KW = ["#광고", "#유료광고", "#협찬", "유료광고 포함", "유료 광고 포함", "제품 제공", "제품제공", "원고료", "제작비 지원", "소정의 원고료"];
+const ORG_NEG_KW = ["광고 아님", "광고아님", "협찬 아님", "협찬아님", "내돈내산"];
+function detectPaidPromotion(title, desc, apiFlag) {
+  if (apiFlag) return true;
+  const blob = `${title || ""} ${desc || ""}`;
+  if (ORG_NEG_KW.some(k => blob.includes(k))) return false;
+  return PAID_KW.some(k => blob.includes(k));
+}
 function computeMetrics(v) {
   const views = Number(v.views || 0), likes = Number(v.likes || 0), comments = Number(v.comments || 0);
   let days = Number(v.days_since_published || 0);
@@ -648,7 +697,7 @@ function computeMetrics(v) {
     views_per_subscriber: ratio,
     channel_avg_views: chAvg,
     views_vs_channel_avg: vsAvg,
-    has_paid_promotion: Boolean(v.has_paid_promotion),
+    has_paid_promotion: detectPaidPromotion(v.title, v.description, Boolean(v.has_paid_promotion)),
     views_per_day: Number(v.views_per_day || Math.round(views / days)),
     like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100,
     comment_rate: v.comment_rate != null ? Number(v.comment_rate) : Math.round((comments / Math.max(1, views)) * 10000) / 100
@@ -1025,7 +1074,20 @@ function runStep1Preview() {
 
 function renderStep1Result(data) {
   const fBy = Object.fromEntries((data.facts || []).map(f => [f.video_id, f]));
-  const sorted = sortVideos(data.videos || []);
+  const allSorted = sortVideos(data.videos || []);
+  const adCnt = allSorted.filter(v => v.has_paid_promotion).length;
+  const orgCnt = allSorted.length - adCnt;
+  const filtered = selectedPromoFilter === "ad"
+    ? allSorted.filter(v => v.has_paid_promotion)
+    : selectedPromoFilter === "org"
+      ? allSorted.filter(v => !v.has_paid_promotion)
+      : allSorted;
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
   const fmtCount = {};
   (data.facts || []).forEach(f => { fmtCount[f.format_tag || "기타"] = (fmtCount[f.format_tag || "기타"] || 0) + 1; });
   const topFmts = Object.entries(fmtCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -1035,9 +1097,9 @@ function renderStep1Result(data) {
   ).join("");
   const fmtChips = topFmts.map(([tag, cnt]) => `${esc(tag)} (${cnt})`).join(" · ");
 
-  const avgV = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views, 0) / sorted.length) : 0;
-  const avgVpd = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views_per_day, 0) / sorted.length) : 0;
-  const validRatios = sorted.map(v => v.views_per_subscriber).filter(x => x != null);
+  const avgV = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views, 0) / filtered.length) : 0;
+  const avgVpd = filtered.length ? Math.round(filtered.reduce((s, v) => s + v.views_per_day, 0) / filtered.length) : 0;
+  const validRatios = filtered.map(v => v.views_per_subscriber).filter(x => x != null);
   const avgRatio = validRatios.length ? Math.round((validRatios.reduce((s, x) => s + x, 0) / validRatios.length) * 10) / 10 : null;
   const overallGrade = getViralGrade(avgV, avgVpd, avgRatio);
 
@@ -1050,42 +1112,58 @@ function renderStep1Result(data) {
   };
 
   const gradeClsMap = { S: "g-s", A: "g-a", B: "g-b", C: "g-c" };
-  const rows = sorted.map((v, idx) => {
+  const feedHtml = pageItems.length ? pageItems.map((v, idx) => {
+    const rankNum = startIdx + idx + 1;
     const f = fBy[v.video_id] || {};
     const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
     const pubDateStr = formatPubDate(v.published_at);
     const promoTag = v.has_paid_promotion
-      ? `<span class="tag-mini tag-ad">유료광고</span>`
-      : `<span class="tag-mini tag-org">오가닉</span>`;
-    const deltaStr = v.views_delta && v.views_delta > 0 ? `<span class="td-sub">+${formatKoNum(v.views_delta)}</span>` : "";
-    return `<tr>
-      <td class="td-rank ${idx === 0 ? 'top1' : ''}">${idx + 1}</td>
-      <td>
-        <div class="vid-cell">
-          <a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener" title="쇼츠 바로 보기">
-            <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
-          </a>
-          <div style="min-width:0;">
-            <div><a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a></div>
-            ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
-            <div class="short-sub">
-              ${promoTag}
-              ${pubDateStr ? `<span>${pubDateStr}</span>` : ""}
-              <span>· ${esc(f.format_tag || "기타")}</span>
-            </div>
-          </div>
+      ? `<span class="tag-mini tag-ad" title="유료 프로모션 설정 또는 제목·설명 협찬 표기 감지">광고 표시</span>`
+      : `<span class="tag-mini tag-org" title="광고 표기가 확인되지 않은 일반 영상">일반(미표시)</span>`;
+    const deltaTxt = v.views_delta && v.views_delta > 0 ? ` (+${formatKoNum(v.views_delta)})` : "";
+    return `<div class="feed-item">
+      <div class="feed-left">
+        <div class="td-rank ${rankNum === 1 ? 'top1' : ''}">${rankNum}</div>
+        <a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener" title="쇼츠 바로 보기">
+          <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
+        </a>
+      </div>
+      <div class="feed-mid">
+        <div class="feed-tags">
+          <span class="grade-txt ${gradeClsMap[g.code] || 'g-c'}" title="${esc(g.desc)}">${g.code}등급</span>
+          ${promoTag}
         </div>
-      </td>
-      <td class="num"><span class="td-val">${formatKoNum(v.views)}</span>${deltaStr}</td>
-      <td class="num"><span class="td-val">${formatKoNum(v.views_per_day)}</span></td>
-      <td class="num"><span class="td-val">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></td>
-      <td class="num"><span class="td-val">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></td>
-      <td class="num"><span class="td-val">${formatKoNum(v.likes)}</span><span class="td-sub">댓글 ${(v.comments || 0).toLocaleString()}</span></td>
-      <td class="num"><span class="grade-txt ${gradeClsMap[g.code] || 'g-c'}" title="${esc(g.desc)}">${g.code}등급</span></td>
-      <td class="num"><button class="row-cta" onclick="openStep2Panel()">기획하기</button></td>
-    </tr>`;
-  }).join("");
+        <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a>
+        ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
+        <div class="short-sub">
+          ${pubDateStr ? `<span>${pubDateStr}</span><span>·</span>` : ""}
+          <span>${esc(f.format_tag || "기타")}</span>
+          <span>· 좋아요 ${formatKoNum(v.likes)}</span>
+          <span>· 댓글 ${(v.comments || 0).toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="feed-right">
+        <div class="stat-grid">
+          <div class="stat-cell"><span class="stat-lbl">조회수</span><span class="stat-num">${formatKoNum(v.views)}${deltaTxt}</span></div>
+          <div class="stat-cell"><span class="stat-lbl">일평균</span><span class="stat-num">${formatKoNum(v.views_per_day)}</span></div>
+          <div class="stat-cell"><span class="stat-lbl" title="채널 평소 평균 대비 배수">평소 대비</span><span class="stat-num">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></div>
+          <div class="stat-cell"><span class="stat-lbl" title="채널 구독자 수 대비 배수">구독자 대비</span><span class="stat-num">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></div>
+        </div>
+        <button class="row-cta" onclick="openStep2Panel()">이 영상으로 기획하기</button>
+      </div>
+    </div>`;
+  }).join("") : `<div style="padding:36px 12px;text-align:center;color:var(--muted);">해당 조건에 맞는 영상이 없어요. 상단에서 '전체' 탭을 눌러보세요.</div>`;
+
+  const pagerHtml = totalPages > 1 ? `
+    <div class="pager">
+      <button class="page-btn" ${currentPage <= 1 ? "disabled" : ""} onclick="setPage(${currentPage - 1})">이전</button>
+      ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
+        `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="setPage(${p})">${p}</button>`
+      ).join("")}
+      <button class="page-btn" ${currentPage >= totalPages ? "disabled" : ""} onclick="setPage(${currentPage + 1})">다음</button>
+    </div>
+  ` : "";
 
   document.getElementById("step1Area").innerHTML = `
     <section class="insights-wrap">
@@ -1095,27 +1173,19 @@ function renderStep1Result(data) {
       </div>
       <div class="insights-grid">${pats}</div>
     </section>
-    <section class="table-wrap">
-      <div class="table-meta-bar">
-        <span>총 <b>${sorted.length}건</b> · 평균 조회수 <b>${formatKoNum(avgV)}</b> · 일평균 <b>${formatKoNum(avgVpd)}</b> (${overallGrade.label})</span>
-        <span>평소 대비: 채널 평균 대비 소재빨 · 구독자 대비: 작은 채널 확산력</span>
+    <section class="feed-wrap">
+      <div class="feed-toolbar">
+        <div class="promo-tabs">
+          <button class="promo-tab ${selectedPromoFilter === 'all' ? 'active' : ''}" onclick="setPromoFilter('all')">전체 (${allSorted.length})</button>
+          <button class="promo-tab ${selectedPromoFilter === 'org' ? 'active' : ''}" onclick="setPromoFilter('org')">일반 (${orgCnt})</button>
+          <button class="promo-tab ${selectedPromoFilter === 'ad' ? 'active' : ''}" onclick="setPromoFilter('ad')">광고 표시 (${adCnt})</button>
+        </div>
+        <div class="feed-meta">
+          평균 조회수 <b>${formatKoNum(avgV)}</b> · 일평균 <b>${formatKoNum(avgVpd)}</b> · ${overallGrade.label}
+        </div>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>쇼츠 콘텐츠 (클릭 시 시청)</th>
-            <th class="num">조회수</th>
-            <th class="num">일평균</th>
-            <th class="num" title="채널 평소 평균 조회수 대비 배수">평소 대비</th>
-            <th class="num" title="채널 구독자 수 대비 배수">구독자 대비</th>
-            <th class="num">좋아요 / 댓글</th>
-            <th class="num">등급</th>
-            <th class="num">기획</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      ${feedHtml}
+      ${pagerHtml}
     </section>
     <div id="bottomCtaBar" class="bottom-cta">
       <div>
