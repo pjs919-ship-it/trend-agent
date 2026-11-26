@@ -262,10 +262,17 @@ def _invoke(llm, schema, prompt: str, retries: int = 3):
         except Exception as e:
             last = e
             msg = str(e)
+            low = msg.lower()
             if "429" in msg or "RESOURCE_EXHAUSTED" in msg or "503" in msg:
-                if "prepayment" in msg.lower():
+                # 일일 무료 한도 소진(RPD)이나 선불 크레딧 소진은 기다려도 안 풀리므로 즉시 중단
+                if (
+                    "prepayment" in low
+                    or "per day" in low
+                    or "free_tier_requests" in low
+                    or "limit: 0" in low
+                ):
                     raise
-                time.sleep(15 * (i + 1))
+                time.sleep(5 * (i + 1))
                 continue
             raise
     raise last

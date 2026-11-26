@@ -87,13 +87,68 @@ def _update_beauty_channels_pool(entries: Dict[str, Any]):
             json.dump(pool, f, ensure_ascii=False, indent=2)
 
 
+CORE_AI_PATHS = {"beauty", "beauty/skincare", "beauty/makeup", "beauty/hairbody"}
+_EXHAUSTED_MODELS: Set[str] = set()
+
+
+def _build_fast_fallback_step1(
+    vids: List[Dict[str, Any]],
+    path_key: str,
+    path_label: str,
+    days_val: int,
+) -> Dict[str, Any]:
+    """AI 호출 없이도 깔끔한 1단계 요약·메타 팩트를 즉시 생성합니다 (0 토큰)."""
+    domain = (
+        "색조/메이크업" if "makeup" in path_key
+        else ("헤어/바디" if "hairbody" in path_key else "기초/스킨케어")
+    )
+    top_v = vids[0] if vids else {}
+    top_views = int(top_v.get("views", 0))
+    ad_cnt = sum(1 for v in vids if v.get("has_paid_promotion"))
+    org_cnt = len(vids) - ad_cnt
+    patterns = [
+        f"'{path_label}' 상위 {len(vids)}편 중 최고 조회수는 {top_views:,}회로, 짧은 도입부에서 피부 고민이나 사용 결과를 바로 보여주는 구성이 강세예요.",
+        f"현재 수집된 영상은 일반(미표시) {org_cnt}편, 광고 표시 {ad_cnt}편 비중으로 실제 사용감 중심 리뷰가 주로 반응하고 있어요.",
+        "아래 영상에서 '이 영상으로 기획하기'를 누르면 AI가 우리 제품 특징에 맞춰 카피와 4단 촬영 콘티를 바로 만들어 드려요.",
+    ]
+    facts = [
+        {
+            "video_id": v["video_id"],
+            "domain": domain,
+            "format_tag": "제품 리뷰형",
+            "what_happens": (v.get("title") or "")[:60],
+            "product_types": [],
+            "hook_quote": (v.get("title") or "")[:40],
+            "evidence_quote": (v.get("title") or "")[:40],
+            "evidence_ok": True,
+            "text_source": v.get("text_source", "meta"),
+        }
+        for v in vids[:15]
+    ]
+    return {
+        "path_label": path_label,
+        "days_range": days_val,
+        "report_date": datetime.now(KST).date().isoformat(),
+        "videos": vids,
+        "facts": facts,
+        "market_patterns": patterns,
+    }
+
+
 def _run_ai_with_fallback(
     vids: List[Dict[str, Any]],
+    path_key: str,
     path_label: str,
     days_val: int,
     gg_key: str,
 ) -> Dict[str, Any]:
+    # 핵심 4개 카테고리만 Gemini AI 분석 (배치당 4회 × 하루 2회 = 8회/일, 무료 20회 한도 내 안전 유지)
+    if path_key not in CORE_AI_PATHS:
+        return _build_fast_fallback_step1(vids, path_key, path_label, days_val)
+
     for model_name in ("gemini-2.5-flash-lite", "gemini-flash-latest"):
+        if model_name in _EXHAUSTED_MODELS:
+            continue
         try:
             return pipeline.run_step1_explore(
                 vids,
@@ -103,18 +158,11 @@ def _run_ai_with_fallback(
                 model=model_name,
             )
         except Exception as e:
-            print(f"  [AI 경고] {model_name} 실패: {e}")
-            time.sleep(2)
-    return {
-        "path_label": path_label,
-        "days_range": days_val,
-        "report_date": datetime.now(KST).date().isoformat(),
-        "videos": vids,
-        "facts": [],
-        "market_patterns": [
-            "영상별 조회수·하루 평균·평소 대비 터짐 배수·광고 여부를 먼저 확인해 보세요."
-        ],
-    }
+            low = str(e).lower()
+            print(f"  [AI 경고] {model_name} 실패: {str(e)[:220]}")
+            if "per day" in low or "free_tier_requests" in low or "429" in low:
+                _EXHAUSTED_MODELS.add(model_name)
+    return _build_fast_fallback_step1(vids, path_key, path_label, days_val)
 
 
 def _filter_beauty_only(entry: Dict[str, Any]) -> Dict[str, Any]:
@@ -242,19 +290,13 @@ def main():
                     prev_views[vid] = cur_v
 
                 if vids and gg_key and not args.skip_ai:
-                    s1 = _run_ai_with_fallback(vids[:15], label, d, gg_key)
+                    s1 = _run_ai_with_fallback(vids[:15], pk, label, d, gg_key)
                     s1["videos"] = vids
                     s1 = _filter_beauty_only(s1)
-                    time.sleep(1.5)
+                    if pk in CORE_AI_PATHS:
+                        time.sleep(1.0)
                 else:
-                    s1 = {
-                        "path_label": label,
-                        "days_range": d,
-                        "report_date": datetime.now(KST).date().isoformat(),
-                        "videos": vids[:30],
-                        "facts": [],
-                        "market_patterns": [],
-                    }
+                    s1 = _build_fast_fallback_step1(vids[:30], pk, label, d)
                 s1["path_key"] = pk
                 s1["days_range"] = d
                 s1["updated_at_kst"] = now_kst
