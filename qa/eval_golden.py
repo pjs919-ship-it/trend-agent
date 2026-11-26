@@ -845,12 +845,36 @@ def test_step1_step2_kr_flow(products):
     _assert(agent_core.detect_paid_promotion("세럼 리뷰", "브랜드로부터 제품을 무상 제공받아 작성", False), "설명란 무상 제공 광고 미탐")
     _assert(not agent_core.detect_paid_promotion("내돈내산 리뷰", "광고 아님 직접 구매함", False), "내돈내산 오탐")
 
-    # 5) HTML 고객 화면 내부 용어·속어·중복 위계 노출 차단 자동 회귀 검증
+    # 5) HTML 고객 화면 내부 용어·속어·중복 위계 노출 차단 + 1초 JS 함수 단위 검증
     html_text = open(os.path.join(ROOT, "TrendSetter_KBeauty_Pro.html"), encoding="utf-8").read()
     for forbidden_ui in ["소재빨", "배치 스냅샷", "추천 (Go)", "추천(Go) 컨셉이 없습니다", "추가 유튜브 한도", "kpi-strip", "인기 영상 유형 ·", "일반(미표시)", "광고 표시"]:
         _assert(forbidden_ui not in html_text, f"고객 화면에 금지/내부/중복 요소 노출: {forbidden_ui}")
     for required_ui in ["daysSel", "sortSel", "kwSearchInput", "이번 주 뷰티 쇼츠, 이렇게 찍어야 터집니다", "오가닉"]:
         _assert(required_ui in html_text, f"개편 UI 필수 요소 누락: {required_ui}")
+
+    import shutil, subprocess, re as _re
+    if shutil.which("node"):
+        m_js = _re.findall(r"<script>([\s\S]*?)</script>", html_text)
+        _assert(bool(m_js), "HTML 인라인 <script> 누락")
+        # DOM 초기화 직전 순수 함수만 추출해 브라우저 없이 1초 단위 검증 실행
+        pure_js = m_js[-1].split("initLocalKeys();")[0]
+        unit_js = f"""
+const window = {{ localStorage: {{ getItem: () => null, setItem: () => {{}} }} }};
+const document = {{ getElementById: () => ({{ value: '', style: {{}}, addEventListener: () => {{}}, removeAttribute: () => {{}} }}), querySelector: () => null }};
+{pure_js}
+if (norm('완치') !== '완치') throw new Error('norm 한글 손실: ' + norm('완치'));
+const claims = '저분자 히알루론산, 소듐하이알루로네이트 2,700ppm, 속건조 케어'.split(/(?:\\n+|,(?!\\d))/).map(s => s.trim()).filter(Boolean);
+if (!claims.includes('소듐하이알루로네이트 2,700ppm')) throw new Error('2,700ppm 분리 오류: ' + JSON.stringify(claims));
+const fb = buildFallbackPlan({{ title: '조회수 167만회 논란의 똥손 메이크업' }}, {{ format_tag: '겟레디윗미' }}, '올리고 히알루론산 딥 토너', '기초 > 토너·패드', '전체 K-뷰티 관심층', '공감·일상 루틴형', claims);
+const vClean = collectViolationTerms(fb, claims, ['올리브영 1위 토너']);
+if (vClean.length) throw new Error('폴백/제목 오탐 발생: ' + JSON.stringify(vClean));
+const vBad = collectViolationTerms({{ product_bridge: '여드름 완치 1등 토너', hook_subtitles: [], cuts: [] }}, claims, []);
+if (!vBad.includes('완치') || !vBad.includes('1등')) throw new Error('금지어 미탐: ' + JSON.stringify(vBad));
+if (!isSpam({{ views: 5000, title: '[알바공감] 올리브영' }}) || !isSpam({{ views: 5000, title: '#몰입형 메이크업' }})) throw new Error('JS 노이즈 필터 미탐');
+if (isKorean({{ title: 'Expired Makeup Keep Or Toss! #스킨케어', description: 'routine' }})) throw new Error('JS 영어 쇼츠 차단 실패');
+"""
+        proc = subprocess.run(["node", "-"], input=unit_js, capture_output=True, text=True, encoding="utf-8")
+        _assert(proc.returncode == 0, f"HTML JS 단위 검증 실패: {proc.stderr or proc.stdout}")
 
     return "PASS (16 KR paths, spam filter, color-product jfsweQpxqsY=Go & serum=Drop, copy_ideas 3x + UI jargon guard)"
 
