@@ -33,342 +33,286 @@
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0; background: var(--bg); color: var(--ink);
+  margin: 0; background: #FFFFFF; color: var(--ink);
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
-  line-height: 1.55;
+  line-height: 1.5;
+  font-size: 14px;
 }
-.ico { width: 15px; height: 15px; vertical-align: -2.5px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 18px 64px; }
+.ico { width: 15px; height: 15px; vertical-align: -2.5px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 88px; }
 .tnum { font-variant-numeric: tabular-nums; }
 
-.hero {
-  display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;
-  padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
+/* Flat App Header */
+.app-bar {
+  border-bottom: 1px solid #ECECE8; background: #FFFFFF;
 }
-.hero h1 { font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.25; }
-.hero .sub { font-size: 0.92rem; color: var(--muted); margin-top: 4px; }
+.app-bar-inner {
+  max-width: 1120px; margin: 0 auto; padding: 14px 24px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand h1 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.025em; color: var(--ink); }
+.brand span { font-size: 12px; font-weight: 400; color: var(--muted); }
 
-.panel {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(28,23,48,0.05);
-}
-.step-badge {
-  display: inline-block; padding: 3px 10px; border-radius: 999px;
-  background: var(--purple-soft); color: var(--purple-dark); font-size: 0.76rem; font-weight: 800; margin-bottom: 6px;
-}
-.step-title { font-size: 1.18rem; font-weight: 800; margin: 0 0 12px; color: var(--ink); }
+/* Flat Filter Bar (No nested boxes) */
+.filter-section { padding: 24px 0 16px; border-bottom: 1px solid #ECECE8; }
+.filter-top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.page-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--ink); letter-spacing: -0.03em; }
+.page-sub { font-size: 13px; color: var(--muted); margin-top: 2px; font-weight: 400; }
 
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
-.field input, .field select, .field textarea {
-  width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 10px;
-  font-size: 0.88rem; color: var(--ink); background: #FFF; font-family: inherit;
+.underline-tabs { display: flex; gap: 20px; border-bottom: 1px solid #ECECE8; }
+.utab {
+  background: none; border: none; padding: 8px 2px 10px; font-size: 14px; font-weight: 500;
+  color: var(--muted); cursor: pointer; position: relative; font-family: inherit;
+}
+.utab:hover { color: var(--ink); }
+.utab.active { color: var(--ink); font-weight: 600; }
+.utab.active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink);
 }
 
-/* Breadcrumb & Chips */
-.crumb-bar {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-  background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 12px;
-  padding: 10px 14px; margin-bottom: 12px;
+.nav-row {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  margin-top: 14px;
 }
+.crumb-inline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .crumb-btn {
-  background: #FFF; border: 1px solid var(--line-strong); border-radius: 999px;
-  padding: 5px 12px; font-size: 0.84rem; font-weight: 700; color: var(--ink); cursor: pointer;
+  background: none; border: none; padding: 4px 6px; font-size: 13.5px; font-weight: 500;
+  color: var(--muted); cursor: pointer; border-radius: 6px; font-family: inherit;
 }
-.crumb-btn.current { background: var(--purple); color: #FFF; border-color: var(--purple); }
-.crumb-sep { color: var(--muted); font-weight: 700; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-.chip {
-  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-strong);
-  background: #FFF; color: var(--ink-secondary); font-size: 0.84rem; font-weight: 700; cursor: pointer;
-  transition: all 0.15s ease;
+.crumb-btn:hover { background: #F5F5F3; color: var(--ink); }
+.crumb-btn.current { color: var(--ink); font-weight: 600; background: #F4F4F1; }
+.crumb-sep { color: #C4C4BE; font-size: 12px; }
+.sub-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sub-chip {
+  background: #FAFAF8; border: 1px solid #E5E5E0; border-radius: 6px; padding: 4px 10px;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
 }
-.chip:hover { border-color: var(--purple); color: var(--purple-dark); background: var(--purple-soft); }
-.chip.active { background: var(--purple); color: #FFF; border-color: var(--purple); }
+.sub-chip:hover { border-color: var(--ink); color: var(--ink); }
 
-.ctrl-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.seg-group { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg-btn {
-  position: relative;
-  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong);
-  background: #FFF; color: var(--muted); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+.controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sort-select {
+  padding: 7px 10px; border: 1px solid #DCDCD6; border-radius: 8px; background: #FFF;
+  font-size: 13px; font-weight: 500; color: var(--ink); font-family: inherit; cursor: pointer;
 }
-.seg-btn.active { background: var(--ink); color: #FFF; border-color: var(--ink); }
-.seg-btn[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%);
-  width: max-content; max-width: 240px; white-space: normal; text-align: left;
-  background: var(--ink); color: #FFF; font-size: 0.76rem; font-weight: 500; line-height: 1.45;
-  padding: 8px 11px; border-radius: 9px; box-shadow: 0 6px 18px rgba(28,23,48,0.22);
-  opacity: 0; pointer-events: none; transition: opacity 0.14s ease; z-index: 50;
-}
-.seg-btn[data-tip]:last-child::after { left: auto; right: 0; transform: none; }
-.seg-btn[data-tip]:hover::after, .seg-btn[data-tip]:focus-visible::after { opacity: 1; }
-
-.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .btn {
-  padding: 10px 16px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
-  border: 1px solid transparent; transition: all 0.15s ease;
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid transparent; transition: background 0.12s ease; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
 }
-.btn-primary { background: var(--purple); color: #FFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.btn-primary:hover { background: var(--purple-dark); }
-.btn-sec { background: var(--purple-soft); color: var(--purple-dark); border-color: #C4B5FD; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.btn-sec:hover { background: #EDE9FE; }
-.btn-outline { background: #FFF; color: var(--ink-secondary); border-color: var(--line-strong); }
-.btn-danger { background: var(--danger-soft); color: var(--danger); border: 1.5px solid var(--danger); }
-.status-bar { font-size: 0.84rem; color: var(--purple-dark); font-weight: 600; margin-top: 10px; min-height: 20px; }
+.btn-primary { background: var(--ink); color: #FFF; }
+.btn-primary:hover { background: #27272A; }
+.btn-sec { background: #F4F4F1; color: var(--ink); border-color: #E2E2DC; }
+.btn-sec:hover { background: #EAEAE5; }
+.btn-outline { background: #FFF; color: var(--ink-secondary); border-color: #DCDCD6; }
+.btn-outline:hover { background: #FAFAF8; color: var(--ink); }
+.btn-danger { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); }
+.status-bar { font-size: 13px; color: var(--ink-secondary); font-weight: 500; margin-top: 10px; min-height: 18px; }
 
 .welcome-box {
-  border: 1.5px dashed var(--line-strong); border-radius: 16px; padding: 36px 24px;
-  text-align: center; background: #FFF; color: var(--muted); margin-bottom: 18px;
+  padding: 56px 20px; text-align: center; color: var(--muted); border-bottom: 1px solid #ECECE8;
 }
-.welcome-box h3 { margin: 0 0 8px; color: var(--ink); font-size: 1.08rem; }
+.welcome-box h3 { margin: 0 0 6px; color: var(--ink); font-size: 16px; font-weight: 600; }
 
-.alert-banner { padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
-.alert-warn { background: var(--warn-soft); color: var(--warn); border-left: 4px solid var(--warn); }
-.alert-danger { background: var(--danger-soft); color: var(--danger); border-left: 4px solid var(--danger); }
-.alert-info { background: var(--drop-soft); color: var(--drop); border-left: 4px solid var(--drop); }
+/* Insights Strip (Flat 3-col editorial) */
+.insights-wrap { padding: 20px 0; border-bottom: 1px solid #ECECE8; }
+.section-head {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 12px;
+}
+.section-head h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.fmt-inline { font-size: 12.5px; color: var(--muted); }
+.insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.insight-item { font-size: 13.5px; color: var(--ink-secondary); line-height: 1.55; }
+.insight-idx { font-size: 11px; font-weight: 600; color: var(--purple); display: block; margin-bottom: 4px; }
 
-.pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+/* Data Table (Toss Securities / Linear style) */
+.table-wrap { padding-top: 18px; }
+.table-meta-bar {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 10px; font-size: 12.5px; color: var(--muted);
+}
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-size: 12px; font-weight: 500; color: var(--muted); text-align: left;
+  padding: 10px 8px; border-bottom: 1px solid #E2E2DC; white-space: nowrap;
+}
+.data-table th.num, .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.data-table td {
+  padding: 14px 8px; border-bottom: 1px solid #F1F1ED; vertical-align: middle;
+}
+.data-table tbody tr:hover { background: #FAFAF8; }
+.td-rank { width: 32px; font-size: 13px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vid-cell { display: flex; gap: 12px; align-items: center; min-width: 280px; }
+.short-thumb { width: 48px; height: 64px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #F0F0EC; }
+.short-title { font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; line-height: 1.35; }
+.short-title:hover { color: var(--purple); text-decoration: underline; }
+.short-fact { font-size: 12.5px; color: var(--ink-secondary); margin-top: 2px; line-height: 1.4; }
+.short-sub { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tag-mini {
+  display: inline-block; font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px;
+}
+.tag-ad { background: #FEF3C7; color: #92400E; }
+.tag-org { background: #ECFDF5; color: #065F46; }
+.grade-txt { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; display: inline-block; }
+.g-s { background: #18181B; color: #FFF; }
+.g-a { background: #FDF2F8; color: #BE185D; }
+.g-b { background: #ECFDF5; color: #047857; }
+.g-c { background: #F4F4F5; color: #52525B; }
+.td-val { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+.td-sub { font-size: 11.5px; color: var(--muted); display: block; }
+
+.bottom-cta {
+  position: sticky; bottom: 0; z-index: 40; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px);
+  border-top: 1px solid #E2E2DC; padding: 14px 0; margin-top: 20px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+
+/* Step 2 Flat Section */
+.step2-section { padding: 28px 0; border-top: 1px solid #E2E2DC; margin-top: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid #DCDCD6; border-radius: 8px;
+  font-size: 13.5px; color: var(--ink); background: #FFF; font-family: inherit;
+}
+.preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.preset-btn {
+  background: #FAFAF8; border: 1px solid #E2E2DC; border-radius: 6px; padding: 5px 10px;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
+}
+.preset-btn:hover { border-color: var(--ink); color: var(--ink); }
+.pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 500; }
 .pill-go { background: var(--go-soft); color: var(--go); }
 .pill-warn { background: var(--warn-soft); color: var(--warn); }
 .pill-drop { background: var(--drop-soft); color: var(--drop); }
 .pill-purple { background: var(--purple-soft); color: var(--purple); }
-.pill-gold { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
+.pill-gold { background: #18181B; color: #FFF; }
 .pill-hot { background: var(--hot-soft); color: var(--hot); }
 
-.seg-track {
-  display: inline-flex; gap: 2px; background: var(--surface-subtle);
-  padding: 3px; border-radius: 12px; border: 1px solid var(--line);
-}
-.seg-track .seg-btn {
-  border: none; background: transparent; color: var(--muted);
-  padding: 6px 12px; border-radius: 9px; font-size: 0.81rem; font-weight: 600;
-}
-.seg-track .seg-btn.active {
-  background: #FFF; color: var(--ink); font-weight: 700;
-  box-shadow: 0 1px 3px rgba(24,24,27,0.08);
-}
-.pill-editorial { background: var(--ink); color: #FFF; }
-.insight-box {
-  background: #FFFFFF;
-  border: 1px solid var(--line); border-left: 3px solid var(--purple);
-  border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
-}
-.pattern-row { display: flex; gap: 10px; align-items: flex-start; font-size: 0.91rem; color: var(--ink-secondary); margin-bottom: 7px; }
-.pattern-num {
-  min-width: 22px; height: 22px; border-radius: 999px; background: var(--purple); color: #FFF;
-  font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px;
-}
-
-/* Step 1 TDS ListRow Layout */
-.list-header {
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-  padding: 6px 2px 10px; font-size: 0.92rem; font-weight: 800; color: var(--ink);
-}
-.metric-guide {
-  background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 12px;
-  padding: 10px 14px; font-size: 0.8rem; color: var(--ink-secondary); margin-bottom: 12px;
-  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
-}
-.tds-list {
-  background: #FFF; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
-  margin-bottom: 20px; box-shadow: 0 1px 4px rgba(28,23,48,0.04);
-}
-.tds-row {
-  display: flex; gap: 14px; align-items: center; padding: 16px 18px;
-  border-bottom: 1px solid var(--line); transition: background 0.12s ease;
-}
-.tds-row:last-child { border-bottom: none; }
-.tds-row:hover { background: #FCFBFF; }
-.tds-rank {
-  min-width: 24px; font-size: 0.95rem; font-weight: 800; color: var(--purple-dark); text-align: center;
-}
-.short-thumb { width: 72px; height: 96px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
-.short-body { flex: 1; min-width: 0; }
-.short-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
-.short-title { font-size: 0.96rem; font-weight: 800; color: var(--ink); text-decoration: none; }
-.short-title:hover { color: var(--purple); }
-.short-meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 7px; align-items: center; font-variant-numeric: tabular-nums; }
-.short-fact { font-size: 0.84rem; color: var(--ink-secondary); margin: 4px 0 6px; }
-.tds-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; min-width: 150px;
-}
-.bottom-cta {
-  position: sticky; bottom: 14px; z-index: 40;
-  background: rgba(255,255,255,0.94); backdrop-filter: blur(8px);
-  border: 1px solid var(--line-strong); border-radius: 16px;
-  padding: 12px 16px; margin-top: 14px; box-shadow: 0 8px 24px rgba(28,23,48,0.12);
-  display: none; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
-}
-.bottom-cta.show { display: flex; }
-
-/* Step 2 Cards */
-.tcard {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  padding: 20px 22px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(28,23,48,0.05);
-}
-.tcard.gold { border: 2px solid var(--gold); background: var(--gold-soft); }
-.tcard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.tcard { border-bottom: 1px solid #ECECE8; padding: 20px 0; }
+.tcard.gold { border-left: 2px solid var(--ink); padding-left: 16px; }
+.tcard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .badge-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.dots { font-size: 0.88rem; font-weight: 800; letter-spacing: 1px; }
-.tcard-title { font-size: 1.1rem; font-weight: 800; margin: 6px 0 8px; }
-.quote-box { background: #F4FBF9; border-left: 3px solid var(--go); border-radius: 8px; padding: 9px 13px; margin: 10px 0; font-size: 0.88rem; }
-.copy-box { background: #F6F2FF; border-left: 3px solid var(--purple); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
-.copy-box b { color: var(--purple-dark); font-size: 0.8rem; display: block; margin-bottom: 4px; }
-.copy-item { font-size: 0.89rem; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.dots { font-size: 12.5px; font-weight: 600; }
+.tcard-title { font-size: 16px; font-weight: 600; margin: 6px 0 8px; }
+.quote-box { background: #FAFAF8; border-left: 2px solid #D4D1C9; padding: 8px 12px; margin: 8px 0; font-size: 13px; }
+.copy-box { background: #FAFAF8; border-left: 2px solid var(--purple); padding: 10px 14px; margin: 10px 0; }
+.copy-box b { color: var(--ink); font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; }
+.copy-item { font-size: 13.5px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
 .sb-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0; }
-.sb-cell { background: #FFF; border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; font-size: 0.87rem; color: var(--ink-secondary); }
-.sb-label { font-size: 0.77rem; font-weight: 800; color: var(--purple-dark); margin-bottom: 4px; }
-.note-strip { background: #FFF8F8; border: 1px solid #FECACA; border-radius: 10px; padding: 9px 12px; font-size: 0.8rem; color: var(--ink-secondary); }
-
-.pivot-card {
-  display: flex; align-items: center; gap: 12px; background: #FFF;
-  border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 12px;
-  padding: 12px 14px; margin-bottom: 10px;
-}
-.pivot-thumb { width: 72px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
-
-details.b2b-details {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 12px 16px; margin-bottom: 14px;
-}
-details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(--ink); cursor: pointer; }
-.b2b-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 10px; }
-.b2b-table th { background: var(--surface-subtle); color: var(--muted); text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
-.b2b-table td { padding: 8px; border-bottom: 1px solid var(--line); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
-.b2b-table a { color: var(--purple-dark); font-weight: 600; text-decoration: none; }
-
-.action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-.action-bar .btn { flex: 1; min-width: 200px; text-align: center; }
-
+.sb-cell { border: 1px solid #ECECE8; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--ink-secondary); }
+.sb-label { font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+.note-strip { background: #FEF2F2; border-radius: 6px; padding: 8px 12px; font-size: 12.5px; color: var(--danger); }
+.alert-banner { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+.alert-danger { background: var(--danger-soft); color: var(--danger); }
+.pivot-card { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0F0EC; }
+.pivot-thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+details.b2b-details { border-top: 1px solid #ECECE8; padding: 14px 0; margin-top: 10px; }
+details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--ink-secondary); cursor: pointer; }
+.b2b-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+.b2b-table th { text-align: left; padding: 8px; border-bottom: 1px solid #E2E2DC; color: var(--muted); font-weight: 500; }
+.b2b-table td { padding: 8px; border-bottom: 1px solid #F0F0EC; color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+.action-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
 .toast {
   position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #FFF;
-  padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
   opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 9999;
 }
 .toast.show { opacity: 1; }
-
-@media (max-width: 768px) {
-  .grid-3, .sb-grid { grid-template-columns: 1fr; }
-  .tds-row { flex-direction: column; align-items: flex-start; }
-  .tds-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; width: 100%; }
+@media (max-width: 860px) {
+  .insights-grid, .grid-3, .sb-grid { grid-template-columns: 1fr; }
+  .table-wrap { overflow-x: auto; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <div>
-      <h1 style="letter-spacing:-0.03em;">숏폼레이더 <span style="font-size:0.9rem;font-weight:600;color:var(--muted);margin-left:4px;">ShortformRadar</span></h1>
-      <div class="sub">K-뷰티 마케터를 위한 데일리 쇼츠 브리핑 및 캠페인 기획</div>
+<header class="app-bar">
+  <div class="app-bar-inner">
+    <div class="brand">
+      <h1>숏폼레이더</h1>
+      <span>K-뷰티 쇼츠 데일리 브리핑</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span id="topStatusBadge" class="pill pill-drop">한국 뷰티</span>
-      <button id="syncSnapBtn" class="btn btn-sec" style="padding:7px 13px;font-size:0.82rem;display:inline-flex;align-items:center;gap:6px;" onclick="syncSnapshotFromGitHub()"
-        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">
+      <button id="syncSnapBtn" class="btn btn-sec" onclick="syncSnapshotFromGitHub()"
+        title="GitHub에 저장된 최신 트렌드 데이터를 불러옵니다">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-        최신 트렌드 업데이트
+        최신 데이터 불러오기
       </button>
-      <button id="toggleApiBtn" class="btn btn-outline" style="padding:7px 12px;font-size:0.82rem;display:inline-flex;align-items:center;gap:5px;" onclick="toggleApiPanel()">
+      <button id="toggleApiBtn" class="btn btn-outline" onclick="toggleApiPanel()">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         API 설정
       </button>
     </div>
   </div>
+</header>
 
-  <!-- API 키 설정 (기본 숨김 — 설정 버튼 클릭 시 열림) -->
-  <details id="apiDetails" class="b2b-details" style="display:none;margin-bottom:14px;">
+<div class="wrap">
+  <details id="apiDetails" class="b2b-details" style="display:none;border-top:none;border-bottom:1px solid #ECECE8;">
     <summary id="apiSummary">API 키 설정</summary>
     <div class="grid-3" style="margin-top:12px;">
-      <div class="field">
-        <label>유튜브 API 키</label>
-        <input id="ytKey" type="password" placeholder="AIza..." />
-      </div>
-      <div class="field">
-        <label>제미나이 AI API 키</label>
-        <input id="ggKey" type="password" placeholder="AIza..." />
-      </div>
-      <div class="field">
-        <label>AI 분석 모델</label>
+      <div class="field"><label>유튜브 API 키</label><input id="ytKey" type="password" placeholder="AIza..." /></div>
+      <div class="field"><label>제미나이 AI API 키</label><input id="ggKey" type="password" placeholder="AIza..." /></div>
+      <div class="field"><label>AI 분석 모델</label>
         <select id="modelSel">
-          <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델 (추천)</option>
+          <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델</option>
           <option value="gemini-flash-latest">표준 무료 모델</option>
         </select>
       </div>
     </div>
   </details>
 
-  <!-- Step 1: 데일리 뷰티 브리핑 -->
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+  <section class="filter-section">
+    <div class="filter-top">
       <div>
-        <span class="step-badge">1단계 · 데일리 브리핑</span>
-        <h2 class="step-title" style="margin-bottom:0;">오늘 뜨는 K-뷰티 쇼츠 브리핑</h2>
+        <h2 class="page-title">오늘의 K-뷰티 쇼츠 트렌드</h2>
+        <div class="page-sub">한국 인기 뷰티 쇼츠의 조회수·확산 속도·광고 여부를 매일 정리해 드려요</div>
       </div>
-      <div class="seg-track">
-        <button id="days1" class="seg-btn" onclick="setDays(1)">1일 · 오늘</button>
-        <button id="days7" class="seg-btn" onclick="setDays(7)">7일 · 이번 주</button>
-        <button id="days30" class="seg-btn active" onclick="setDays(30)">30일 · 대세</button>
+      <div class="underline-tabs">
+        <button id="days1" class="utab" onclick="setDays(1)">1일 · 오늘</button>
+        <button id="days7" class="utab" onclick="setDays(7)">7일 · 이번 주</button>
+        <button id="days30" class="utab active" onclick="setDays(30)">30일 · 대세</button>
       </div>
     </div>
 
-    <div id="crumbBar" class="crumb-bar"></div>
-    <div id="childChips" class="chip-row"></div>
-
-    <div class="ctrl-row" style="margin-bottom:10px;">
-      <div class="seg-group">
-        <button id="sortGrade" class="seg-btn active" onclick="setSort('grade')"
-          data-tip="등급 높은 순(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순서로 보여드려요."
-          aria-label="등급·인기 순">등급·인기 순</button>
-        <button id="sortVsAvg" class="seg-btn" onclick="setSort('vs_avg')"
-          data-tip="이 채널의 평소 평균 조회수보다 몇 배나 더 터졌는지 순이에요. 기획·소재 자체가 먹힌 영상을 먼저 찾아요."
-          aria-label="평소 대비 순">평소 대비 순</button>
-        <button id="sortRatio" class="seg-btn" onclick="setSort('subscriber_ratio')"
-          data-tip="구독자 수 대비 조회수가 몇 배나 터졌는지 순이에요. 작은 채널인데 알고리즘을 타 크게 뜬 영상을 먼저 찾아요."
-          aria-label="구독자 대비 순">구독자 대비 순</button>
-        <button id="sortFast" class="seg-btn" onclick="setSort('fast')"
-          data-tip="올라온 뒤 하루 평균 조회수가 높은 순이에요. 지금 가장 빠르게 치고 올라오는 영상을 먼저 봐요."
-          aria-label="하루 평균 순">하루 평균 순</button>
-        <button id="sortViews" class="seg-btn" onclick="setSort('views')"
-          data-tip="누적 조회수가 가장 높은 영상부터 보여드려요."
-          aria-label="조회수 순">조회수 순</button>
-        <button id="sortComments" class="seg-btn" onclick="setSort('comments')"
-          data-tip="시청자 질문과 반응(댓글)이 가장 많이 달린 영상부터 보여드려요."
-          aria-label="댓글 많은 순">댓글 많은 순</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" style="padding:8px 14px;font-size:0.84rem;" onclick="runStep1Live()">이 카테고리 트렌드 보기</button>
-        <button class="btn btn-outline" style="padding:8px 12px;font-size:0.84rem;" onclick="runStep1Preview()">예시 미리보기</button>
+    <div class="nav-row">
+      <div id="crumbBar" class="crumb-inline"></div>
+      <div class="controls-right">
+        <select id="sortSel" class="sort-select" onchange="setSort(this.value)" title="정렬 기준 선택">
+          <option value="grade" selected>정렬: 등급·인기 순</option>
+          <option value="vs_avg">정렬: 평소 대비 순 (소재빨)</option>
+          <option value="subscriber_ratio">정렬: 구독자 대비 순 (확산력)</option>
+          <option value="fast">정렬: 하루 평균 순</option>
+          <option value="views">정렬: 누적 조회수 순</option>
+          <option value="comments">정렬: 댓글 많은 순</option>
+        </select>
+        <button class="btn btn-primary" onclick="runStep1Live()">트렌드 보기</button>
+        <button class="btn btn-outline" onclick="runStep1Preview()">예시 보기</button>
       </div>
     </div>
+    <div id="childChips" class="sub-chips"></div>
     <div id="step1Status" class="status-bar"></div>
-  </div>
+  </section>
 
-  <!-- 초기 대기 화면 또는 Step 1 결과 영역 -->
   <div id="step1Area">
     <div class="welcome-box">
-      <h3>어떤 뷰티 카테고리의 쇼츠 트렌드를 볼까요?</h3>
-      <p style="margin:0;">상단 <b>최신 트렌드 업데이트</b>를 누르거나 아래에서 카테고리를 고른 뒤 <b>이 카테고리 트렌드 보기</b>를 눌러보세요.<br>
-      API 키가 없다면 <b>예시 미리보기</b>로 바로 둘러볼 수 있어요.</p>
+      <h3>어떤 뷰티 카테고리의 쇼츠를 볼까요?</h3>
+      <p style="margin:0;">상단 <b>최신 데이터 불러오기</b>를 누르거나 카테고리를 고른 뒤 <b>트렌드 보기</b>를 눌러보세요.<br>API 키 없이 둘러보려면 <b>예시 보기</b>를 누르면 됩니다.</p>
     </div>
   </div>
 
-  <!-- Step 2: 홍보할 상품에 입히기 (Step 1 결과 후 활성화) -->
-  <div id="step2Panel" class="panel" style="display:none;">
-    <span class="step-badge">2단계 · 홍보할 상품에 맞추기</span>
-    <h2 class="step-title">방금 본 트렌드를 홍보할 상품에 입히기</h2>
-
-    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:6px;">⚡ 예시 상품 바로 채우기</div>
-    <div class="chip-row">
-      <button class="chip" onclick="applyPreset('toner')">💧 딥 토너</button>
-      <button class="chip" onclick="applyPreset('pad')">🌿 그린 2.5 패드</button>
-      <button class="chip" onclick="applyPreset('mask')">🧊 워터리 마스크</button>
-      <button class="chip" onclick="applyPreset('lip')">💄 촉촉한 립틴트 (색조 예시)</button>
+  <section id="step2Panel" class="step2-section" style="display:none;">
+    <div class="section-head">
+      <h3>홍보할 상품에 트렌드 입히기</h3>
     </div>
-
+    <div class="preset-row">
+      <button class="preset-btn" onclick="applyPreset('toner')">예시: 딥 토너</button>
+      <button class="preset-btn" onclick="applyPreset('pad')">예시: 그린 2.5 패드</button>
+      <button class="preset-btn" onclick="applyPreset('mask')">예시: 워터리 마스크</button>
+      <button class="preset-btn" onclick="applyPreset('lip')">예시: 촉촉한 립틴트</button>
+    </div>
     <div class="grid-3">
       <div class="field">
         <label>상품 카테고리</label>
@@ -387,34 +331,26 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
           <option value="헤어·바디 > 바디케어">헤어·바디 &gt; 바디케어</option>
         </select>
       </div>
-      <div class="field">
-        <label>홍보할 상품명</label>
-        <input id="prodName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" />
-      </div>
-      <div class="field">
-        <label>강조할 핵심 특징</label>
-        <input id="prodKeywords" type="text" placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어" />
-      </div>
+      <div class="field"><label>홍보할 상품명</label><input id="prodName" type="text" placeholder="예: 올리고 히알루론산 딥 토너" /></div>
+      <div class="field"><label>강조할 핵심 특징</label><input id="prodKeywords" type="text" placeholder="예: 저분자 히알루론산 워터 토너, 속건조 케어" /></div>
     </div>
-
-    <div class="btn-row" style="margin-top:14px;">
-      <button class="btn btn-primary" onclick="runStep2Match()">✨ 이 트렌드로 캠페인·카피 만들기</button>
+    <div style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="runStep2Match()">캠페인·카피 만들기</button>
     </div>
     <div id="step2Status" class="status-bar"></div>
-  </div>
+  </section>
 
   <div id="step2Area"></div>
 
-  <!-- 수집·분석 상세 로그 (디버깅 및 투명성 검증용) -->
-  <details id="logDetails" class="b2b-details" style="margin-top:20px;">
-    <summary>🧾 수집·분석 상세 로그 보기 (필터링 건수·정렬 근거 확인 / 복사 가능)</summary>
+  <details id="logDetails" class="b2b-details">
+    <summary>수집·분석 상세 로그 보기</summary>
     <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-      <button class="btn btn-outline" style="padding:5px 11px;font-size:0.78rem;" onclick="copyDebugLog()">📋 로그 복사</button>
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="copyDebugLog()">로그 복사</button>
     </div>
-    <pre id="debugLogPre" style="margin:8px 0 0;padding:12px;background:#1C1730;color:#E5E7EB;border-radius:10px;font-size:0.78rem;line-height:1.5;max-height:260px;overflow:auto;white-space:pre-wrap;">아직 실행된 로그가 없습니다.</pre>
+    <pre id="debugLogPre" style="margin:8px 0 0;padding:12px;background:#18181B;color:#E4E4E7;border-radius:8px;font-size:12px;line-height:1.5;max-height:240px;overflow:auto;white-space:pre-wrap;">아직 실행된 로그가 없습니다.</pre>
   </details>
 </div>
-<div id="toast" class="toast">✅ 클립보드에 복사되었습니다!</div>
+<div id="toast" class="toast">복사되었습니다.</div>
 <script src="local_keys.js"></script>
 <script src="data/trends_snapshot.js" onerror="void 0"></script>
 
@@ -530,16 +466,16 @@ function renderExplorerNav() {
   const chain = getPathChain(currentPath);
   document.getElementById("crumbBar").innerHTML = chain.map((k, idx) => {
     const isCur = idx === chain.length - 1;
-    return `${idx > 0 ? '<span class="crumb-sep">›</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(getNode(k).label)}</button>`;
+    return `${idx > 0 ? '<span class="crumb-sep">/</span>' : ''}<button class="crumb-btn ${isCur ? 'current' : ''}" onclick="selectPath('${k}')">${esc(getNode(k).label)}</button>`;
   }).join("");
 
   const children = getNode(currentPath).children || [];
   const childEl = document.getElementById("childChips");
   if (!children.length) {
-    childEl.innerHTML = `<span style="font-size:0.82rem;color:var(--muted);">위 경로를 눌러 상위 카테고리로 돌아갈 수 있어요.</span>`;
+    childEl.innerHTML = "";
   } else {
     childEl.innerHTML = children.map(ck =>
-      `<button class="chip" onclick="selectPath('${ck}')">+ ${esc(getNode(ck).label)}</button>`
+      `<button class="sub-chip" onclick="selectPath('${ck}')">+ ${esc(getNode(ck).label)}</button>`
     ).join("");
   }
 }
@@ -551,7 +487,7 @@ function tryApplySnapshotEntry(pathKey, days) {
       videos: snapEntry.videos.map(computeMetrics)
     };
     document.getElementById("step1Status").textContent =
-      `⚡ 최신 배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date}) — '${getPathLabel(pathKey)}' (${days}일 기준) 바로 불러왔어요.`;
+      `배치 스냅샷(${snapEntry.updated_at_kst || snapEntry.report_date}) · ${getPathLabel(pathKey)} (${days}일 기준)`;
     renderStep1Result(step1Data);
     return true;
   }
@@ -563,7 +499,7 @@ function selectPath(key) {
   if (step1Data) {
     if (tryApplySnapshotEntry(key, selectedDays)) return;
     if (step1Data.path_key !== key) {
-      document.getElementById("step1Status").textContent = `카테고리를 '${getPathLabel(key)}'로 바꿨어요. 저장된 배치에 없는 항목이면 [🚀 이 카테고리 트렌드 보기]를 눌러주세요.`;
+      document.getElementById("step1Status").textContent = `'${getPathLabel(key)}' 카테고리를 선택했어요. [트렌드 보기]를 눌러 불러오세요.`;
     }
   }
 }
@@ -588,24 +524,18 @@ function setDays(d) {
       const cached = window.localStorage.getItem(cacheKey);
       if (cached) {
         step1Data = JSON.parse(cached);
-        document.getElementById("step1Status").textContent = `⚡ 오늘 이미 조회한 '${getPathLabel(currentPath)}' (${d}일 기준) 결과를 바로 불러왔어요.`;
+        document.getElementById("step1Status").textContent = `오늘 조회한 '${getPathLabel(currentPath)}' (${d}일 기준) 결과를 불러왔어요.`;
         renderStep1Result(step1Data);
         return;
       }
     } catch (e) {}
-    document.getElementById("step1Status").textContent = `⏱️ 기간을 최근 ${d}일로 바꿨어요. [🚀 이 카테고리 트렌드 보기]를 눌러 새 결과를 불러오세요.`;
+    document.getElementById("step1Status").textContent = `기간을 최근 ${d}일로 바꿨어요. [트렌드 보기]를 눌러 새 결과를 불러오세요.`;
   }
 }
 function setSort(s) {
   selectedSort = s;
-  const gBtn = document.getElementById("sortGrade");
-  if (gBtn) gBtn.classList.toggle("active", s === "grade");
-  const vsBtn = document.getElementById("sortVsAvg");
-  if (vsBtn) vsBtn.classList.toggle("active", s === "vs_avg");
-  document.getElementById("sortRatio").classList.toggle("active", s === "subscriber_ratio");
-  document.getElementById("sortFast").classList.toggle("active", s === "fast");
-  document.getElementById("sortViews").classList.toggle("active", s === "views");
-  document.getElementById("sortComments").classList.toggle("active", s === "comments");
+  const sel = document.getElementById("sortSel");
+  if (sel && sel.value !== s) sel.value = s;
   if (step1Data) renderStep1Result(step1Data);
 }
 function applyPreset(key) {
@@ -1065,9 +995,9 @@ function renderStep1Result(data) {
   const topFmts = Object.entries(fmtCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
   const pats = (data.market_patterns || []).map((p, i) =>
-    `<div class="pattern-row"><span class="pattern-num">${i+1}</span><div>${esc(p)}</div></div>`
+    `<div class="insight-item"><span class="insight-idx">흐름 ${i + 1}</span>${esc(p)}</div>`
   ).join("");
-  const fmtChips = topFmts.map(([tag, cnt]) => `<span class="pill pill-drop">${esc(tag)} · ${cnt}건</span>`).join(" ");
+  const fmtChips = topFmts.map(([tag, cnt]) => `${esc(tag)} (${cnt})`).join(" · ");
 
   const avgV = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views, 0) / sorted.length) : 0;
   const avgVpd = sorted.length ? Math.round(sorted.reduce((s, v) => s + v.views_per_day, 0) / sorted.length) : 0;
@@ -1083,74 +1013,74 @@ function renderStep1Result(data) {
     return `${y}.${m}.${day}`;
   };
 
-  const vsAvgTooltip = "이 채널의 평소 평균 조회수(총조회수÷영상수)보다 몇 배 더 터졌는지 보여줘요. 배수가 높을수록 기획·소재 자체가 먹힌 영상이에요.";
-  const ratioTooltip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 작은 채널인데 알고리즘을 타 크게 뜬 숨은 떡상을 찾아요.";
+  const gradeClsMap = { S: "g-s", A: "g-a", B: "g-b", C: "g-c" };
   const rows = sorted.map((v, idx) => {
     const f = fBy[v.video_id] || {};
     const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
     const pubDateStr = formatPubDate(v.published_at);
-    const promoBadge = v.has_paid_promotion
-      ? `<span class="pill pill-warn" title="유튜버가 유료 광고(협찬)를 표시한 영상이에요">유료광고</span>`
-      : `<span class="pill pill-go" title="유료 광고 표시가 없는 순수 오가닉 영상이에요">오가닉</span>`;
-    const vsAvgBadge = v.views_vs_channel_avg != null
-      ? `<span class="pill pill-purple" title="${vsAvgTooltip}">평소 대비 ${v.views_vs_channel_avg}배</span>`
-      : "";
-    const ratioBadge = v.views_per_subscriber != null
-      ? `<span class="pill pill-drop" title="${ratioTooltip}">구독자 대비 ${v.views_per_subscriber}배</span>`
-      : "";
-    const deltaChip = v.views_delta && v.views_delta > 0
-      ? `<span class="pill pill-go">+${formatKoNum(v.views_delta)} 증가</span>`
-      : "";
-    return `<div class="tds-row">
-      <div class="tds-rank tnum">${idx + 1}</div>
-      <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
-      <div class="short-body">
-        <div class="short-title-row">
-          <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a>
-          ${promoBadge}
+    const promoTag = v.has_paid_promotion
+      ? `<span class="tag-mini tag-ad">유료광고</span>`
+      : `<span class="tag-mini tag-org">오가닉</span>`;
+    const deltaStr = v.views_delta && v.views_delta > 0 ? `<span class="td-sub">+${formatKoNum(v.views_delta)}</span>` : "";
+    return `<tr>
+      <td class="td-rank">${idx + 1}</td>
+      <td>
+        <div class="vid-cell">
+          <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
+          <div style="min-width:0;">
+            <div><a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a></div>
+            ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
+            <div class="short-sub">
+              ${promoTag}
+              ${pubDateStr ? `<span>${pubDateStr}</span>` : ""}
+              <span>· ${esc(f.format_tag || "기타")}</span>
+            </div>
+          </div>
         </div>
-        ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
-        <div class="short-meta">
-          ${pubDateStr ? `<span>${pubDateStr}</span><span>·</span>` : ""}
-          <b style="color:var(--ink);">조회수 ${formatKoNum(v.views)}</b>
-          <span>· 일평균 ${formatKoNum(v.views_per_day)}</span>
-          <span>· 좋아요 ${formatKoNum(v.likes)}</span>
-          <span>· 댓글 ${(v.comments || 0).toLocaleString()}</span>
-          ${deltaChip}
-          <span>· ${esc(f.format_tag || "기타")}</span>
-        </div>
-      </div>
-      <div class="tds-right">
-        <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
-        ${vsAvgBadge}
-        ${ratioBadge}
-      </div>
-    </div>`;
+      </td>
+      <td class="num"><span class="td-val">${formatKoNum(v.views)}</span>${deltaStr}</td>
+      <td class="num"><span class="td-val">${formatKoNum(v.views_per_day)}</span></td>
+      <td class="num"><span class="td-val">${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + "배" : "-"}</span></td>
+      <td class="num"><span class="td-val">${v.views_per_subscriber != null ? v.views_per_subscriber + "배" : "-"}</span></td>
+      <td class="num"><span class="td-val">${formatKoNum(v.likes)}</span><span class="td-sub">댓글 ${(v.comments || 0).toLocaleString()}</span></td>
+      <td class="num"><span class="grade-txt ${gradeClsMap[g.code] || 'g-c'}" title="${esc(g.desc)}">${g.code}등급</span></td>
+    </tr>`;
   }).join("");
 
   document.getElementById("step1Area").innerHTML = `
-    <div class="insight-box">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <b style="font-size:1.02rem;color:var(--ink);">'${esc(data.path_label)}' 오늘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
-        <div>${fmtChips}</div>
+    <section class="insights-wrap">
+      <div class="section-head">
+        <h3>${esc(data.path_label)} 핵심 흐름 (${data.days_range}일 기준)</h3>
+        <span class="fmt-inline">${fmtChips}</span>
       </div>
-      ${pats}
-    </div>
-    <div class="list-header">
-      <span>쇼츠 트렌드 순위 (${sorted.length}건 · 평균 조회수 ${formatKoNum(avgV)} · 일평균 ${formatKoNum(avgVpd)})</span>
-      <span class="pill ${overallGrade.cls}">${overallGrade.label}</span>
-    </div>
-    <div class="metric-guide">
-      <span><b>지표 안내</b></span>
-      <span><b>평소 대비 N배</b> — 채널 평균보다 터진 기획·소재빨</span>
-      <span><b>구독자 대비 N배</b> — 작은 채널의 알고리즘 확산</span>
-    </div>
-    <div class="tds-list">${rows}</div>
-    <div id="bottomCtaBar" class="bottom-cta show">
+      <div class="insights-grid">${pats}</div>
+    </section>
+    <section class="table-wrap">
+      <div class="table-meta-bar">
+        <span>총 ${sorted.length}건 · 평균 조회수 ${formatKoNum(avgV)} · 일평균 ${formatKoNum(avgVpd)} (${overallGrade.label})</span>
+        <span>평소 대비: 채널 평균 대비 소재빨 · 구독자 대비: 작은 채널 확산력</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>쇼츠 콘텐츠</th>
+            <th class="num">조회수</th>
+            <th class="num">일평균</th>
+            <th class="num" title="채널 평소 평균 조회수 대비 배수">평소 대비</th>
+            <th class="num" title="채널 구독자 수 대비 배수">구독자 대비</th>
+            <th class="num">좋아요 / 댓글</th>
+            <th class="num">등급</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </section>
+    <div id="bottomCtaBar" class="bottom-cta">
       <div>
-        <b style="font-size:0.95rem;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</b>
-        <div style="font-size:0.8rem;color:var(--muted);">추가 유튜브 한도 없이 맞춤 카피와 4단 촬영 콘티를 바로 만들어요.</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</div>
+        <div style="font-size:12.5px;color:var(--muted);">추가 유튜브 한도 없이 맞춤 카피와 4단 촬영 콘티를 바로 만듭니다.</div>
       </div>
       <button class="btn btn-primary" onclick="openStep2Panel()">우리 상품 기획안 만들기</button>
     </div>
