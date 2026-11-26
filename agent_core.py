@@ -118,42 +118,42 @@ KR_EXPLORE_TREE: Dict[str, Dict[str, Any]] = {
         "parent": None,
         "level": 0,
         "mode": "search",
-        "keywords": ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"],
+        "keywords": ["올리브영 추천템", "스킨케어 꿀팁", "뷰티 꿀템"],
     },
     "beauty/skincare": {
         "label": "기초 스킨케어",
         "parent": "beauty",
         "level": 1,
         "mode": "search",
-        "keywords": ["스킨케어", "기초 루틴", "속건조"],
+        "keywords": ["스킨케어 루틴", "속건조 케어", "화잘먹 기초"],
     },
     "beauty/makeup": {
         "label": "색조 메이크업",
         "parent": "beauty",
         "level": 1,
         "mode": "search",
-        "keywords": ["메이크업", "립틴트", "블러셔"],
+        "keywords": ["메이크업 꿀팁", "립틴트", "블러셔"],
     },
     "beauty/hairbody": {
         "label": "헤어·바디",
         "parent": "beauty",
         "level": 1,
         "mode": "search",
-        "keywords": ["헤어케어 추천", "바디로션 추천", "샴푸 추천"],
+        "keywords": ["헤어케어", "두피케어", "바디로션"],
     },
     "beauty/skincare/toner": {
         "label": "토너·패드",
         "parent": "beauty/skincare",
         "level": 2,
         "mode": "search",
-        "keywords": ["토너 추천", "토너패드", "닦토"],
+        "keywords": ["토너패드", "속건조 토너", "닦토 팩"],
     },
     "beauty/skincare/serum": {
         "label": "세럼·앰플",
         "parent": "beauty/skincare",
         "level": 2,
         "mode": "search",
-        "keywords": ["수분세럼", "앰플 추천", "진정세럼"],
+        "keywords": ["수분세럼", "모공 앰플", "진정 세럼"],
     },
     "beauty/skincare/cream": {
         "label": "크림·로션",
@@ -476,8 +476,22 @@ def fetch_mega_kbeauty_shorts(
     return results[:10]
 
 
+NON_BEAUTY_NOISE_KEYWORDS = (
+    "알바 공감",
+    "알바생",
+    "알바 썰",
+    "면접 팁",
+    "직캠",
+    "먹방",
+    "게임",
+    "주식",
+    "부동산",
+    "연애 상담",
+)
+
+
 def is_spam_video(row: Dict[str, Any]) -> bool:
-    """조회수 0, 과도한 해시태그(8개 이상), 낚시 스팸 키워드 영상을 판별합니다."""
+    """조회수 0, 과도한 해시태그(8개 이상), 낚시 스팸·비뷰티 노이즈 영상을 판별합니다."""
     if int(row.get("views", 0)) <= 0:
         return True
     title = row.get("title", "") or ""
@@ -486,6 +500,8 @@ def is_spam_video(row: Dict[str, Any]) -> bool:
         return True
     blob = f"{title} {desc}"
     if any(kw in blob for kw in SPAM_KEYWORDS):
+        return True
+    if any(kw in title for kw in NON_BEAUTY_NOISE_KEYWORDS):
         return True
     return False
 
@@ -509,32 +525,45 @@ def get_beauty_viral_grade(
     return {"grade": "C", "label": "🔍 C등급 · 참고용"}
 
 
-def fetch_channel_subscribers(youtube, channel_ids: List[str]) -> Dict[str, Optional[int]]:
-    """최대 50개 채널의 구독자 수를 1회 배치 조회합니다 (비공개/0명은 None)."""
+def fetch_channel_profiles(youtube, channel_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """최대 50개 채널의 구독자 수·채널 누적 조회수·총 영상 수·핸들(@)을 1유닛으로 배치 조회합니다."""
     unique_ids = list(dict.fromkeys([cid for cid in channel_ids if cid]))[:50]
     if not unique_ids or not hasattr(youtube, "channels"):
         return {}
     try:
         record_youtube_units(1, action="channels.list", meta={"count": len(unique_ids)})
         resp = youtube.channels().list(
-            part="statistics",
+            part="statistics,snippet,contentDetails",
             id=",".join(unique_ids),
         ).execute()
-        out: Dict[str, Optional[int]] = {}
+        out: Dict[str, Dict[str, Any]] = {}
         for item in resp.get("items", []):
             cid = item.get("id", "")
             stats = item.get("statistics", {})
-            if stats.get("hiddenSubscriberCount"):
-                out[cid] = None
-            else:
-                subs = int(stats.get("subscriberCount", 0) or 0)
-                out[cid] = subs if subs > 0 else None
+            sn = item.get("snippet", {})
+            rel = item.get("contentDetails", {}).get("relatedPlaylists", {})
+            subs = None if stats.get("hiddenSubscriberCount") else (int(stats.get("subscriberCount", 0) or 0) or None)
+            total_views = int(stats.get("viewCount", 0) or 0)
+            video_count = int(stats.get("videoCount", 0) or 0)
+            avg_views = int(round(total_views / video_count)) if (total_views > 0 and video_count > 0) else None
+            out[cid] = {
+                "subscriber_count": subs,
+                "channel_avg_views": avg_views,
+                "channel_handle": sn.get("customUrl", ""),
+                "uploads_playlist_id": rel.get("uploads", ""),
+            }
         return out
     except RuntimeError:
         raise
     except Exception as e:
-        print(f"[KR Step1 Channel Subscribers Error] {e}")
+        print(f"[KR Step1 Channel Profiles Error] {e}")
         return {}
+
+
+def fetch_channel_subscribers(youtube, channel_ids: List[str]) -> Dict[str, Optional[int]]:
+    """하위 호환용: 채널 ID별 구독자 수 매핑을 반환합니다."""
+    profiles = fetch_channel_profiles(youtube, channel_ids)
+    return {cid: p.get("subscriber_count") for cid, p in profiles.items()}
 
 
 def _format_youtube_api_error(exc: Exception) -> str:
@@ -605,13 +634,13 @@ def fetch_kr_step1_shorts(
 
     record_youtube_units(1, action="videos.list", meta={"path_key": path_key, "count": len(candidate_ids[:50])})
     det = youtube.videos().list(
-        part="snippet,contentDetails,statistics",
+        part="snippet,contentDetails,statistics,paidProductPlacementDetails",
         id=",".join(candidate_ids[:50]),
     ).execute()
 
     raw_items = det.get("items", [])
     channel_ids = [it.get("snippet", {}).get("channelId", "") for it in raw_items]
-    channel_subs = fetch_channel_subscribers(youtube, channel_ids)
+    channel_profiles = fetch_channel_profiles(youtube, channel_ids)
 
     max_len = 180
     results: List[Dict[str, Any]] = []
@@ -620,7 +649,9 @@ def fetch_kr_step1_shorts(
         if secs == 0 or secs > max_len:
             continue
         sn = item["snippet"]
+        cd = item.get("contentDetails", {})
         stats = item.get("statistics", {})
+        paid = item.get("paidProductPlacementDetails", {})
         views = int(stats.get("viewCount", 0))
         likes = int(stats.get("likeCount", 0))
         comments = int(stats.get("commentCount", 0))
@@ -628,8 +659,11 @@ def fetch_kr_step1_shorts(
         metrics = compute_video_metrics(views, likes, pub_raw, now_utc=now_utc)
         metrics["comment_rate"] = round((comments / max(1, views)) * 100.0, 2)
         cid = sn.get("channelId", "")
-        subs = channel_subs.get(cid)
+        prof = channel_profiles.get(cid, {})
+        subs = prof.get("subscriber_count")
+        ch_avg = prof.get("channel_avg_views")
         ratio = round(views / subs, 2) if (subs and subs > 0) else None
+        vs_avg = round(views / ch_avg, 1) if (ch_avg and ch_avg > 0) else None
         grade_info = get_beauty_viral_grade(views, metrics["views_per_day"], ratio)
         row = {
             "video_id": item["id"],
@@ -637,8 +671,14 @@ def fetch_kr_step1_shorts(
             "description": sn.get("description", "")[:300],
             "channel_id": cid,
             "channel_title": sn.get("channelTitle", ""),
+            "channel_handle": prof.get("channel_handle", ""),
             "subscriber_count": subs,
+            "channel_avg_views": ch_avg,
+            "views_vs_channel_avg": vs_avg,
             "views_per_subscriber": ratio,
+            "has_paid_promotion": bool(paid.get("hasPaidProductPlacement", False)),
+            "has_caption": str(cd.get("caption", "")).lower() == "true",
+            "tags": (sn.get("tags") or [])[:8],
             "viral_grade": grade_info["grade"],
             "viral_grade_label": grade_info["label"],
             "views": views,

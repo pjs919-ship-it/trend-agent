@@ -1,7 +1,7 @@
 """batch_update.py — 숏폼레이더 1단계 시장 트렌드 일일 배치 수집·저장 스크립트
 
 GitHub Actions(오전 08:00 KST / 오후 17:00 KST) 또는 로컬에서 실행해
-data/trends_snapshot.json 및 data/trends_snapshot.js 를 갱신합니다.
+data/trends_snapshot.json, data/trends_snapshot.js, beauty_channels.json 을 갱신합니다.
 """
 import argparse
 import json
@@ -10,7 +10,7 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from dotenv import load_dotenv
 
@@ -25,6 +25,7 @@ KST = timezone(timedelta(hours=9))
 DATA_DIR = os.path.join(BASE, "data")
 SNAPSHOT_JSON = os.path.join(DATA_DIR, "trends_snapshot.json")
 SNAPSHOT_JS = os.path.join(DATA_DIR, "trends_snapshot.js")
+CHANNELS_POOL_PATH = os.path.join(BASE, "beauty_channels.json")
 
 
 def _path_label(path_key: str) -> str:
@@ -50,6 +51,42 @@ def _load_existing_snapshot() -> Dict[str, Any]:
     return {"updated_at_kst": "", "entries": {}, "prev_views": {}}
 
 
+def _update_beauty_channels_pool(entries: Dict[str, Any]):
+    """S/A등급 순수 뷰티 영상의 채널을 beauty_channels.json에 자동 누적합니다."""
+    pool: Dict[str, Any] = {"_meta": {"description": "K-뷰티 핵심 채널 풀", "updated_at": ""}, "channels": []}
+    if os.path.exists(CHANNELS_POOL_PATH):
+        try:
+            with open(CHANNELS_POOL_PATH, encoding="utf-8") as f:
+                pool = json.load(f)
+        except Exception:
+            pass
+    existing_ids: Set[str] = {c.get("channel_id") for c in pool.get("channels", []) if c.get("channel_id")}
+    added = 0
+    for entry in entries.values():
+        pk = entry.get("path_key", "beauty")
+        non_beauty_ids = {f.get("video_id") for f in entry.get("facts", []) if f.get("domain") == "기타/뷰티무관"}
+        for v in entry.get("videos", []):
+            if v.get("video_id") in non_beauty_ids:
+                continue
+            cid = v.get("channel_id")
+            if not cid or cid in existing_ids:
+                continue
+            if v.get("viral_grade") in ("S", "A") and len(existing_ids) < 120:
+                existing_ids.add(cid)
+                pool.setdefault("channels", []).append({
+                    "channel_id": cid,
+                    "title": v.get("channel_title", ""),
+                    "handle": v.get("channel_handle", ""),
+                    "category": pk,
+                    "source": "auto_discovered",
+                })
+                added += 1
+    if added > 0:
+        pool.setdefault("_meta", {})["updated_at"] = datetime.now(KST).strftime("%Y-%m-%d")
+        with open(CHANNELS_POOL_PATH, "w", encoding="utf-8") as f:
+            json.dump(pool, f, ensure_ascii=False, indent=2)
+
+
 def _run_ai_with_fallback(
     vids: List[Dict[str, Any]],
     path_label: str,
@@ -68,7 +105,6 @@ def _run_ai_with_fallback(
         except Exception as e:
             print(f"  [AI 경고] {model_name} 실패: {e}")
             time.sleep(2)
-    # AI가 일시 한도에 걸려도 수집된 영상 수치·등급은 살려서 반환
     return {
         "path_label": path_label,
         "days_range": days_val,
@@ -76,9 +112,68 @@ def _run_ai_with_fallback(
         "videos": vids,
         "facts": [],
         "market_patterns": [
-            "영상별 조회수·하루 평균·구독자 대비 확산력 수치를 먼저 확인해 보세요. (AI 요약은 다음 배치에서 자동 보완됩니다.)"
+            "영상별 조회수·하루 평균·평소 대비 터짐 배수·광고 여부를 먼저 확인해 보세요."
         ],
     }
+
+
+def _filter_beauty_only(entry: Dict[str, Any]) -> Dict[str, Any]:
+    """AI 판정 결과 '기타/뷰티무관' 영상을 스냅샷에서 제외합니다."""
+    facts = entry.get("facts", [])
+    non_beauty_ids = {f.get("video_id") for f in facts if f.get("domain") == "기타/뷰티무관"}
+    vids = entry.get("videos", [])
+    clean_vids = [v for v in vids if v.get("video_id") not in non_beauty_ids]
+    if len(clean_vids) >= 3:
+        vids = clean_vids
+        facts = [f for f in facts if f.get("video_id") not in non_beauty_ids]
+    entry["videos"] = vids[:10]
+    entry["facts"] = facts
+    return entry
+
+
+def _derive_daily_1d_entries(snap: Dict[str, Any], path_keys: List[str], now_kst: str):
+    """7일·30일 스냅샷에서 최근 48시간 업로드 또는 views_delta 상위 영상을 모아 1일 기준을 자동 생성합니다."""
+    entries = snap.get("entries", {})
+    for pk in path_keys:
+        pool_vids: Dict[str, Dict[str, Any]] = {}
+        pool_facts: Dict[str, Dict[str, Any]] = {}
+        base_patterns: List[str] = []
+        for d in (7, 30):
+            e = entries.get(f"{pk}_{d}")
+            if not e:
+                continue
+            if not base_patterns and e.get("market_patterns"):
+                base_patterns = e["market_patterns"]
+            for f in e.get("facts", []):
+                pool_facts[f["video_id"]] = f
+            for v in e.get("videos", []):
+                pool_vids[v["video_id"]] = v
+        if not pool_vids:
+            continue
+        cands = list(pool_vids.values())
+        # 48시간 이내 업로드 or views_delta 보유 영상 우선, 없으면 views_per_day 상위
+        cands.sort(
+            key=lambda x: (
+                1 if float(x.get("days_since_published", 99)) <= 2.2 else 0,
+                int(x.get("views_delta", 0) or 0),
+                int(x.get("views_per_day", 0)),
+                int(x.get("views", 0)),
+            ),
+            reverse=True,
+        )
+        top10 = cands[:10]
+        top_ids = {v["video_id"] for v in top10}
+        entries[f"{pk}_1"] = _strip_heavy_fields({
+            "mode": "snapshot",
+            "path_key": pk,
+            "path_label": _path_label(pk),
+            "days_range": 1,
+            "report_date": datetime.now(KST).date().isoformat(),
+            "updated_at_kst": now_kst,
+            "videos": top10,
+            "facts": [pool_facts[vid] for vid in top_ids if vid in pool_facts],
+            "market_patterns": base_patterns[:3],
+        })
 
 
 def _strip_heavy_fields(entry: Dict[str, Any]) -> Dict[str, Any]:
@@ -104,7 +199,7 @@ def _strip_heavy_fields(entry: Dict[str, Any]) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="숏폼레이더 1단계 배치 업데이트")
-    parser.add_argument("--days", choices=["30", "7", "both"], default="30")
+    parser.add_argument("--days", choices=["1", "7", "30", "both"], default="30")
     parser.add_argument("--paths", default="", help="쉼표로 구분된 경로 키(비우면 전체 16개)")
     parser.add_argument("--skip-ai", action="store_true", help="YouTube 수집만 테스트")
     args = parser.parse_args()
@@ -114,7 +209,6 @@ def main():
     if not yt_key:
         raise SystemExit("YOUTUBE_API_KEY 환경변수가 없습니다.")
 
-    # 배치 실행 시에는 일일 배치 한도(9,800유닛)까지 허용하고 임시 로그 사용
     agent_core.YOUTUBE_UNIT_LIMIT = 9800
     tmp_log_dir = tempfile.mkdtemp(prefix="sr_batch_")
     agent_core.USAGE_LOG_PATH = os.path.join(tmp_log_dir, "usage_log.json")
@@ -132,12 +226,13 @@ def main():
 
     ok_count = 0
     for d in days_list:
+        fetch_days = 2 if d == 1 else d
         for pk in path_keys:
             label = _path_label(pk)
             print(f"[배치] {pk} ({label}) | {d}일 수집 중...")
             try:
                 vids = agent_core.fetch_kr_step1_shorts(
-                    yt_client, path_key=pk, days=d, sort_by="subscriber_ratio", use_cache=False
+                    yt_client, path_key=pk, days=fetch_days, sort_by="subscriber_ratio", use_cache=False
                 )
                 for v in vids:
                     vid = v["video_id"]
@@ -148,24 +243,30 @@ def main():
 
                 if vids and gg_key and not args.skip_ai:
                     s1 = _run_ai_with_fallback(vids, label, d, gg_key)
+                    s1 = _filter_beauty_only(s1)
                     time.sleep(1.5)
                 else:
                     s1 = {
                         "path_label": label,
                         "days_range": d,
                         "report_date": datetime.now(KST).date().isoformat(),
-                        "videos": vids,
+                        "videos": vids[:10],
                         "facts": [],
                         "market_patterns": [],
                     }
                 s1["path_key"] = pk
+                s1["days_range"] = d
                 s1["updated_at_kst"] = now_kst
                 snap["entries"][f"{pk}_{d}"] = _strip_heavy_fields(s1)
                 ok_count += 1
-                print(f"  -> 완료 ({len(vids)}건)")
+                print(f"  -> 완료 ({len(s1['videos'])}건)")
             except Exception as e:
                 print(f"  [실패] {pk} ({d}일): {e}")
 
+    if any(d in (7, 30) for d in days_list):
+        _derive_daily_1d_entries(snap, path_keys, now_kst)
+
+    _update_beauty_channels_pool(snap["entries"])
     snap["updated_at_kst"] = now_kst
     snap["prev_views"] = prev_views
     os.makedirs(DATA_DIR, exist_ok=True)

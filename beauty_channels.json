@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "description": "K-뷰티 핵심 채널 풀 (playlistItems.list 1유닛 수집 및 자동 발굴 채널 누적)",
+    "updated_at": "2026-11-26"
+  },
+  "channels": [
+    {"channel_id": "UC_oliveyoung_official", "title": "올리브영", "category": "beauty", "source": "seed"},
+    {"channel_id": "UCsJ6RuBiTVWRX156FVbeaGg", "title": "디렉터파이", "category": "beauty/skincare", "source": "seed"},
+    {"channel_id": "UCt91i_8k1vX7s2hM6k8Q9wA", "title": "레오제이", "category": "beauty/makeup", "source": "seed"}
+  ]
+}

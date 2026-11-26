@@ -432,19 +432,20 @@ if children:
 else:
     st.caption("위 경로 버튼을 눌러 상위 카테고리로 돌아갈 수 있어요.")
 
-c_days, c_sort = st.columns([1, 1.8])
+c_days, c_sort = st.columns([1, 2.0])
 with c_days:
-    days_label = st.radio("수집 기간", ["🔥 최근 7일 (급상승)", "🏆 최근 30일 (대세)"], index=1, horizontal=True)
-    days_val = 7 if "7일" in days_label else 30
+    days_label = st.radio("수집 기간", ["⚡ 1일 (오늘)", "🔥 7일 (이번 주)", "🏆 30일 (대세)"], index=2, horizontal=True)
+    days_val = 1 if "1일" in days_label else (7 if "7일" in days_label else 30)
 with c_sort:
     sort_label = st.radio(
         "정렬 기준",
-        ["🏆 등급·인기 순", "📈 확산력 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
+        ["🏆 등급·인기 순", "📈 평소 대비 순", "👥 구독자 대비 순", "🔥 하루 평균 순", "👀 조회수 순", "💬 댓글 많은 순"],
         index=0,
         horizontal=True,
         help=(
             "• 등급·인기 순: 등급(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순\n"
-            "• 확산력 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순 (작은 채널인데 알고리즘을 타 크게 뜬 영상 우선)\n"
+            "• 평소 대비 순: 채널 평소 평균 조회수보다 몇 배나 터졌는지 순 (기획·소재빨)\n"
+            "• 구독자 대비 순: 구독자 수 대비 조회수가 몇 배나 터졌는지 순 (작은 채널 알고리즘 확산)\n"
             "• 하루 평균 순: 올라온 뒤 하루 평균 조회수가 높은 순\n"
             "• 조회수 순: 누적 조회수가 높은 순\n"
             "• 댓글 많은 순: 시청자 질문과 반응(댓글)이 많은 순"
@@ -452,6 +453,8 @@ with c_sort:
     )
     if "등급" in sort_label:
         sort_key = "grade"
+    elif "평소 대비" in sort_label:
+        sort_key = "vs_avg"
     elif "하루 평균" in sort_label:
         sort_key = "fast"
     elif "조회수" in sort_label:
@@ -576,6 +579,8 @@ else:
             ),
             reverse=True,
         )
+    elif sort_key == "vs_avg":
+        vids_disp.sort(key=lambda x: (x.get("views_vs_channel_avg") or 0.0, x.get("views", 0)), reverse=True)
     elif sort_key == "views":
         vids_disp.sort(key=lambda x: (x.get("views", 0), x.get("likes", 0), x.get("comments", 0)), reverse=True)
     elif sort_key == "comments":
@@ -621,16 +626,27 @@ else:
         )
         pub_raw = str(v.get("published_at", ""))[:10].replace("-", ".")
         pub_html = f"<span>📅 {_esc(pub_raw)}</span><span>·</span>" if pub_raw else ""
+        promo_html = (
+            '<span class="pill pill-warn">유료광고</span>'
+            if v.get("has_paid_promotion")
+            else '<span class="pill pill-go">오가닉</span>'
+        )
+        vs_avg_val = v.get("views_vs_channel_avg")
+        vs_avg_html = (
+            f'<span class="pill pill-purple">📈 평소 대비 {vs_avg_val}배</span>'
+            if vs_avg_val is not None
+            else ""
+        )
         cards_html.append(
             f'<div class="short-card">'
             f'<img class="short-thumb" src="{_esc(thumb)}" alt="thumb"/>'
             f'<div style="flex:1;min-width:0;">'
-            f'<a class="short-title" href="https://youtube.com/shorts/{_esc(vid)}" target="_blank" rel="noopener">{_esc(v.get("title", vid))} ↗</a>'
+            f'<a class="short-title" href="https://youtube.com/shorts/{_esc(vid)}" target="_blank" rel="noopener">{_esc(v.get("title", vid))} ↗</a> {promo_html}'
             f'<div class="short-meta" style="margin-bottom:4px;">'
             f'<span class="pill {g_cls}">{_esc(g_info["label"])}</span>'
             f'<b style="color:var(--ink);">👀 조회수 {_format_ko_num(v.get("views", 0))}</b>'
             f'<span class="pill pill-hot">🔥 하루 평균 {_format_ko_num(v.get("views_per_day", 0))}</span>'
-            f'{ratio_html}'
+            f'{vs_avg_html}{ratio_html}'
             f'</div>'
             f'<div class="short-meta">'
             f'{pub_html}'

@@ -754,10 +754,11 @@ def test_step1_step2_kr_flow(products):
     _assert(agent_core.get_beauty_viral_grade(35000, 1200, 1.2)["grade"] == "A", "3만 조회수 A등급 실패")
     _assert(agent_core.get_beauty_viral_grade(12000, 500, 1.2)["grade"] == "B", "1만 조회수 B등급 실패")
 
-    # 2) is_spam_video() 필터 검증
+    # 2) is_spam_video() 필터 검증 (비뷰티 노이즈 포함)
     _assert(agent_core.is_spam_video({"views": 0, "title": "정상 제목"}), "조회수 0 스팸 미탐")
     _assert(agent_core.is_spam_video({"views": 5000, "title": "#a #b #c #d #e #f #g #h 과다태그"}), "해시태그 8개 스팸 미탐")
     _assert(agent_core.is_spam_video({"views": 5000, "title": "올영 무료나눔 이벤트 참여하세요"}), "스팸 키워드 미탐")
+    _assert(agent_core.is_spam_video({"views": 50000, "title": "[알바공감] 올리브영 알바생 웃음기 사라지는 순간"}), "비뷰티 알바 노이즈 미탐")
     _assert(not agent_core.is_spam_video({"views": 12000, "title": "속건조 토너팩 추천 #shorts #스킨케어"}), "정상 영상 스팸 오탐")
 
     # 3) 색조 제품('촉촉한 탕후루 립틴트', '색조 > 립·틴트') 양방향 Step 2 매칭 검증

@@ -146,16 +146,47 @@ body {
   font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px;
 }
 
-/* Step 1 Shorts Grid */
-.shorts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
-.short-card {
-  display: flex; gap: 12px; background: #FFF; border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+/* Step 1 TDS ListRow Layout */
+.list-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 6px 2px 10px; font-size: 0.92rem; font-weight: 800; color: var(--ink);
 }
-.short-thumb { width: 104px; height: 60px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
+.metric-guide {
+  background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; font-size: 0.8rem; color: var(--ink-secondary); margin-bottom: 12px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+}
+.tds-list {
+  background: #FFF; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  margin-bottom: 20px; box-shadow: 0 1px 4px rgba(28,23,48,0.04);
+}
+.tds-row {
+  display: flex; gap: 14px; align-items: center; padding: 16px 18px;
+  border-bottom: 1px solid var(--line); transition: background 0.12s ease;
+}
+.tds-row:last-child { border-bottom: none; }
+.tds-row:hover { background: #FCFBFF; }
+.tds-rank {
+  min-width: 24px; font-size: 0.95rem; font-weight: 800; color: var(--purple-dark); text-align: center;
+}
+.short-thumb { width: 72px; height: 96px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #E5E7EB; }
 .short-body { flex: 1; min-width: 0; }
-.short-title { font-size: 0.88rem; font-weight: 700; color: var(--ink); text-decoration: none; display: block; margin-bottom: 4px; }
-.short-meta { font-size: 0.77rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; }
-.short-fact { font-size: 0.8rem; color: var(--ink-secondary); margin-top: 5px; }
+.short-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.short-title { font-size: 0.96rem; font-weight: 800; color: var(--ink); text-decoration: none; }
+.short-title:hover { color: var(--purple); }
+.short-meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 7px; align-items: center; font-variant-numeric: tabular-nums; }
+.short-fact { font-size: 0.84rem; color: var(--ink-secondary); margin: 4px 0 6px; }
+.tds-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; min-width: 150px;
+}
+.bottom-cta {
+  position: sticky; bottom: 14px; z-index: 40;
+  background: rgba(255,255,255,0.94); backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong); border-radius: 16px;
+  padding: 12px 16px; margin-top: 14px; box-shadow: 0 8px 24px rgba(28,23,48,0.12);
+  display: none; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.bottom-cta.show { display: flex; }
 
 /* Step 2 Cards */
 .tcard {
@@ -204,7 +235,9 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 .toast.show { opacity: 1; }
 
 @media (max-width: 768px) {
-  .grid-3, .shorts-grid, .sb-grid { grid-template-columns: 1fr; }
+  .grid-3, .sb-grid { grid-template-columns: 1fr; }
+  .tds-row { flex-direction: column; align-items: flex-start; }
+  .tds-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; width: 100%; }
 }
 </style>
 </head>
@@ -213,14 +246,19 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
   <div class="hero">
     <div>
       <h1>📡 숏폼레이더 <span style="font-size:0.95rem;font-weight:700;color:var(--muted);">ShortformRadar</span></h1>
-      <div class="sub">K-뷰티 마케터를 위한 유튜브 쇼츠 트렌드 분석 &amp; 캠페인 기획</div>
+      <div class="sub">K-뷰티 마케터의 데일리 쇼츠 브리핑 &amp; 캠페인 기획</div>
     </div>
-    <span id="topStatusBadge" class="pill pill-purple">한국 뷰티 전용</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span id="topStatusBadge" class="pill pill-purple">한국 뷰티 전용</span>
+      <button id="syncSnapBtn" class="btn btn-sec" style="padding:7px 13px;font-size:0.82rem;" onclick="syncSnapshotFromGitHub()"
+        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">🔄 최신 트렌드 업데이트</button>
+      <button id="toggleApiBtn" class="btn btn-outline" style="padding:7px 12px;font-size:0.82rem;" onclick="toggleApiPanel()">⚙️ API 설정</button>
+    </div>
   </div>
 
-  <!-- API 키 설정 (접기 가능) -->
-  <details id="apiDetails" class="b2b-details" open>
-    <summary id="apiSummary">🔑 API 키 설정 (입력 후 접어두실 수 있어요)</summary>
+  <!-- API 키 설정 (기본 숨김 — 설정 버튼 클릭 시 열림) -->
+  <details id="apiDetails" class="b2b-details" style="display:none;margin-bottom:14px;">
+    <summary id="apiSummary">🔑 API 키 설정</summary>
     <div class="grid-3" style="margin-top:12px;">
       <div class="field">
         <label>유튜브 API 키</label>
@@ -240,32 +278,34 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
     </div>
   </details>
 
-  <!-- Step 1: 요즘 뷰티 쇼츠 트렌드 먼저 보기 -->
+  <!-- Step 1: 데일리 뷰티 브리핑 -->
   <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
       <div>
-        <span class="step-badge">1단계 · 뷰티 트렌드 탐색</span>
-        <h2 class="step-title" style="margin-bottom:0;">요즘 뜨는 K-뷰티 쇼츠 먼저 보기</h2>
+        <span class="step-badge">1단계 · 데일리 브리핑</span>
+        <h2 class="step-title" style="margin-bottom:0;">오늘 뜨는 K-뷰티 쇼츠 브리핑</h2>
       </div>
-      <button id="syncSnapBtn" class="btn btn-sec" style="padding:8px 14px;font-size:0.83rem;" onclick="syncSnapshotFromGitHub()"
-        title="GitHub에 자동 저장된 최신 트렌드 데이터를 한 번에 불러옵니다">🔄 최신 트렌드 업데이트</button>
+      <div class="seg-group">
+        <button id="days1" class="seg-btn" onclick="setDays(1)">⚡ 1일 (오늘)</button>
+        <button id="days7" class="seg-btn" onclick="setDays(7)">🔥 7일 (이번 주)</button>
+        <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 30일 (대세)</button>
+      </div>
     </div>
 
     <div id="crumbBar" class="crumb-bar"></div>
     <div id="childChips" class="chip-row"></div>
 
-    <div class="ctrl-row">
-      <div class="seg-group">
-        <button id="days7" class="seg-btn" onclick="setDays(7)">🔥 최근 7일 (급상승)</button>
-        <button id="days30" class="seg-btn active" onclick="setDays(30)">🏆 최근 30일 (대세)</button>
-      </div>
+    <div class="ctrl-row" style="margin-bottom:10px;">
       <div class="seg-group">
         <button id="sortGrade" class="seg-btn active" onclick="setSort('grade')"
           data-tip="등급 높은 순(S→A→B→C) → 누적 조회수 → 좋아요 수 → 댓글 수 순서로 보여드려요."
           aria-label="등급·인기 순">🏆 등급·인기 순</button>
+        <button id="sortVsAvg" class="seg-btn" onclick="setSort('vs_avg')"
+          data-tip="이 채널의 평소 평균 조회수보다 몇 배나 더 터졌는지 순이에요. 기획·소재 자체가 먹힌 영상을 먼저 찾아요."
+          aria-label="평소 대비 순">📈 평소 대비 순</button>
         <button id="sortRatio" class="seg-btn" onclick="setSort('subscriber_ratio')"
           data-tip="구독자 수 대비 조회수가 몇 배나 터졌는지 순이에요. 작은 채널인데 알고리즘을 타 크게 뜬 영상을 먼저 찾아요."
-          aria-label="확산력 순">📈 확산력 순</button>
+          aria-label="구독자 대비 순">👥 구독자 대비 순</button>
         <button id="sortFast" class="seg-btn" onclick="setSort('fast')"
           data-tip="올라온 뒤 하루 평균 조회수가 높은 순이에요. 지금 가장 빠르게 치고 올라오는 영상을 먼저 봐요."
           aria-label="하루 평균 순">🔥 하루 평균 순</button>
@@ -276,11 +316,10 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
           data-tip="시청자 질문과 반응(댓글)이 가장 많이 달린 영상부터 보여드려요."
           aria-label="댓글 많은 순">💬 댓글 많은 순</button>
       </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="runStep1Live()">🚀 이 카테고리 트렌드 보기</button>
-      <button class="btn btn-sec" onclick="runStep1Preview()">👀 예시 화면 미리보기</button>
+      <div class="btn-row">
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:0.84rem;" onclick="runStep1Live()">🚀 이 카테고리 트렌드 보기</button>
+        <button class="btn btn-sec" style="padding:8px 12px;font-size:0.84rem;" onclick="runStep1Preview()">👀 예시 미리보기</button>
+      </div>
     </div>
     <div id="step1Status" class="status-bar"></div>
   </div>
@@ -358,12 +397,12 @@ details.b2b-details summary { font-size: 0.92rem; font-weight: 800; color: var(-
 
 <script>
 const KR_TREE = {
-  "beauty": { label: "뷰티 전체", parent: null, mode: "search", keywords: ["올리브영 추천템", "화장품 추천", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup", "beauty/hairbody"] },
-  "beauty/skincare": { label: "기초 스킨케어", parent: "beauty", mode: "search", keywords: ["스킨케어", "기초 루틴", "속건조"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing"] },
-  "beauty/makeup": { label: "색조 메이크업", parent: "beauty", mode: "search", keywords: ["메이크업", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
-  "beauty/hairbody": { label: "헤어·바디", parent: "beauty", mode: "search", keywords: ["헤어케어 추천", "바디로션 추천", "샴푸 추천"], children: ["beauty/hairbody/hair", "beauty/hairbody/body"] },
-  "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너 추천", "토너패드", "닦토"], children: [] },
-  "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "앰플 추천", "진정세럼"], children: [] },
+  "beauty": { label: "뷰티 전체", parent: null, mode: "search", keywords: ["올리브영 추천템", "스킨케어 꿀팁", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup", "beauty/hairbody"] },
+  "beauty/skincare": { label: "기초 스킨케어", parent: "beauty", mode: "search", keywords: ["스킨케어 루틴", "속건조 케어", "화잘먹 기초"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing"] },
+  "beauty/makeup": { label: "색조 메이크업", parent: "beauty", mode: "search", keywords: ["메이크업 꿀팁", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
+  "beauty/hairbody": { label: "헤어·바디", parent: "beauty", mode: "search", keywords: ["헤어케어", "두피케어", "바디로션"], children: ["beauty/hairbody/hair", "beauty/hairbody/body"] },
+  "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너패드", "속건조 토너", "닦토 팩"], children: [] },
+  "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "모공 앰플", "진정 세럼"], children: [] },
   "beauty/skincare/cream": { label: "크림·로션", parent: "beauty/skincare", mode: "search", keywords: ["수분크림", "장벽크림", "로션 추천"], children: [] },
   "beauty/skincare/sun": { label: "선크림", parent: "beauty/skincare", mode: "search", keywords: ["선크림 추천", "무기자차", "선세럼"], children: [] },
   "beauty/skincare/mask": { label: "마스크팩", parent: "beauty/skincare", mode: "search", keywords: ["마스크팩 추천", "1일1팩", "수분팩"], children: [] },
@@ -505,8 +544,17 @@ function selectPath(key) {
     }
   }
 }
+function toggleApiPanel() {
+  const det = document.getElementById("apiDetails");
+  if (!det) return;
+  const isHidden = det.style.display === "none";
+  det.style.display = isHidden ? "block" : "none";
+  if (isHidden) det.open = true;
+}
 function setDays(d) {
   selectedDays = d;
+  const d1 = document.getElementById("days1");
+  if (d1) d1.classList.toggle("active", d === 1);
   document.getElementById("days7").classList.toggle("active", d === 7);
   document.getElementById("days30").classList.toggle("active", d === 30);
   if (step1Data && step1Data.days_range !== d) {
@@ -529,6 +577,8 @@ function setSort(s) {
   selectedSort = s;
   const gBtn = document.getElementById("sortGrade");
   if (gBtn) gBtn.classList.toggle("active", s === "grade");
+  const vsBtn = document.getElementById("sortVsAvg");
+  if (vsBtn) vsBtn.classList.toggle("active", s === "vs_avg");
   document.getElementById("sortRatio").classList.toggle("active", s === "subscriber_ratio");
   document.getElementById("sortFast").classList.toggle("active", s === "fast");
   document.getElementById("sortViews").classList.toggle("active", s === "views");
@@ -601,10 +651,17 @@ function computeMetrics(v) {
   const ratio = v.views_per_subscriber != null
     ? Number(v.views_per_subscriber)
     : (subs ? Math.round((views / subs) * 10) / 10 : null);
+  const chAvg = v.channel_avg_views != null && Number(v.channel_avg_views) > 0 ? Number(v.channel_avg_views) : null;
+  const vsAvg = v.views_vs_channel_avg != null
+    ? Number(v.views_vs_channel_avg)
+    : (chAvg ? Math.round((views / chAvg) * 10) / 10 : null);
   return {
     ...v, views, likes, comments, days_since_published: days,
     subscriber_count: subs,
     views_per_subscriber: ratio,
+    channel_avg_views: chAvg,
+    views_vs_channel_avg: vsAvg,
+    has_paid_promotion: Boolean(v.has_paid_promotion),
     views_per_day: Number(v.views_per_day || Math.round(views / days)),
     like_rate: v.like_rate != null ? Number(v.like_rate) : Math.round((likes / Math.max(1, views)) * 10000) / 100,
     comment_rate: v.comment_rate != null ? Number(v.comment_rate) : Math.round((comments / Math.max(1, views)) * 10000) / 100
@@ -623,6 +680,8 @@ function sortVideos(vids) {
       (b.likes - a.likes) ||
       (b.comments - a.comments)
     );
+  } else if (selectedSort === "vs_avg") {
+    arr.sort((a, b) => ((b.views_vs_channel_avg || 0) - (a.views_vs_channel_avg || 0)) || (b.views - a.views));
   } else if (selectedSort === "views") {
     arr.sort((a, b) => (b.views - a.views) || (b.likes - a.likes) || (b.comments - a.comments));
   } else if (selectedSort === "comments") {
@@ -822,7 +881,7 @@ async function runStep1Live() {
       return;
     }
 
-    const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
+    const detUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,paidProductPlacementDetails&id=${ids.join(",")}&key=${encodeURIComponent(ytKey)}`;
     const detResp = await fetch(detUrl);
     const detJson = await detResp.json().catch(() => ({}));
     if (!detResp.ok || detJson.error) {
@@ -832,22 +891,23 @@ async function runStep1Live() {
     }
     const detItems = detJson.items || [];
 
-    // 채널 구독자 수 1회 배치 조회 (구독자 대비 배수 계산용)
+    // 채널 구독자 수 + 채널 평균 조회수 1회 배치 조회
     const chIds = [...new Set(detItems.map(it => it?.snippet?.channelId).filter(Boolean))].slice(0, 50);
-    const subMap = {};
+    const profMap = {};
     if (chIds.length) {
       try {
         const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${chIds.join(",")}&key=${encodeURIComponent(ytKey)}`;
         const chData = await (await fetch(chUrl)).json();
         (chData.items || []).forEach(c => {
           const stc = c.statistics || {};
-          if (!stc.hiddenSubscriberCount && Number(stc.subscriberCount || 0) > 0) {
-            subMap[c.id] = Number(stc.subscriberCount);
-          }
+          const subs = (!stc.hiddenSubscriberCount && Number(stc.subscriberCount || 0) > 0) ? Number(stc.subscriberCount) : null;
+          const totV = Number(stc.viewCount || 0), vidCnt = Number(stc.videoCount || 0);
+          const chAvg = (totV > 0 && vidCnt > 0) ? Math.round(totV / vidCnt) : null;
+          profMap[c.id] = { subs, chAvg };
         });
-        addLog(`채널 구독자 수 조회 완료: ${Object.keys(subMap).length}/${chIds.length}개 채널`);
+        addLog(`채널 프로필 조회 완료: ${Object.keys(profMap).length}/${chIds.length}개 채널`);
       } catch (ce) {
-        addLog(`채널 구독자 수 조회 생략: ${ce.message}`);
+        addLog(`채널 프로필 조회 생략: ${ce.message}`);
       }
     }
 
@@ -856,10 +916,12 @@ async function runStep1Live() {
       const secs = isoToSec(it.contentDetails?.duration);
       const maxLen = 180;
       if (secs === 0 || secs > maxLen) { dropLen++; return null; }
-      const sn = it.snippet || {}, stats = it.statistics || {};
+      const sn = it.snippet || {}, stats = it.statistics || {}, paid = it.paidProductPlacementDetails || {};
       const views = Number(stats.viewCount || 0);
       const cid = sn.channelId || "";
-      const subs = subMap[cid] || null;
+      const prof = profMap[cid] || {};
+      const subs = prof.subs || null;
+      const chAvg = prof.chAvg || null;
       let viewsDelta = null;
       try {
         const prevRaw = window.localStorage.getItem(`ts_kr_prev_views_${it.id}`);
@@ -872,7 +934,8 @@ async function runStep1Live() {
       const row = computeMetrics({
         video_id: it.id, title: sn.title || "", description: (sn.description || "").slice(0, 300),
         channel_id: cid, channel_title: sn.channelTitle || "",
-        subscriber_count: subs,
+        subscriber_count: subs, channel_avg_views: chAvg,
+        has_paid_promotion: Boolean(paid.hasPaidProductPlacement),
         views, likes: Number(stats.likeCount || 0), comments: Number(stats.commentCount || 0),
         views_delta: viewsDelta,
         published_at: sn.publishedAt || "", thumbnail_url: sn.thumbnails?.medium?.url || "",
@@ -955,10 +1018,10 @@ function runStep1Preview() {
       "립틴트·컨실러 믹싱 같은 색조 꿀팁도 조회수가 높으므로, 홍보할 상품 영역에 맞는 영상만 골라 캠페인에 연결하는 것이 중요해요."
     ],
     videos: [
-      computeMetrics({ video_id:"brKNpouibqo", title:"물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼", channel_title:"aweop", subscriber_count:14500, views:128400, likes:3420, comments:246, views_delta:18200, published_at:"2026-11-20T07:10:16Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/brKNpouibqo/mqdefault.jpg" }),
-      computeMetrics({ video_id:"Zl5CPQxmWFE", title:"일명 '수지 세럼' 성분표 숫자 다 더하니 3% #shorts", channel_title:"FLIKO", subscriber_count:4200, views:46800, likes:1290, comments:184, published_at:"2026-11-19T12:02:34Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/Zl5CPQxmWFE/mqdefault.jpg" }),
-      computeMetrics({ video_id:"RdXhzcCVtsw", title:"세럼 하나로 분기 1000억 찍은 브랜드 👑 #shorts", channel_title:"쇼핑공주", subscriber_count:28000, views:34100, likes:640, comments:73, published_at:"2026-11-22T22:10:18Z", text_source:"meta", thumbnail_url:"https://i.ytimg.com/vi/RdXhzcCVtsw/mqdefault.jpg" }),
-      computeMetrics({ video_id:"jfsweQpxqsY", title:"립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts", channel_title:"K-뷰티 메이크업랩", subscriber_count:19000, views:156361, likes:4820, comments:319, views_delta:24500, published_at:"2026-11-15T09:00:00Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/jfsweQpxqsY/mqdefault.jpg" })
+      computeMetrics({ video_id:"brKNpouibqo", title:"물먹은 듯 촉촉한 쫀광 피부💧 11종 히알루론산 수분세럼", channel_title:"aweop", subscriber_count:14500, channel_avg_views:8200, has_paid_promotion:false, views:128400, likes:3420, comments:246, views_delta:18200, published_at:"2026-11-20T07:10:16Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/brKNpouibqo/mqdefault.jpg" }),
+      computeMetrics({ video_id:"Zl5CPQxmWFE", title:"일명 '수지 세럼' 성분표 숫자 다 더하니 3% #shorts", channel_title:"FLIKO", subscriber_count:4200, channel_avg_views:1900, has_paid_promotion:false, views:46800, likes:1290, comments:184, published_at:"2026-11-19T12:02:34Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/Zl5CPQxmWFE/mqdefault.jpg" }),
+      computeMetrics({ video_id:"RdXhzcCVtsw", title:"세럼 하나로 분기 1000억 찍은 브랜드 👑 #shorts", channel_title:"쇼핑공주", subscriber_count:28000, channel_avg_views:15000, has_paid_promotion:true, views:34100, likes:640, comments:73, published_at:"2026-11-22T22:10:18Z", text_source:"meta", thumbnail_url:"https://i.ytimg.com/vi/RdXhzcCVtsw/mqdefault.jpg" }),
+      computeMetrics({ video_id:"jfsweQpxqsY", title:"립틴트랑 컨실러 섞어서 블러셔 만드는 꿀팁 #shorts", channel_title:"K-뷰티 메이크업랩", subscriber_count:19000, channel_avg_views:9500, has_paid_promotion:false, views:156361, likes:4820, comments:319, views_delta:24500, published_at:"2026-11-15T09:00:00Z", text_source:"caption", thumbnail_url:"https://i.ytimg.com/vi/jfsweQpxqsY/mqdefault.jpg" })
     ],
     facts: [
       { video_id:"brKNpouibqo", domain:"기초/스킨케어", format_tag:"응급처치 루틴형", what_happens:"푸석한 피부에 히알루론산 수분 제품으로 데일리 수분 케어 및 화잘먹 피부 연출", product_types:["수분세럼"], hook_quote:"물먹은 듯 촉촉한 쫀광 피부", evidence_quote:"푸석한 피부를 위한 데일리 수분 케어", evidence_ok:true, text_source:"caption" },
@@ -997,59 +1060,85 @@ function renderStep1Result(data) {
     return `${y}.${m}.${day}`;
   };
 
-  const ratioTooltip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 배수가 높을수록 채널 규모보다 소재 자체가 인기를 끈 영상이에요.";
-  const cards = sorted.map(v => {
+  const vsAvgTooltip = "이 채널의 평소 평균 조회수(총조회수÷영상수)보다 몇 배 더 터졌는지 보여줘요. 배수가 높을수록 기획·소재 자체가 먹힌 영상이에요.";
+  const ratioTooltip = "구독자 수보다 조회수가 몇 배 더 나왔는지 보여줘요. 작은 채널인데 알고리즘을 타 크게 뜬 숨은 떡상을 찾아요.";
+  const rows = sorted.map((v, idx) => {
     const f = fBy[v.video_id] || {};
     const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
     const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
     const pubDateStr = formatPubDate(v.published_at);
+    const promoBadge = v.has_paid_promotion
+      ? `<span class="pill pill-warn" title="유튜버가 유료 광고(협찬)를 표시한 영상이에요">유료광고</span>`
+      : `<span class="pill pill-go" title="유료 광고 표시가 없는 순수 오가닉 영상이에요">오가닉</span>`;
+    const vsAvgBadge = v.views_vs_channel_avg != null
+      ? `<span class="pill pill-purple" title="${vsAvgTooltip}">📈 평소 대비 ${v.views_vs_channel_avg}배</span>`
+      : "";
     const ratioBadge = v.views_per_subscriber != null
-      ? `<span class="pill pill-purple" title="${ratioTooltip}">📈 구독자 대비 ${v.views_per_subscriber}배</span>`
+      ? `<span class="pill pill-drop" title="${ratioTooltip}">👥 구독자 대비 ${v.views_per_subscriber}배</span>`
       : "";
     const deltaChip = v.views_delta && v.views_delta > 0
       ? `<span class="pill pill-go">⬆️ 이전보다 +${formatKoNum(v.views_delta)}</span>`
       : "";
-    return `<div class="short-card">
+    return `<div class="tds-row">
+      <div class="tds-rank tnum">${idx + 1}</div>
       <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
       <div class="short-body">
-        <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
-        <div class="short-meta" style="margin-bottom:4px;">
-          <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
-          <b style="color:var(--ink);">👀 조회수 ${formatKoNum(v.views)}</b>
-          <span class="pill pill-hot">🔥 하루 평균 ${formatKoNum(v.views_per_day)}</span>
-          ${ratioBadge}
+        <div class="short-title-row">
+          <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)} ↗</a>
+          ${promoBadge}
         </div>
-        <div class="short-meta" style="color:var(--muted);font-size:0.76rem;">
+        ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
+        <div class="short-meta">
           ${pubDateStr ? `<span>📅 ${pubDateStr}</span><span>·</span>` : ""}
-          <span>❤️ 좋아요 ${formatKoNum(v.likes)}</span>
-          <span>· 💬 댓글 ${(v.comments || 0).toLocaleString()}개</span>
+          <b style="color:var(--ink);">👀 ${formatKoNum(v.views)}</b>
+          <span>· 🔥 일평균 ${formatKoNum(v.views_per_day)}</span>
+          <span>· ❤️ ${formatKoNum(v.likes)}</span>
+          <span>· 💬 ${(v.comments || 0).toLocaleString()}</span>
           ${deltaChip}
           <span>· ${esc(f.format_tag || "기타")}</span>
         </div>
-        <div class="short-fact">${esc(f.what_happens || "")}</div>
+      </div>
+      <div class="tds-right">
+        <span class="pill ${g.cls}" title="${esc(g.desc)}">${g.label}</span>
+        ${vsAvgBadge}
+        ${ratioBadge}
       </div>
     </div>`;
   }).join("");
 
   document.getElementById("step1Area").innerHTML = `
-    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;font-size:0.84rem;">
-      <div>
-        <b>📊 트렌드 신뢰도 요약</b> · 현재 ${sorted.length}건 평균: <b>조회수 ${formatKoNum(avgV)} · 하루 평균 ${formatKoNum(avgVpd)}${avgRatio != null ? ` · 구독자 대비 ${avgRatio}배` : ""}</b>
-        <span class="pill ${overallGrade.cls}" style="margin-left:6px;">${overallGrade.label}</span>
-      </div>
-      <div style="color:var(--muted);font-size:0.78rem;">기준: 🔥S(10만↑ 또는 1만↑·구독자 5배↑) · ⚡A(3만↑/일3천↑) · 📈B(1만↑/일1천↑) · 🔍C(1만 미만 참고용)</div>
-    </div>
     <div class="insight-box">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <b style="font-size:1.04rem;color:var(--purple-dark);">🧭 '${esc(data.path_label)}' 요즘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
+        <b style="font-size:1.04rem;color:var(--purple-dark);">🧭 '${esc(data.path_label)}' 오늘 뜨는 핵심 흐름 (${data.days_range}일 기준)</b>
         <div>${fmtChips}</div>
       </div>
       ${pats}
     </div>
-    <div class="shorts-grid">${cards}</div>
+    <div class="list-header">
+      <span>쇼츠 트렌드 순위 (${sorted.length}건 · 평균 조회수 ${formatKoNum(avgV)} · 일평균 ${formatKoNum(avgVpd)})</span>
+      <span class="pill ${overallGrade.cls}">${overallGrade.label}</span>
+    </div>
+    <div class="metric-guide">
+      <span>💡 <b>지표 보는 법</b></span>
+      <span><b>📈 평소 대비 N배</b>: 채널 평소 평균보다 터진 <b>기획·소재빨</b></span>
+      <span><b>👥 구독자 대비 N배</b>: 작은 채널의 <b>알고리즘 확산</b></span>
+    </div>
+    <div class="tds-list">${rows}</div>
+    <div id="bottomCtaBar" class="bottom-cta show">
+      <div>
+        <b style="font-size:0.95rem;color:var(--ink);">방금 본 '${esc(data.path_label)}' 트렌드를 우리 상품에 입혀볼까요?</b>
+        <div style="font-size:0.8rem;color:var(--muted);">추가 유튜브 한도 없이 맞춤 카피와 4단 촬영 콘티를 바로 만들어요.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openStep2Panel()">✨ 우리 상품 기획안 만들기</button>
+    </div>
   `;
-  document.getElementById("step2Panel").style.display = "block";
   if (!document.getElementById("prodName").value) applyPreset("toner");
+}
+function openStep2Panel() {
+  const p = document.getElementById("step2Panel");
+  if (!p) return;
+  p.style.display = "block";
+  p.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function expectedDomainFromCat(cat) {
