@@ -432,11 +432,62 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 }
 .two-col-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 @media (max-width: 640px) {
-  .page-title { font-size: 21px; }
-  .insights-wrap, .feed-wrap, .step2-section, .explore-bar { padding: 14px; border-radius: 12px; }
-  .feed-right { flex-direction: column; align-items: stretch; gap: 10px; }
-  .stat-grid { width: 100%; }
-  .row-cta { width: 100%; text-align: center; min-height: 40px; }
+  .wrap { padding: 0 12px 56px; }
+  .app-bar-inner { padding: 10px 12px; gap: 8px; }
+  .app-bar .pill-drop { display: none; }
+  .brand { gap: 8px; }
+  .brand-mark { width: 26px; height: 26px; border-radius: 7px; }
+  .brand h1 { font-size: 16.5px; }
+  .brand span { font-size: 12px; }
+  #openFeedbackBtn, #syncSnapBtn { padding: 5px 10px; font-size: 12px; }
+  .filter-section { padding-top: 10px; max-width: 100%; overflow: hidden; }
+  .journey-bar {
+    max-width: 100%; box-sizing: border-box;
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; gap: 6px; margin-bottom: 8px;
+  }
+  .journey-bar::-webkit-scrollbar { display: none; }
+  .j-pill { white-space: nowrap; flex-shrink: 0; font-size: 12px; padding: 4px 10px; }
+  .filter-top { margin-bottom: 8px; gap: 4px; }
+  .page-title { font-size: 19px; }
+  .page-sub { font-size: 12.5px; line-height: 1.4; }
+  .explore-bar { padding: 10px 12px; border-radius: 11px; }
+  .cat-tab, .sub-chip { padding: 5px 10px; font-size: 12.5px; }
+  .insights-wrap, .feed-wrap, .step2-section { padding: 12px 14px; border-radius: 12px; margin-top: 10px; }
+  .section-head { margin-bottom: 10px; }
+  .section-head h3 { font-size: 15.5px; }
+  .insight-item { font-size: 13px; line-height: 1.45; gap: 8px; padding-top: 8px; }
+  .insight-idx { min-width: 20px; height: 20px; font-size: 11px; }
+  .brief-foot { margin-top: 10px; padding-top: 8px; font-size: 12px; }
+  .feed-toolbar { padding-bottom: 10px; gap: 8px; }
+  .feed-item {
+    display: grid; grid-template-columns: auto 1fr; gap: 10px 12px;
+    align-items: start; padding: 14px 0;
+  }
+  .feed-left { position: relative; gap: 0; }
+  .td-rank {
+    position: absolute; top: 4px; left: 4px;
+    width: 20px; height: 20px; line-height: 20px; font-size: 11px;
+    background: rgba(24, 24, 27, 0.78); color: #FFF; border-radius: 5px;
+  }
+  .td-rank.top1 { background: var(--purple); color: #FFF; }
+  .short-thumb { width: 68px; height: 92px; border-radius: 8px; }
+  .feed-mid { width: auto; }
+  .feed-tags { gap: 4px; margin-bottom: 4px; }
+  .short-title { font-size: 14.5px; line-height: 1.35; }
+  .short-fact { font-size: 12.5px; margin-top: 4px; }
+  .short-sub { font-size: 11.5px; margin-top: 4px; gap: 4px 6px; }
+  .feed-right {
+    grid-column: 1 / -1; width: 100%; flex-direction: column; align-items: stretch;
+    gap: 8px; padding-top: 8px; border-top: 1px dashed #ECEAE4; min-width: 0;
+  }
+  .stat-grid {
+    width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px; text-align: left;
+  }
+  .stat-lbl { font-size: 11px; }
+  .stat-num, .stat-num.primary { font-size: 13px; }
+  .row-cta { width: 100%; text-align: center; min-height: 38px; padding: 7px 12px; }
   .bottom-cta { flex-direction: column; align-items: stretch; padding: 14px; }
   .bottom-cta .btn, .action-bar .btn { width: 100%; justify-content: center; min-height: 40px; }
   .two-col-mini { grid-template-columns: 1fr; }
@@ -734,7 +785,7 @@ function norm(s) {
 }
 const TRACKING_CONFIG = {
   ga4Id: "G-X29JXSV5KS",  // GA4 측정 ID
-  clarityId: "",          // Microsoft Clarity 프로젝트 ID (선택)
+  clarityId: "zk3jz14qy1", // Microsoft Clarity 프로젝트 ID
   feedbackWebhookUrl: "https://script.google.com/macros/s/AKfycbyA6kwy1LymkA7vThvp0BUe_sgxdLhcdiycJWluf8anjSQ3zYyv0tT5WINlBwHuzYSW/exec"
 };
 let _utmCache = null;
@@ -1673,7 +1724,7 @@ function renderStep1Result(data) {
       ? `<span class="tag-mini tag-rise" title="채널 구독자 수보다 ${subRatioStr}배 많이 본 영상">구독자 수 대비 ${subRatioStr}배</span>`
       : "";
     const avgRatioStr = formatRatio(v.views_vs_channel_avg);
-    const deltaTxt = v.views_delta && v.views_delta > 0 ? ` <span style="font-size:12px;color:var(--purple);font-weight:600;">(어제보다 +${formatKoNum(v.views_delta)})</span>` : "";
+    const deltaTxt = v.views_delta && v.views_delta > 0 ? ` <span style="display:inline-block;white-space:nowrap;font-size:11px;color:var(--purple);font-weight:600;">(+${formatKoNum(v.views_delta)})</span>` : "";
     return `<div class="feed-item">
       <div class="feed-left">
         <div class="td-rank ${rankNum === 1 ? 'top1' : ''}">${rankNum}</div>
