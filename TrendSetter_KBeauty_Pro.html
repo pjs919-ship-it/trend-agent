@@ -1860,6 +1860,7 @@ function renderStep1Result(data) {
       ? `<span class="tag-mini tag-ad" title="유튜브 유료 프로모션 설정 또는 제목·설명란 협찬 표기 감지">광고</span>`
       : `<span class="tag-mini tag-org" title="유료 프로모션 및 설명란 광고·협찬 표기가 확인되지 않은 영상">오가닉</span>`;
     const subRatioStr = formatRatio(v.views_per_subscriber);
+    const subCntStr = v.subscriber_count != null && Number(v.subscriber_count) > 0 ? ` (구독자 ${formatKoNum(v.subscriber_count)})` : "";
     const riseTag = (v.views >= 10000 && subRatioStr && v.views_per_subscriber >= 5)
       ? `<span class="tag-mini tag-rise" title="채널 구독자 수보다 ${subRatioStr}배 많이 본 영상">구독자 수 대비 ${subRatioStr}배</span>`
       : "";
@@ -1881,7 +1882,7 @@ function renderStep1Result(data) {
         <button type="button" class="short-title" onclick="openVideoDetailModal('${esc(v.video_id)}')">${esc(v.title)}</button>
         ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
         <div class="short-sub">
-          ${v.channel_title ? `<span>${esc(v.channel_title)}</span><span>·</span>` : ""}
+          ${v.channel_title ? `<span>${esc(v.channel_title)}${subCntStr}</span><span>·</span>` : (subCntStr ? `<span>${subCntStr.trim()}</span><span>·</span>` : "")}
           ${pubDateStr ? `<span>${pubDateStr}</span><span>·</span>` : ""}
           <span>${esc(f.format_tag || "기타")}</span>
           ${avgRatioStr ? `<span>· 채널 평소보다 ${avgRatioStr}배 더 봄</span>` : ""}
@@ -2307,7 +2308,7 @@ function openVideoDetailModal(videoId) {
         <img class="vd-thumb" src="${esc(thumb)}" alt="thumb" />
         <div style="min-width:0;flex:1;">
           <h3 id="vdModalTitle" style="margin:0 0 6px;font-size:16px;line-height:1.4;color:var(--ink);">${esc(v.title)}</h3>
-          <div style="font-size:12.5px;color:var(--muted);">${esc(v.channel_title || "크리에이터")} · ${esc(f.domain || "K-뷰티")}</div>
+          <div style="font-size:12.5px;color:var(--muted);">${esc(v.channel_title || "크리에이터")}${v.subscriber_count != null && Number(v.subscriber_count) > 0 ? ` (구독자 ${formatKoNum(v.subscriber_count)})` : ""} · ${esc(f.domain || "K-뷰티")}</div>
           <div style="margin-top:8px;">
             <a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener" onclick="trackEvent('click_youtube_source',{video_id:'${esc(v.video_id)}'})" style="font-size:12.5px;color:var(--purple);font-weight:600;text-decoration:none;">유튜브 원본 영상 보기 ↗</a>
           </div>
