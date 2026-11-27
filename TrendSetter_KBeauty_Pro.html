@@ -3,7 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>숏폼레이더 (ShortformRadar) — K-뷰티 유튜브 쇼츠 트렌드 분석</title>
+<title>트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너</title>
+<meta name="description" content="오늘 뜨는 K-뷰티 쇼츠 트렌드를 매일 분석해, 우리 제품과 타겟에 딱 맞는 촬영 콘티·카피·시딩 초안까지 1분 만에 만들어주는 마케팅 AI 파트너입니다." />
+<meta name="robots" content="index,follow" />
+<link rel="canonical" href="https://trendfit.vercel.app/" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:site_name" content="트렌드핏" />
+<meta property="og:title" content="트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너" />
+<meta property="og:description" content="오늘 뜨는 K-뷰티 쇼츠 분석부터 우리 브랜드 맞춤 카피·콘티·시딩 초안까지 1분 만에 완성하세요." />
+<meta property="og:image" content="https://trendfit.vercel.app/og-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너" />
+<meta name="twitter:description" content="오늘 뜨는 K-뷰티 쇼츠 분석부터 우리 브랜드 맞춤 카피·콘티·시딩 초안까지 1분 만에 완성하세요." />
+<meta name="twitter:image" content="https://trendfit.vercel.app/og-card.png" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23BE185D'/%3E%3Cpath d='M8 21l5.5-5.5 4 4L24 12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M19 12h5v5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <style>
 :root {
@@ -52,12 +68,12 @@ body {
   max-width: 1180px; margin: 0 auto; padding: 14px 24px;
   display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
 }
-.brand { display: flex; align-items: center; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; row-gap: 4px; }
 .brand-mark {
   width: 30px; height: 30px; border-radius: 8px; background: var(--purple); color: #FFF;
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.brand h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.025em; color: var(--ink); }
+.brand h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.025em; color: var(--ink); white-space: nowrap; }
 .brand span { font-size: 13px; font-weight: 400; color: var(--muted); }
 
 /* Figure-Ground Canvas Filter Area (No outer box around header/filters) */
@@ -352,6 +368,36 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 .b2b-table th { text-align: left; padding: 8px; border-bottom: 1px solid #E2E2DC; color: var(--muted); font-weight: 500; }
 .b2b-table td { padding: 8px; border-bottom: 1px solid #F0F0EC; color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
 .action-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.fb-bar {
+  margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line);
+  border-radius: 10px; background: #FAFAF8;
+}
+.fb-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fb-bar-title { font-size: 13px; font-weight: 500; color: var(--ink-secondary); }
+.fb-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.fb-note-wrap { display: none; margin-top: 10px; gap: 8px; }
+.fb-note-wrap.open { display: flex; flex-wrap: wrap; align-items: stretch; }
+.fb-note-wrap input {
+  flex: 1 1 220px; padding: 7px 10px; border: 1px solid #DCDCD6; border-radius: 8px;
+  font-size: 13px; font-family: inherit; color: var(--ink); background: #FFF;
+}
+.fb-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(24, 24, 27, 0.45);
+  display: none; align-items: center; justify-content: center; padding: 16px; z-index: 9998;
+}
+.fb-modal-backdrop.open { display: flex; }
+.fb-modal {
+  width: 100%; max-width: 440px; background: #FFF; border: 1px solid var(--line);
+  border-radius: 14px; padding: 20px; box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+}
+.fb-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.fb-modal-head h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
+.fb-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 12px; }
+.fb-chip {
+  padding: 5px 10px; border-radius: 999px; border: 1px solid #DCDCD6; background: #FFF;
+  font-size: 12.5px; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
+}
+.fb-chip.active { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); font-weight: 600; }
 .toast {
   position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #FFF;
   padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
@@ -377,17 +423,18 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
   <div class="app-bar-inner">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12l4.5-4.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6 4 4 6-8"/><path d="M15 7h5v5"/></svg>
       </div>
       <div>
-        <h1>숏폼레이더</h1>
+        <h1>트렌드핏</h1>
       </div>
-      <span>K-뷰티 쇼츠 데일리 브리핑</span>
+      <span>올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span class="pill pill-drop" title="매일 아침·저녁으로 최신 트렌드를 자동 수집합니다">매일 아침·저녁 업데이트</span>
+      <button id="openFeedbackBtn" class="btn btn-outline" onclick="openFeedbackModal('header')">의견 남기기</button>
       <button id="syncSnapBtn" class="btn btn-sec" onclick="syncSnapshotFromGitHub()"
-        title="GitHub에 저장된 최신 트렌드 데이터를 불러옵니다">
+        title="저장된 최신 트렌드 데이터를 다시 불러옵니다">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
         최신 데이터 업데이트
       </button>
@@ -455,8 +502,8 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 
   <div id="step1Area">
     <div class="welcome-box">
-      <h3>어떤 뷰티 카테고리의 쇼츠를 볼까요?</h3>
-      <p style="margin:0;">상단 <b>최신 데이터 업데이트</b>를 누르거나 카테고리를 선택해 보세요.<br>API 키 없이 둘러보려면 상단 <b>설정 → 예시 화면 미리보기</b>를 누르면 됩니다.</p>
+      <h3>오늘 뜨는 K-뷰티 쇼츠를 불러오고 있어요</h3>
+      <p style="margin:0;">잠시 후 카테고리별 인기 영상과 실무 인사이트가 자동으로 열립니다.</p>
     </div>
   </div>
 
@@ -530,6 +577,28 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     </div>
     <pre id="debugLogPre" style="margin:8px 0 0;padding:12px;background:#18181B;color:#E4E4E7;border-radius:8px;font-size:12px;line-height:1.5;max-height:240px;overflow:auto;white-space:pre-wrap;">아직 실행된 로그가 없습니다.</pre>
   </details>
+</div>
+<div id="fbModalBackdrop" class="fb-modal-backdrop" onclick="if (event.target === this) closeFeedbackModal()">
+  <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fbModalTitle">
+    <div class="fb-modal-head">
+      <h3 id="fbModalTitle">트렌드핏 의견 남기기</h3>
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeFeedbackModal()">닫기</button>
+    </div>
+    <p style="margin:0;font-size:13px;color:var(--muted);">불편한 점, 빠져있는 카테고리, 필요한 기능을 편하게 남겨주세요.</p>
+    <div class="fb-chips" id="fbTopicChips">
+      <button type="button" class="fb-chip active" onclick="selectFeedbackTopic(this, '카테고리·키워드 요청')">카테고리·키워드 요청</button>
+      <button type="button" class="fb-chip" onclick="selectFeedbackTopic(this, '기획안·대본 품질')">기획안·대본 품질</button>
+      <button type="button" class="fb-chip" onclick="selectFeedbackTopic(this, '화면·사용성')">화면·사용성</button>
+      <button type="button" class="fb-chip" onclick="selectFeedbackTopic(this, '기타 의견')">기타 의견</button>
+    </div>
+    <div class="field">
+      <textarea id="fbModalText" rows="3" placeholder="예: 립플럼퍼 세부 카테고리도 추가해주세요 / 대본 톤이 자연스러워서 좋아요"></textarea>
+    </div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;">
+      <button type="button" class="btn btn-outline" onclick="closeFeedbackModal()">취소</button>
+      <button type="button" class="btn btn-primary" onclick="submitModalFeedback()">의견 보내기</button>
+    </div>
+  </div>
 </div>
 <div id="toast" class="toast">복사되었습니다.</div>
 <script src="local_keys.js"></script>
@@ -622,14 +691,181 @@ function esc(s) {
 function norm(s) {
   return String(s ?? "").replace(/\[[^\]]{1,15}\]|>>/g, " ").replace(/[^a-zA-Z0-9가-힣]+/g, "").toLowerCase();
 }
+const TRACKING_CONFIG = {
+  ga4Id: "",              // Stage 2: GA4 측정 ID (예: "G-XXXXXXXXXX")
+  clarityId: "",          // Stage 2: Microsoft Clarity 프로젝트 ID
+  feedbackWebhookUrl: ""  // Stage 2: Google Apps Script 웹앱 URL
+};
+let _utmCache = null;
+let _landingTracked = false;
+let _fbModalSource = "header";
+let _fbModalTopic = "카테고리·키워드 요청";
+
+function getUtmContext() {
+  if (_utmCache) return _utmCache;
+  const out = {};
+  try {
+    const saved = window.sessionStorage ? window.sessionStorage.getItem("tf_utm_v1") : null;
+    if (saved) Object.assign(out, JSON.parse(saved));
+    const q = new URLSearchParams(window.location?.search || "");
+    for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content"]) {
+      const v = q.get(k);
+      if (v) out[k] = v.slice(0, 64);
+    }
+    if (Object.keys(out).length && window.sessionStorage) {
+      window.sessionStorage.setItem("tf_utm_v1", JSON.stringify(out));
+    }
+  } catch (e) {}
+  _utmCache = out;
+  return out;
+}
+
+function initAnalytics() {
+  if (typeof window === "undefined" || typeof document === "undefined" || !document.head) return;
+  getUtmContext();
+  if (/^G-[A-Z0-9]+$/i.test(TRACKING_CONFIG.ga4Id || "") && !window.gtag) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", TRACKING_CONFIG.ga4Id);
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(TRACKING_CONFIG.ga4Id)}`;
+    document.head.appendChild(s);
+  }
+  if (/^[a-z0-9]{6,20}$/i.test(TRACKING_CONFIG.clarityId || "") && !window.clarity) {
+    (function (c, l, a, r, i, t, y) {
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+      t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+      y = l.getElementsByTagName(r)[0]; if (y && y.parentNode) y.parentNode.insertBefore(t, y);
+    })(window, document, "clarity", "script", TRACKING_CONFIG.clarityId);
+  }
+}
+
+function trackEvent(eventName, params = {}) {
+  try {
+    const payload = { ...getUtmContext(), ...params };
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", eventName, payload);
+    }
+  } catch (e) {}
+}
+
+function sendFeedbackPayload(payload) {
+  const full = {
+    ts_kst: new Date(Date.now() + 9 * 3600000).toISOString().replace("T", " ").slice(0, 19),
+    page_url: typeof window !== "undefined" && window.location ? String(window.location.href || "").slice(0, 240) : "",
+    ...getUtmContext(),
+    ...payload
+  };
+  try {
+    const arr = JSON.parse(window.localStorage?.getItem("tf_feedback_log_v1") || "[]");
+    arr.push(full);
+    window.localStorage?.setItem("tf_feedback_log_v1", JSON.stringify(arr.slice(-30)));
+  } catch (e) {}
+  if (TRACKING_CONFIG.feedbackWebhookUrl && typeof fetch === "function") {
+    try {
+      fetch(TRACKING_CONFIG.feedbackWebhookUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(full)
+      }).catch(() => {});
+    } catch (e) {}
+  }
+  trackEvent("submit_feedback", { source: full.source || "unknown", rating: full.rating || "note" });
+}
+
+function openFeedbackModal(source = "header") {
+  _fbModalSource = source;
+  const bd = document.getElementById("fbModalBackdrop");
+  const ta = document.getElementById("fbModalText");
+  if (ta) ta.value = "";
+  if (bd) bd.classList.add("open");
+}
+function closeFeedbackModal() {
+  const bd = document.getElementById("fbModalBackdrop");
+  if (bd) bd.classList.remove("open");
+}
+function selectFeedbackTopic(btn, topic) {
+  _fbModalTopic = topic;
+  const chips = document.querySelectorAll("#fbTopicChips .fb-chip");
+  chips.forEach(c => c.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+}
+function submitModalFeedback() {
+  const ta = document.getElementById("fbModalText");
+  const note = (ta?.value || "").trim();
+  if (!note) { showToast("간단한 내용을 한 줄만 적어주세요."); return; }
+  sendFeedbackPayload({
+    source: _fbModalSource,
+    rating: "note",
+    topic: _fbModalTopic,
+    path: currentPath,
+    days: selectedDays,
+    product: step2Data?.product || "",
+    comment: note
+  });
+  closeFeedbackModal();
+  showToast("소중한 의견 감사해요! 다음 개선에 반영할게요.");
+}
+function rateStep2(rating) {
+  const bar = document.getElementById("fbStep2Bar");
+  const noteWrap = document.getElementById("fbStep2NoteWrap");
+  if (rating === "up") {
+    sendFeedbackPayload({
+      source: "step2_quick",
+      rating: "up",
+      topic: "만족",
+      path: currentPath,
+      days: selectedDays,
+      cat: step2Data?.cat || "",
+      product: step2Data?.product || "",
+      ref_video_id: step2Data?.refVid?.video_id || ""
+    });
+    if (bar) {
+      bar.innerHTML = `<div class="fb-bar-row"><span class="fb-bar-title" style="color:var(--go);font-weight:600;">👍 도움이 되었다니 다행이에요! 추가 의견이 있으면 우측 '의견 남기기'로 알려주세요.</span></div>`;
+    }
+    return;
+  }
+  if (noteWrap) {
+    noteWrap.classList.add("open");
+    const inp = document.getElementById("fbStep2NoteInput");
+    if (inp) inp.focus();
+  }
+}
+function submitStep2Note() {
+  const inp = document.getElementById("fbStep2NoteInput");
+  const note = (inp?.value || "").trim();
+  if (!note) { showToast("아쉬웠던 점을 한 줄로 적어주세요."); return; }
+  sendFeedbackPayload({
+    source: "step2_quick",
+    rating: "down",
+    topic: "기획안 개선 요청",
+    path: currentPath,
+    days: selectedDays,
+    cat: step2Data?.cat || "",
+    product: step2Data?.product || "",
+    ref_video_id: step2Data?.refVid?.video_id || "",
+    comment: note
+  });
+  const bar = document.getElementById("fbStep2Bar");
+  if (bar) {
+    bar.innerHTML = `<div class="fb-bar-row"><span class="fb-bar-title" style="color:var(--ink);font-weight:600;">💬 의견 감사해요! 보내주신 내용을 바탕으로 더 다듬을게요.</span></div>`;
+  }
+}
+
 function showToast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2000);
 }
-function copyText(txt, needsReview) {
+function copyText(txt, needsReview, kind = "") {
   if (needsReview && !confirm("검수 필요 항목이 포함되어 있습니다. 내용을 확인 후 복사할까요?")) return;
-  const done = () => showToast("✅ 클립보드에 복사되었습니다!");
+  const done = () => {
+    if (kind) trackEvent("copy_step2_output", { output_type: kind, product_cat: step2Data?.cat || "" });
+    showToast("✅ 클립보드에 복사되었습니다!");
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
   } else { fallbackCopy(txt, done); }
@@ -700,11 +936,13 @@ function tryApplySnapshotEntry(pathKey, days) {
 function setPromoFilter(f) {
   selectedPromoFilter = f;
   currentPage = 1;
+  trackEvent("explore_filter", { filter_type: "promo", value: f, path: currentPath });
   if (step1Data) renderStep1Result(step1Data);
 }
 function setFormatFilter(fmt) {
   selectedFormatFilter = (selectedFormatFilter === fmt) ? "all" : fmt;
   currentPage = 1;
+  trackEvent("explore_filter", { filter_type: "format", value: selectedFormatFilter, path: currentPath });
   if (step1Data) renderStep1Result(step1Data);
 }
 function setPage(p) {
@@ -737,6 +975,7 @@ function selectPath(key) {
   currentPath = key;
   selectedFormatFilter = "all";
   currentPage = 1;
+  trackEvent("explore_filter", { filter_type: "category", value: key, days: selectedDays });
   renderExplorerNav();
   if (tryApplySnapshotEntry(key, selectedDays)) return;
   if (step1Data && step1Data.path_key !== key) {
@@ -753,6 +992,7 @@ function toggleApiPanel() {
 function setDays(d) {
   selectedDays = d;
   currentPage = 1;
+  trackEvent("explore_filter", { filter_type: "days", value: String(d), path: currentPath });
   const dSel = document.getElementById("daysSel");
   if (dSel && Number(dSel.value) !== d) dSel.value = String(d);
   if (tryApplySnapshotEntry(currentPath, d)) return;
@@ -772,6 +1012,7 @@ function setDays(d) {
 function setSort(s) {
   selectedSort = s;
   currentPage = 1;
+  trackEvent("explore_filter", { filter_type: "sort", value: s, path: currentPath });
   const sel = document.getElementById("sortSel");
   if (sel && sel.value !== s) sel.value = s;
   if (step1Data) renderStep1Result(step1Data);
@@ -940,6 +1181,9 @@ function sortVideos(vids) {
   }
   return arr;
 }
+function isWebOrigin() {
+  return typeof window !== "undefined" && /^https?:$/i.test(window.location?.protocol || "");
+}
 async function callGeminiJson(apiKey, model, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const resp = await fetch(url, {
@@ -949,6 +1193,21 @@ async function callGeminiJson(apiKey, model, prompt) {
   if (!resp.ok) throw new Error(`AI 응답 오류 (${resp.status})`);
   const data = await resp.json();
   return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
+}
+async function callStep2Ai(apiKey, model, prompt) {
+  if (apiKey) return { plan: await callGeminiJson(apiKey, model, prompt), source: "direct_key" };
+  if (!isWebOrigin()) return { plan: null, source: "offline" };
+  const resp = await fetch("/api/plan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, prompt })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err?.error || `서버 응답 오류 (${resp.status})`);
+  }
+  const data = await resp.json();
+  return { plan: data?.plan || {}, source: "server_proxy" };
 }
 
 function formatYoutubeApiError(status, errObj) {
@@ -970,23 +1229,32 @@ function formatYoutubeApiError(status, errObj) {
 const REMOTE_SNAPSHOT_URL = "https://raw.githubusercontent.com/pjs919-ship-it/trend-agent/main/data/trends_snapshot.json";
 let _remoteSnapChecked = false;
 
+async function fetchSnapshotFromCandidates() {
+  const urls = [];
+  if (isWebOrigin()) urls.push(`./data/trends_snapshot.json?t=${Date.now()}`);
+  urls.push(`${REMOTE_SNAPSHOT_URL}?t=${Date.now()}`);
+  for (const u of urls) {
+    try {
+      const resp = await fetch(u, { cache: "no-store" });
+      if (!resp.ok) continue;
+      const remote = await resp.json();
+      if (remote && remote.entries && Object.keys(remote.entries).length) return remote;
+    } catch (e) {}
+  }
+  return null;
+}
+
 async function ensureLatestSnapshot() {
   if (_remoteSnapChecked) return window.SHORTFORM_RADAR_SNAPSHOT || null;
   _remoteSnapChecked = true;
-  try {
-    const resp = await fetch(`${REMOTE_SNAPSHOT_URL}?t=${Date.now()}`, { cache: "no-store" });
-    if (!resp.ok) return window.SHORTFORM_RADAR_SNAPSHOT || null;
-    const remote = await resp.json();
-    if (remote && remote.entries && Object.keys(remote.entries).length) {
-      const localTs = window.SHORTFORM_RADAR_SNAPSHOT?.updated_at_kst || "";
-      const remoteTs = remote.updated_at_kst || "";
-      if (!localTs || remoteTs >= localTs) {
-        window.SHORTFORM_RADAR_SNAPSHOT = remote;
-        try { window.localStorage.setItem("sr_remote_snapshot_v1", JSON.stringify(remote)); } catch (e) {}
-      }
+  const remote = await fetchSnapshotFromCandidates();
+  if (remote) {
+    const localTs = window.SHORTFORM_RADAR_SNAPSHOT?.updated_at_kst || "";
+    const remoteTs = remote.updated_at_kst || "";
+    if (!localTs || remoteTs >= localTs) {
+      window.SHORTFORM_RADAR_SNAPSHOT = remote;
+      try { window.localStorage.setItem("sr_remote_snapshot_v1", JSON.stringify(remote)); } catch (e) {}
     }
-  } catch (e) {
-    // 오프라인이거나 깃허브에 아직 스냅샷이 없으면 조용히 로컬/실시간 조회로 진행
   }
   if (!window.SHORTFORM_RADAR_SNAPSHOT) {
     try {
@@ -1001,14 +1269,12 @@ async function syncSnapshotFromGitHub() {
   const st = document.getElementById("step1Status");
   const btn = document.getElementById("syncSnapBtn");
   if (btn) btn.disabled = true;
-  st.textContent = "🔄 GitHub에서 최신 트렌드 스냅샷을 불러오고 있어요...";
+  st.textContent = "🔄 최신 트렌드 데이터를 다시 불러오고 있어요...";
   _remoteSnapChecked = false;
   try {
-    const resp = await fetch(`${REMOTE_SNAPSHOT_URL}?t=${Date.now()}`, { cache: "no-store" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const remote = await resp.json();
+    const remote = await fetchSnapshotFromCandidates();
     if (!remote || !remote.entries || !Object.keys(remote.entries).length) {
-      throw new Error("아직 저장된 배치 데이터가 없어요.");
+      throw new Error("저장된 최신 데이터가 아직 없어요.");
     }
     window.SHORTFORM_RADAR_SNAPSHOT = remote;
     _remoteSnapChecked = true;
@@ -1495,6 +1761,7 @@ function openStep2Panel(videoId) {
   if (!p) return;
   p.style.display = "block";
   renderSelectedRefBox();
+  trackEvent("open_step2", { path: currentPath, ref_video_id: selectedRefVideoId || "" });
   p.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -1562,7 +1829,8 @@ async function runStep2Match() {
   };
 
   let plan = null;
-  if (ggKey) {
+  let aiSource = "fallback";
+  if (ggKey || isWebOrigin()) {
     try {
       st.textContent = "선택한 쇼츠의 성공 공식을 해부해 우리 제품 맞춤 촬영 대본을 만들고 있어요...";
       const patternsTxt = (step1Data.market_patterns || []).slice(0, 3).join(" / ");
@@ -1606,7 +1874,9 @@ JSON 스키마:
   "creator_tip": "촬영 시 주의할 톤·주의사항 1~2문장",
   "seeding_fit": "이 콘셉트를 가장 잘 살릴 크리에이터 유형 한 줄"
 }`;
-      const raw = await callGeminiJson(ggKey, model, p2);
+      const resAi = await callStep2Ai(ggKey, model, p2);
+      const raw = resAi.plan || {};
+      aiSource = resAi.source || "server_proxy";
       const fb = buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone, allowedClaims);
       const hasKor = (s) => (String(s || "").match(/[가-힣]/g) || []).length >= 4;
       plan = {
@@ -1619,12 +1889,12 @@ JSON 스키마:
       };
       st.textContent = `'${prodName}' 맞춤 촬영 기획안을 완성했어요. 바로 복사해서 촬영이나 크리에이터 전달에 써보세요.`;
     } catch (e) {
-      st.textContent = "AI 연결이 원활하지 않아 기본 구조로 기획안을 먼저 만들었어요 (" + e.message + ")";
+      st.textContent = "AI 연결이 원활하지 않아 기본 구조로 기획안을 먼저 만들었어요.";
       plan = buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone, allowedClaims);
     }
   } else {
     plan = buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone, allowedClaims);
-    st.textContent = `'${prodName}' 맞춤 촬영 기획안을 완성했어요. (AI 키를 연결하면 참고 영상 맞춤형으로 더 정교하게 작성돼요)`;
+    st.textContent = `'${prodName}' 맞춤 촬영 기획안을 완성했어요.`;
   }
 
   const flaggedTerms = collectViolationTerms(plan);
@@ -1632,6 +1902,7 @@ JSON 스키마:
     product: prodName, cat, prodTarget, prodTone, allowedClaims, bannedList,
     refVid, refFact, plan, flaggedTerms, needs_review: flaggedTerms.length > 0
   };
+  trackEvent("generate_step2", { product_cat: cat, product_target: prodTarget, product_tone: prodTone, ai_source: aiSource });
   renderStep2Result(step2Data);
 }
 
@@ -1686,8 +1957,9 @@ function downloadStep2Html() {
 </body></html>`;
   const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = `shortform_plan_${step1Data.report_date}.html`;
+  const a = document.createElement("a"); a.href = url; a.download = `trendfit_plan_${step1Data.report_date}.html`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  trackEvent("copy_step2_output", { output_type: "html", product_cat: s2.cat || "" });
   showToast("1페이지 기획서 HTML을 저장했어요!");
 }
 
@@ -1701,7 +1973,7 @@ function renderStep2Result(s2) {
     : "";
 
   const hooksHtml = (p.hook_subtitles || []).map((h, i) =>
-    `<div class="hook-row"><span><b>0${i + 1}</b> ${esc(h)}</span><button class="btn btn-outline" style="padding:3px 9px;font-size:12px;" onclick="copyText('${esc(h).replace(/'/g, "\\'")}', false)">복사</button></div>`
+    `<div class="hook-row"><span><b>0${i + 1}</b> ${esc(h)}</span><button class="btn btn-outline" style="padding:3px 9px;font-size:12px;" onclick="copyText('${esc(h).replace(/'/g, "\\'")}', false, 'hook')">복사</button></div>`
   ).join("");
 
   const cutsHtml = (p.cuts || []).map(c => `
@@ -1730,9 +2002,22 @@ function renderStep2Result(s2) {
       <div class="cut-grid">${cutsHtml}</div>
       <div class="creator-tip-box"><b>촬영 주의 가이드:</b> ${esc(p.creator_tip)}</div>
       <div class="action-bar">
-        <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false)">팀장 보고용 요약 복사</button>
-        <button class="btn btn-primary" onclick="copyText(window._step2Reports.dm, false)">크리에이터 촬영 DM 복사</button>
+        <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false, 'report')">팀장 보고용 요약 복사</button>
+        <button class="btn btn-primary" onclick="copyText(window._step2Reports.dm, false, 'dm')">크리에이터 촬영 DM 복사</button>
         <button class="btn btn-sec" onclick="downloadStep2Html()">1페이지 기획서 저장</button>
+      </div>
+      <div id="fbStep2Bar" class="fb-bar">
+        <div class="fb-bar-row">
+          <span class="fb-bar-title">방금 나온 기획안이 바로 쓰기 좋았나요?</span>
+          <div class="fb-btns">
+            <button type="button" class="btn btn-outline" style="padding:5px 11px;font-size:12.5px;" onclick="rateStep2('up')">도움 됐어요 👍</button>
+            <button type="button" class="btn btn-outline" style="padding:5px 11px;font-size:12.5px;" onclick="rateStep2('down')">아쉬운 점 남기기 💬</button>
+          </div>
+        </div>
+        <div id="fbStep2NoteWrap" class="fb-note-wrap">
+          <input id="fbStep2NoteInput" type="text" placeholder="예: 대본 톤이 조금 딱딱해요 / 더 구체적인 컷 예시가 필요해요" />
+          <button type="button" class="btn btn-primary" style="padding:6px 12px;font-size:12.5px;" onclick="submitStep2Note()">보내기</button>
+        </div>
       </div>
       <div id="seedingRoadmapBox" class="seeding-roadmap">
         <div>
@@ -1778,6 +2063,7 @@ function initLocalKeys() {
 }
 
 initLocalKeys();
+initAnalytics();
 syncProdTargetOptions();
 renderExplorerNav();
 function renderSnapshotImmediate(snap) {
@@ -1793,11 +2079,19 @@ function renderSnapshotImmediate(snap) {
 }
 (async function initDefaultView() {
   const renderedLocal = renderSnapshotImmediate(window.SHORTFORM_RADAR_SNAPSHOT);
+  if (renderedLocal && !_landingTracked) {
+    _landingTracked = true;
+    trackEvent("view_landing", { path: currentPath, days: selectedDays });
+  }
   const beforeTs = window.SHORTFORM_RADAR_SNAPSHOT?.updated_at_kst || "";
   const snap = await ensureLatestSnapshot();
   if (!snap || !snap.entries) return;
   if (!renderedLocal || (snap.updated_at_kst && snap.updated_at_kst > beforeTs)) {
-    renderSnapshotImmediate(snap);
+    const ok = renderSnapshotImmediate(snap);
+    if (ok && !_landingTracked) {
+      _landingTracked = true;
+      trackEvent("view_landing", { path: currentPath, days: selectedDays });
+    }
   }
 })();
 </script>
