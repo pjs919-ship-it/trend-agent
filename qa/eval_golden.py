@@ -865,11 +865,16 @@ const document = {{ getElementById: () => ({{ value: '', style: {{}}, addEventLi
 if (norm('완치') !== '완치') throw new Error('norm 한글 손실: ' + norm('완치'));
 const claims = '저분자 히알루론산, 소듐하이알루로네이트 2,700ppm, 속건조 케어'.split(/(?:\\n+|,(?!\\d))/).map(s => s.trim()).filter(Boolean);
 if (!claims.includes('소듐하이알루로네이트 2,700ppm')) throw new Error('2,700ppm 분리 오류: ' + JSON.stringify(claims));
-const fb = buildFallbackPlan({{ title: '조회수 167만회 논란의 똥손 메이크업' }}, {{ format_tag: '겟레디윗미' }}, '올리고 히알루론산 딥 토너', '기초 > 토너·패드', '전체 K-뷰티 관심층', '공감·일상 루틴형', claims);
-const vClean = collectViolationTerms(fb, claims, ['올리브영 1위 토너']);
+const fb = buildFallbackPlan({{ title: '조회수 167만회 논란의 똥손 메이크업' }}, {{ format_tag: '겟레디윗미' }}, '올리고 히알루론산 딥 토너', '기초 > 토너·패드', '수부지 (속건조·겉번들)', '공감·일상 루틴형', claims);
+const vClean = collectViolationTerms(fb);
 if (vClean.length) throw new Error('폴백/제목 오탐 발생: ' + JSON.stringify(vClean));
-const vBad = collectViolationTerms({{ product_bridge: '여드름 완치 1등 토너', hook_subtitles: [], cuts: [] }}, claims, []);
-if (!vBad.includes('완치') || !vBad.includes('1등')) throw new Error('금지어 미탐: ' + JSON.stringify(vBad));
+const vRelaxed = collectViolationTerms({{ product_bridge: '올리브영 베스트셀러 3가지 포인트', hook_subtitles: [], cuts: [] }});
+if (vRelaxed.length) throw new Error('완화된 카피 오탐 발생: ' + JSON.stringify(vRelaxed));
+const vBad = collectViolationTerms({{ product_bridge: '여드름 완치 토너', hook_subtitles: [], cuts: [] }});
+if (!vBad.includes('완치')) throw new Error('의약품 금지어 미탐: ' + JSON.stringify(vBad));
+if (!TARGET_GROUPS_BY_DOMAIN['기초/스킨케어'].flatMap(g => g.options).includes('수부지 (속건조·겉번들)')) throw new Error('기초 수부지 타겟 누락');
+if (!TARGET_GROUPS_BY_DOMAIN['색조/메이크업'].flatMap(g => g.options).includes('가을웜 뮤트 (갈웜 뮤트)')) throw new Error('색조 가을뮤트 타겟 누락');
+if (!TARGET_GROUPS_BY_DOMAIN['헤어/바디'].flatMap(g => g.options).includes('지성 두피')) throw new Error('헤어 지성 두피 타겟 누락');
 if (!isSpam({{ views: 5000, title: '[알바공감] 올리브영' }}) || !isSpam({{ views: 5000, title: '#몰입형 메이크업' }})) throw new Error('JS 노이즈 필터 미탐');
 if (isKorean({{ title: 'Expired Makeup Keep Or Toss! #스킨케어', description: 'routine' }})) throw new Error('JS 영어 쇼츠 차단 실패');
 """

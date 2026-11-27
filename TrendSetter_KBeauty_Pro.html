@@ -475,7 +475,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     <div class="grid-3">
       <div class="field">
         <label>상품 카테고리</label>
-        <select id="prodCat">
+        <select id="prodCat" onchange="syncProdTargetOptions()">
           <option value="기초 > 토너·패드">기초 &gt; 토너·패드</option>
           <option value="기초 > 세럼·앰플">기초 &gt; 세럼·앰플</option>
           <option value="기초 > 크림·로션">기초 &gt; 크림·로션</option>
@@ -562,27 +562,31 @@ function getNode(key) {
 const PRESETS = {
   toner: {
     cat: "기초 > 토너·패드",
+    target: "수부지 (속건조·겉번들)",
     name: "올리고 히알루론산 딥 토너",
     keywords: "저분자 히알루론산 워터 제형 토너, 소듐하이알루로네이트 2,700ppm, 속건조 케어, 화장솜 15~20분 토너 팩",
-    banned: ["7스킨 레이어링", "올리브영 1위 토너", "피부 속 2.5mm 보습 개선", "100% 흡수"]
+    banned: []
   },
   pad: {
     cat: "기초 > 토너·패드",
+    target: "민감·자극 진정",
     name: "그린 플라보노이드 2.5 패드",
     keywords: "비건 진정 토너 패드, 이오시딘 2.5% 함유, 외부 자극·트러블 진정, 5~10분 고밀착 패드 팩",
-    banned: ["3중 레이어 거즈 패드", "붉은기 즉각 완화"]
+    banned: []
   },
   mask: {
     cat: "기초 > 마스크팩",
+    target: "건성 (당김·각질 들뜸)",
     name: "올리고 히알루론산 워터리 스킨 마스크",
     keywords: "저분자 올리고 히알루론산 1,000ppm, 대나무 유래 비건 시트, 메이크업 전 1일 1팩, 10~20분 사용",
-    banned: ["식물성 초밀착 시트", "열감 내리는 효과"]
+    banned: []
   },
   lip: {
     cat: "색조 > 립·틴트",
+    target: "가을웜 뮤트 (갈웜 뮤트)",
     name: "촉촉한 탕후루 립틴트",
     keywords: "맑은 과즙 광택 글로우 립틴트, 볼에 톡톡 블러셔 겸용, 촉촉한 데일리 립 컬러",
-    banned: ["올리브영 1위", "24시간 지속"]
+    banned: []
   }
 };
 
@@ -772,10 +776,48 @@ function setSort(s) {
   if (sel && sel.value !== s) sel.value = s;
   if (step1Data) renderStep1Result(step1Data);
 }
+const TARGET_GROUPS_BY_DOMAIN = {
+  "기초/스킨케어": [
+    { label: "기본", options: ["전체 피부 (타겟 무관)"] },
+    { label: "피부타입 (유·수분 기준)", options: ["건성 (당김·각질 들뜸)", "지성 (피지·유분 과다)", "복합성 (T존 유분·U존 건조)", "수부지 (속건조·겉번들)", "중성 (균형 피부)"] },
+    { label: "피부 고민 (타입 무관)", options: ["민감·자극 진정", "트러블·모공", "탄력·장벽"] }
+  ],
+  "색조/메이크업": [
+    { label: "기본", options: ["전체 톤 (퍼스널컬러 무관)"] },
+    { label: "봄 웜톤", options: ["봄웜 전체", "봄웜 라이트", "봄웜 브라이트", "봄웜 트루"] },
+    { label: "여름 쿨톤", options: ["여름쿨 전체", "여름쿨 라이트", "여름쿨 뮤트", "여름쿨 트루"] },
+    { label: "가을 웜톤", options: ["가을웜 전체", "가을웜 뮤트 (갈웜 뮤트)", "가을웜 딥", "가을웜 스트롱·트루"] },
+    { label: "겨울 쿨톤", options: ["겨울쿨 전체", "겨울쿨 브라이트", "겨울쿨 딥(다크)", "겨울쿨 트루"] },
+    { label: "톤 공통 · 피부 호수", options: ["뉴트럴 (웜·쿨 공통)", "17~19호 (밝은 피부)", "21호 (표준 피부)", "23호 이상 (차분한 피부)"] }
+  ],
+  "헤어/바디": [
+    { label: "기본", options: ["전체 (헤어·바디 공통)"] },
+    { label: "두피·모발 타입", options: ["지성 두피", "건성·민감 두피", "손상·탈색모", "극손상·곱슬모"] },
+    { label: "바디 타입", options: ["바디 건조·각질", "트러블성 바디", "데일리 향·보습"] }
+  ]
+};
+
+function syncProdTargetOptions(preferredVal) {
+  const catEl = document.getElementById("prodCat");
+  const tgtEl = document.getElementById("prodTarget");
+  if (!catEl || !tgtEl) return [];
+  const dom = expectedDomainFromCat(catEl.value);
+  const groups = TARGET_GROUPS_BY_DOMAIN[dom] || TARGET_GROUPS_BY_DOMAIN["기초/스킨케어"];
+  const curVal = preferredVal || tgtEl.value;
+  const allOpts = groups.flatMap(g => g.options);
+  const nextVal = allOpts.includes(curVal) ? curVal : allOpts[0];
+  tgtEl.innerHTML = groups.map(g =>
+    `<optgroup label="${esc(g.label)}">${g.options.map(o => `<option value="${esc(o)}"${o === nextVal ? ' selected' : ''}>${esc(o)}</option>`).join("")}</optgroup>`
+  ).join("");
+  tgtEl.value = nextVal;
+  return allOpts;
+}
+
 function applyPreset(key) {
   const p = PRESETS[key];
   if (!p) return;
   document.getElementById("prodCat").value = p.cat;
+  syncProdTargetOptions(p.target);
   document.getElementById("prodName").value = p.name;
   document.getElementById("prodKeywords").value = p.keywords;
 }
@@ -1461,17 +1503,13 @@ function expectedDomainFromCat(cat) {
   if (/헤어|바디/.test(cat || "")) return "헤어/바디";
   return "기초/스킨케어";
 }
-function collectViolationTerms(plan, allowedClaims, bannedList) {
+function collectViolationTerms(plan) {
   const cutTxt = (plan.cuts || []).map(c => `${c.visual || ""} ${c.subtitle || ""} ${c.script || ""}`).join(" ");
   const txt = `${plan.product_bridge || ""} ${(plan.hook_subtitles || []).join(" ")} ${cutTxt}`;
-  const nt = norm(txt), nc = norm(allowedClaims.join(" "));
+  const nt = norm(txt);
   const flagged = [];
+  // 초기 기획 단계에서는 창의적 카피를 막지 않도록 의약품·질병 치료 오인 표현만 최소 점검
   for (const m of ABS_MED_BANNED) { const nm = norm(m); if (nm && nt.includes(nm)) flagged.push(m); }
-  for (const bad of (bannedList || [])) { const nb = norm(bad); if (nb && nt.includes(nb)) flagged.push(bad); }
-  for (const term of LAW_BANNED) { const nterm = norm(term); if (nterm && nt.includes(nterm) && !nc.includes(nterm)) flagged.push(term); }
-  // 촬영 시간 지시어(예: 0~3초, 15~20분) 외 근거 없는 효능 수치만 점검
-  const scan = txt.replace(/\d+\s*[~-]\s*\d+\s*(?:초|분)|(?:첫|초반|약)\s*\d+\s*(?:초|분)|\d+\s*(?:초|분)\s*(?:컷|동안|이내|후|오프닝)/g, " ");
-  for (const tok of (scan.match(NUM_RE) || [])) if (!nc.includes(norm(tok))) flagged.push(tok.trim());
   return [...new Set(flagged)];
 }
 
@@ -1479,22 +1517,23 @@ function buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone,
   const mainClaim = allowedClaims[0] || prodName;
   const subClaim = allowedClaims[1] || mainClaim;
   const fmt = refFact.format_tag || "인기 쇼츠";
+  const tgtShort = String(prodTarget || "").split("(")[0].trim() || "타겟 고객";
   return {
     why_it_works: `'${refVid.title || "선택한 쇼츠"}'는 '${fmt}' 전개로 초반 호기심과 공감 댓글을 동시에 끌어낸 사례예요.`,
-    product_bridge: `이 구성에 '${prodName}'의 핵심 특징(${mainClaim})을 사용 직전·직후 대비 장면으로 얹으면 광고 느낌 없이 설득력을 높일 수 있어요.`,
+    product_bridge: `'${tgtShort}'이 자주 찾는 검색 고민에 '${prodName}'의 핵심 특징(${mainClaim})을 대조·시연 구도로 얹으면 설득력을 높일 수 있어요.`,
     hook_subtitles: [
-      `${prodTarget}이라면 오늘 이 루틴만 보세요`,
-      `복잡한 단계 다 빼고 ${prodName} 하나로 끝낸 날`,
+      `${tgtShort}이라면 오늘 이 조합만 보세요`,
+      `${tgtShort} 실패 줄이는 ${prodName} 선택 기준`,
       `직접 써보고 정리한 ${mainClaim} 리얼 사용감`
     ],
     cuts: [
-      { time: "0~3초", role: "시선 고정", visual: `${fmt} 느낌을 살린 얼굴·손등 클로즈업과 빠른 화면 전환`, subtitle: `${prodTarget} 주목!`, script: `요즘 ${cat.split(">").pop().trim()} 고를 때 딱 이것만 먼저 봐요.` },
-      { time: "3~10초", role: "공감·문제", visual: `기존 루틴에서 답답하거나 들뜨는 불편 상황 1컷`, subtitle: `왜 자꾸 들뜰까?`, script: `여러 개 겹쳐 바르는데도 금방 건조하고 밀리는 느낌 들 때 있잖아요.` },
-      { time: "10~22초", role: "제품 시연", visual: `${prodName} 제형 클로즈업 후 실제 피부에 바르는 장면`, subtitle: `${mainClaim}`, script: `${prodName}의 핵심인 ${mainClaim} 덕분에 ${subClaim} 루틴으로 부담 없이 쓰기 좋아요.` },
-      { time: "22~30초", role: "마무리", visual: `바른 직후 정돈된 피부 결 클로즈업 및 패키지 노출`, subtitle: `저장해두고 참고하세요`, script: `평소 ${prodTone} 콘텐츠 좋아하시면 고정 댓글에서 제품 정보 확인해 보세요.` }
+      { time: "0~3초", role: "시선 고정", visual: `${fmt} 느낌을 살린 얼굴·손등 클로즈업과 빠른 화면 전환`, subtitle: `${tgtShort} 주목!`, script: `요즘 ${tgtShort} 분들이 ${cat.split(">").pop().trim()} 고를 때 딱 이것만 먼저 보세요.` },
+      { time: "3~10초", role: "공감·문제", visual: `'${tgtShort}' 관점에서 아쉽기 쉬운 기존 제품 불편 상황 1컷`, subtitle: `왜 자꾸 아쉬울까?`, script: `${tgtShort} 입장에서 사놓고 겉돌거나 톤·사용감이 애매해 실패한 적 있잖아요.` },
+      { time: "10~22초", role: "제품 시연", visual: `${prodName} 제형·발색 클로즈업 후 실제 피부에 바르는 장면`, subtitle: `${mainClaim}`, script: `${prodName}의 핵심인 ${mainClaim} 덕분에 ${subClaim} 루틴으로 깔끔하게 쓰기 좋아요.` },
+      { time: "22~30초", role: "마무리", visual: `바른 직후 자연스럽게 어우러진 마감 컷 및 패키지 노출`, subtitle: `저장해두고 참고하세요`, script: `평소 ${prodTone} 콘텐츠 좋아하시면 고정 댓글에서 제품 정보 확인해 보세요.` }
     ],
-    creator_tip: `과장된 효능 단정이나 확인되지 않은 순위 표현은 빼고, 실제 발림성·사용감 중심으로 담백하게 촬영해 주세요.`,
-    seeding_fit: `${fmt} 포맷 조회수가 평소 채널 평균보다 잘 나오는 구독자 1~10만 뷰티 크리에이터`
+    creator_tip: `실제 집행 전 올리브영·자사몰 채널 가이드에 맞게 최종 문구를 한 번 더 확인해 주세요.`,
+    seeding_fit: `${fmt} 포맷 조회수가 높고 '${tgtShort}' 시청자 비중이 큰 뷰티 크리에이터`
   };
 }
 
@@ -1548,9 +1587,9 @@ async function runStep2Match() {
 
 [품질 절대 규칙]
 1. "~하는 분들! 저도 그랬어요", "인생템", "강력 추천", "완벽 해결" 같은 뻔한 AI·블로그 광고 상투어 절대 금지. 실제 한국 뷰티 크리에이터가 쇼츠에서 말하는 자연스러운 구어체로 쓸 것.
-2. 참고 쇼츠의 핵심 장치(예: 댓글 반영, 비교 실험, 루틴 시연, 가성비 검증 등)를 억지 연결하지 말고 우리 제품의 구체적인 제형·사용 상황에 자연스럽게 치환할 것.
+2. 참고 쇼츠의 핵심 장치(예: 댓글 반영, 비교 실험, 루틴 시연, 가성비 검증 등)를 억지 연결하지 말고, '${prodTarget}' 소비자가 실제로 유튜브에서 검색·고민하는 포인트(예: 수부지 속당김·번들, 가을뮤트 붉은기·칙칙함, 지성 두피 떡짐 등)에 우리 제품 특징을 자연스럽게 치환할 것.
 3. 입력된 수치(예: 2,700ppm, 15~20분)는 1글자도 바꾸거나 지어내지 말고 원문 그대로 쓸 것.
-4. 의약품 오인·질병 치료 관련 단어와 확인되지 않은 '1위·즉각·100%' 같은 과장 표현은 아예 쓰지 말 것(부정 예시 단어를 본문에 나열하지도 말 것).
+4. 의약품·질병 치료 오인 표현(완치·치료·아토피 등)만 피하고, 마케팅 카피·대본 자체는 마케터가 바로 쓰고 싶을 만큼 생생하고 매력적으로 작성할 것.
 5. 모든 항목은 반드시 100% 한국어로만 작성할 것(영어 문장 금지).
 
 JSON 스키마:
@@ -1588,7 +1627,7 @@ JSON 스키마:
     st.textContent = `'${prodName}' 맞춤 촬영 기획안을 완성했어요. (AI 키를 연결하면 참고 영상 맞춤형으로 더 정교하게 작성돼요)`;
   }
 
-  const flaggedTerms = collectViolationTerms(plan, allowedClaims, bannedList);
+  const flaggedTerms = collectViolationTerms(plan);
   step2Data = {
     product: prodName, cat, prodTarget, prodTone, allowedClaims, bannedList,
     refVid, refFact, plan, flaggedTerms, needs_review: flaggedTerms.length > 0
@@ -1692,7 +1731,7 @@ function renderStep2Result(s2) {
       <div class="creator-tip-box"><b>촬영 주의 가이드:</b> ${esc(p.creator_tip)}</div>
       <div class="action-bar">
         <button class="btn btn-sec" onclick="copyText(window._step2Reports.rep, false)">팀장 보고용 요약 복사</button>
-        <button class="btn ${s2.needs_review ? 'btn-danger' : 'btn-primary'}" onclick="copyText(window._step2Reports.dm, ${s2.needs_review})">크리에이터 촬영 DM 복사</button>
+        <button class="btn btn-primary" onclick="copyText(window._step2Reports.dm, false)">크리에이터 촬영 DM 복사</button>
         <button class="btn btn-sec" onclick="downloadStep2Html()">1페이지 기획서 저장</button>
       </div>
       <div id="seedingRoadmapBox" class="seeding-roadmap">
@@ -1739,6 +1778,7 @@ function initLocalKeys() {
 }
 
 initLocalKeys();
+syncProdTargetOptions();
 renderExplorerNav();
 function renderSnapshotImmediate(snap) {
   if (!snap || !snap.entries) return false;
