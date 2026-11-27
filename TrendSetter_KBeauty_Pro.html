@@ -398,7 +398,68 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
   font-size: 12.5px; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
 }
 .fb-chip.active { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); font-weight: 600; }
-.vd-modal { max-width: 560px; }
+.vd-modal { max-width: 560px; max-height: 90vh; overflow-y: auto; }
+.ex-modal {
+  max-width: 860px; max-height: 90vh; padding: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.ex-modal-head {
+  padding: 18px 24px; border-bottom: 1px solid var(--line); background: #FFF;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.ex-modal-head h3 { margin: 0; font-size: 18px; font-weight: 600; color: var(--ink); letter-spacing: -0.025em; }
+.ex-modal-scroll { padding: 20px 24px 24px; overflow-y: auto; flex: 1; }
+.ex-modal-foot {
+  padding: 14px 24px; border-top: 1px solid var(--line); background: #FAFAF8;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0;
+}
+.ex-banner {
+  background: var(--purple-soft); border: 1px solid #FBCFE8; border-radius: 10px;
+  padding: 10px 14px; font-size: 13.5px; color: var(--ink); line-height: 1.5;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.ex-pill {
+  font-size: 11.5px; font-weight: 600; color: #FFF; background: var(--purple);
+  border-radius: 5px; padding: 2px 7px; flex-shrink: 0;
+}
+.ex-meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;
+}
+.ex-meta-card {
+  background: #FAFAF8; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+}
+.ex-meta-k { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.ex-meta-v { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.45; }
+.ex-meta-s { font-size: 13px; color: var(--ink-secondary); margin-top: 4px; line-height: 1.45; }
+.ex-meta-s a { color: var(--purple); font-weight: 600; text-decoration: none; margin-left: 6px; white-space: nowrap; }
+.ex-sec-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 22px 0 10px; letter-spacing: -0.02em; }
+.ex-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ex-why-card { background: #FFF; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.ex-why-card b { display: block; font-size: 12.5px; font-weight: 600; color: var(--purple); margin-bottom: 5px; }
+.ex-why-card p { margin: 0; font-size: 14px; color: var(--ink-secondary); line-height: 1.6; }
+.ex-hooks { display: flex; flex-direction: column; gap: 8px; }
+.ex-hook {
+  background: #FFF; border: 1px solid #FBCFE8; border-radius: 9px; padding: 10px 14px;
+  font-size: 14.5px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 10px;
+}
+.ex-hook b { color: var(--purple); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ex-cuts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ex-cut { background: #FFF; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.ex-cut-h { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.ex-time { font-size: 12px; font-weight: 600; color: var(--purple); background: var(--purple-soft); border-radius: 5px; padding: 2px 8px; }
+.ex-cut-row { display: grid; grid-template-columns: 38px 1fr; gap: 8px; margin-top: 6px; font-size: 13.5px; line-height: 1.55; color: var(--ink-secondary); }
+.ex-cut-row b { color: var(--muted); font-weight: 500; font-size: 12.5px; }
+.ex-cut-row.say { color: var(--ink); font-weight: 500; }
+.ex-tip {
+  margin-top: 16px; padding: 12px 14px; border-left: 3px solid var(--purple);
+  background: #FAFAF8; border-radius: 8px; font-size: 13.5px; color: var(--ink-secondary); line-height: 1.55;
+}
+.ex-tip b { color: var(--ink); font-weight: 600; margin-right: 6px; }
+@media (max-width: 680px) {
+  .ex-modal-head, .ex-modal-scroll, .ex-modal-foot { padding-left: 16px; padding-right: 16px; }
+  .ex-meta-grid, .ex-why-grid, .ex-cuts { grid-template-columns: 1fr; }
+  .ex-modal-foot .btn { width: 100%; justify-content: center; min-height: 40px; }
+}
 .vd-top { display: flex; gap: 14px; align-items: flex-start; margin: 12px 0; }
 .vd-thumb { width: 84px; height: 112px; border-radius: 10px; object-fit: cover; background: #F4F2ED; flex-shrink: 0; border: 1px solid #ECEAE4; }
 .vd-hook {
@@ -597,7 +658,7 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
         <h3 style="margin:0;">홍보할 상품에 트렌드 입히기</h3>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-outline" style="padding:6px 11px;font-size:12.5px;" onclick="applyPreset('toner')">샘플: 딥 토너</button>
+        <button class="btn btn-outline" style="padding:6px 11px;font-size:12.5px;" onclick="applyPreset('toner')">샘플: 속수분 토너</button>
         <button class="btn btn-outline" style="padding:6px 11px;font-size:12.5px;" onclick="applyPreset('lip')">샘플: 립틴트</button>
       </div>
     </div>
@@ -692,6 +753,25 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     <div id="vdModalBody"></div>
   </div>
 </div>
+<div id="exModalBackdrop" class="fb-modal-backdrop" onclick="if (event.target === this) closeExampleModal()">
+  <div class="fb-modal ex-modal" role="dialog" aria-modal="true" aria-labelledby="exModalTitle">
+    <div class="ex-modal-head">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span class="ex-pill">예시 화면</span>
+        <h3 id="exModalTitle">속수분 워터 토너 숏폼 기획안</h3>
+      </div>
+      <button type="button" class="btn btn-outline" style="padding:5px 12px;font-size:12.5px;" onclick="closeExampleModal()">닫기</button>
+    </div>
+    <div id="exModalBody" class="ex-modal-scroll"></div>
+    <div class="ex-modal-foot">
+      <span style="font-size:12.5px;color:var(--muted);">실제 브랜드가 아닌 가상 제품 예시예요.</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" onclick="closeExampleModal()">닫기</button>
+        <button type="button" class="btn btn-primary" onclick="startStep2FromExample()">내 상품으로 바로 기획하기 →</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="toast" class="toast">복사되었습니다.</div>
 <script src="local_keys.js"></script>
 <script src="data/trends_snapshot.js" onerror="void 0"></script>
@@ -724,22 +804,8 @@ const PRESETS = {
   toner: {
     cat: "기초 > 토너·패드",
     target: "수부지 (속건조·겉번들)",
-    name: "올리고 히알루론산 딥 토너",
-    keywords: "저분자 히알루론산 워터 제형 토너, 소듐하이알루로네이트 2,700ppm, 속건조 케어, 화장솜 15~20분 토너 팩",
-    banned: []
-  },
-  pad: {
-    cat: "기초 > 토너·패드",
-    target: "민감·자극 진정",
-    name: "그린 플라보노이드 2.5 패드",
-    keywords: "비건 진정 토너 패드, 이오시딘 2.5% 함유, 외부 자극·트러블 진정, 5~10분 고밀착 패드 팩",
-    banned: []
-  },
-  mask: {
-    cat: "기초 > 마스크팩",
-    target: "건성 (당김·각질 들뜸)",
-    name: "올리고 히알루론산 워터리 스킨 마스크",
-    keywords: "저분자 올리고 히알루론산 1,000ppm, 대나무 유래 비건 시트, 메이크업 전 1일 1팩, 10~20분 사용",
+    name: "속수분 워터 토너",
+    keywords: "저분자 히알루론산 워터 제형, 끈적임 적은 산뜻한 마무리, 세안 직후 3번 나눠 겹쳐 바르기",
     banned: []
   },
   lip: {
@@ -750,6 +816,79 @@ const PRESETS = {
     banned: []
   }
 };
+
+// 가상의 제품('속수분 워터 토너')으로 만든 기획안 예시. 실제 브랜드·제품 정보는 쓰지 않는다.
+// 참고 쇼츠 수치는 2026-11-27 스냅샷 기준.
+const EXAMPLE_PLAN = {
+  video: { id: "ZUxQGL1sFp4", title: "속건조 한방에 끝내는 3단계 수분 공식", asOf: "2026.11.27", subs: "1,820명", views: "1.9만", ratio: "10.6" },
+  input: { cat: PRESETS.toner.cat, name: PRESETS.toner.name, target: PRESETS.toner.target, features: PRESETS.toner.keywords },
+  plan: {
+    why_it_works: "'이대로만 바르세요'라는 따라 하기 약속으로 시작해, 속당김이 생기는 이유를 비유로 먼저 납득시킨 뒤 루틴을 보여줘요.",
+    product_bridge: "'이유 → 비유 → 순서' 구성은 그대로 가져가고, 순서 중 토너 단계를 우리 제품으로 채워요. 성분 설명보다 '이 순서로 발라봤다'는 과정을 보여주면 광고 느낌이 줄어요.",
+    hook_subtitles: ["크림 듬뿍인데 아직 당긴다면", "수분 없이 크림만 덮고 있었어요", "세안 직후엔 토너 세 번이 먼저예요"],
+    cuts: [
+      { time: "0~3초", role: "시선 고정", visual: "세안 직후 물기 남은 얼굴 클로즈업, 크림 뚜껑을 연 손이 멈추는 컷", subtitle: "크림부터 바르는 중이라면", script: "세안하고 바로 크림부터 바르면 오후에 얼굴 당기지 않아요? 순서만 바꿔볼게요." },
+      { time: "3~10초", role: "공감·문제", visual: "마른 수건 위에 크림을 올렸더니 겉에서 미끄러지는 설명 컷", subtitle: "수분이 먼저, 크림은 마지막", script: "마른 수건에 오일부터 바르면 겉에서 미끄러지잖아요. 피부도 수분을 먼저 깔고 크림으로 덮는 순서가 편해요." },
+      { time: "10~22초", role: "제품 시연", visual: "토너를 손바닥에 덜어 얼굴을 눌러 바르는 컷을 1·2·3번 숫자 자막과 함께 반복, 물처럼 흐르는 제형 클로즈업", subtitle: "1번, 2번, 3번 겹쳐 바르기", script: "토너는 한 번에 다 바르지 말고 세 번 나눠서 눌러 주세요. 워터 제형이라 끈적이지 않아서 겹쳐 바르기 편해요." },
+      { time: "22~30초", role: "마무리", visual: "토너 뒤에 크림을 얹는 마지막 컷, 패키지가 자연스럽게 보이는 정리 컷", subtitle: "저장하고 오늘 밤에 해보기", script: "오늘 밤엔 토너 세 번 먼저, 크림은 맨 마지막에요. 제품 정보는 고정 댓글에 남겨둘게요." }
+    ],
+    creator_tip: "'속건조가 해결돼요' 같은 결과 단정은 피하고 '이 순서로 발라봤어요'라는 사용 과정을 보여주세요. 광고·협찬이면 #광고 표기를 꼭 넣어야 해요."
+  }
+};
+
+function buildExamplePlanHtml() {
+  const ex = EXAMPLE_PLAN, p = ex.plan, v = ex.video, i = ex.input;
+  const hooks = p.hook_subtitles.map((h, n) => `<div class="ex-hook"><b>0${n + 1}</b><span>${esc(h)}</span></div>`).join("");
+  const cuts = p.cuts.map(c => `
+    <div class="ex-cut">
+      <div class="ex-cut-h"><span class="ex-time">${esc(c.time)}</span>${esc(c.role)}</div>
+      <div class="ex-cut-row"><b>화면</b><span>${esc(c.visual)}</span></div>
+      <div class="ex-cut-row"><b>자막</b><span>"${esc(c.subtitle)}"</span></div>
+      <div class="ex-cut-row say"><b>멘트</b><span>${esc(c.script)}</span></div>
+    </div>`).join("");
+  return `
+    <div class="ex-banner">
+      <span class="ex-pill">가상 예시</span>
+      <span>실제 브랜드가 아닌 샘플입니다. 내 상품 정보를 입력하면 아래 형식으로 1분 만에 만들어져요.</span>
+    </div>
+    <div class="ex-meta-grid">
+      <div class="ex-meta-card">
+        <div class="ex-meta-k">입력한 가상 상품</div>
+        <div class="ex-meta-v">${esc(i.name)} (${esc(i.cat)})</div>
+        <div class="ex-meta-s">타겟: ${esc(i.target)}<br/>강조 특징: ${esc(i.features)}</div>
+      </div>
+      <div class="ex-meta-card">
+        <div class="ex-meta-k">참고한 쇼츠</div>
+        <div class="ex-meta-v">${esc(v.title)}</div>
+        <div class="ex-meta-s">구독자 ${esc(v.subs)} · 조회수 ${esc(v.views)} (구독자 대비 ${esc(v.ratio)}배) <a href="https://youtube.com/shorts/${esc(v.id)}" target="_blank" rel="noopener">원본 보기 ↗</a></div>
+      </div>
+    </div>
+    <div class="ex-sec-title">1. 공략 포인트</div>
+    <div class="ex-why-grid">
+      <div class="ex-why-card"><b>왜 터졌나</b><p>${esc(p.why_it_works)}</p></div>
+      <div class="ex-why-card"><b>우리 제품 연결</b><p>${esc(p.product_bridge)}</p></div>
+    </div>
+    <div class="ex-sec-title">2. 첫 3초 후킹 자막 3안</div>
+    <div class="ex-hooks">${hooks}</div>
+    <div class="ex-sec-title">3. 4컷 촬영 대본 (화면 · 자막 · 멘트)</div>
+    <div class="ex-cuts">${cuts}</div>
+    <div class="ex-tip"><b>촬영 주의</b>${esc(p.creator_tip)}</div>`;
+}
+function openExampleModal() {
+  const body = document.getElementById("exModalBody");
+  if (body) body.innerHTML = buildExamplePlanHtml();
+  const bd = document.getElementById("exModalBackdrop");
+  if (bd) bd.classList.add("open");
+  trackEvent("view_example_plan", { example: "water_toner" });
+}
+function closeExampleModal() {
+  const bd = document.getElementById("exModalBackdrop");
+  if (bd) bd.classList.remove("open");
+}
+function startStep2FromExample() {
+  closeExampleModal();
+  openStep2Panel();
+}
 
 const SPAM_KWS = ["무료나눔", "이벤트 참여", "쿠팡파트너스 링크", "구독 좋아요 알람", "댓글 이벤트 참여"];
 const NOISE_KWS = ["알바공감", "알바생", "알바썰", "올리브영알바", "올영알바", "스케치코미디", "자막뉴스", "tjbnews", "면접팁", "직캠", "먹방", "게임", "주식", "부동산", "연애상담", "섬유유연제", "다우니", "몰입형", "실리콘가짜코", "한가인미친재능", "퇴근10분전", "칼퇴하고싶으면", "pov"];
@@ -1641,7 +1780,7 @@ function runStep1Preview() {
 function getBriefingHeadline(data) {
   const d = Number(data.days_range || 30);
   if (!data.path_key || data.path_key === "beauty") {
-    if (d === 1) return "오늘 바로 뜨는 뷰티 쇼츠 포인트";
+    if (d === 1) return "오늘의 트렌드 분석";
     if (d === 7) return "이번 주 뷰티 쇼츠, 이렇게 찍어야 터집니다";
     return "최근 한 달 뷰티 쇼츠, 이 공식이 가장 잘 먹혀요";
   }
@@ -1788,6 +1927,10 @@ function renderStep1Result(data) {
         <span style="font-size:12.5px;color:var(--muted);">실제 유튜브 조회수·반응 기준 · ${allSorted.length}편 분석</span>
       </div>
       <div class="insights-list">${pats}</div>
+      <div class="brief-foot">
+        <span>이 트렌드 공식을 우리 제품에 입히면 4컷 대본·카피가 바로 나와요</span>
+        <button type="button" class="text-action-btn" onclick="openExampleModal()">가상 제품 기획 예시 보기 (속수분 토너) →</button>
+      </div>
     </section>
   ` : "";
 
