@@ -573,9 +573,9 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
         <div class="controls-right">
           <span class="ctrl-lbl">기준 기간</span>
           <select id="daysSel" class="period-select" onchange="setDays(Number(this.value))" title="트렌드 집계 기간 선택">
-            <option value="1">최근 1일 · 오늘 급상승</option>
+            <option value="1" selected>최근 1일 · 오늘 급상승</option>
             <option value="7">최근 7일 · 이번 주</option>
-            <option value="30" selected>최근 30일 · 대세</option>
+            <option value="30">최근 30일 · 대세</option>
           </select>
         </div>
       </div>
@@ -759,7 +759,7 @@ const NUM_RE = /\d[\d,.]*\s*(?:%|ppm|mm|ml|배속|배|스킨|겹|중|위|등|시
 const DIR_TIME_RE = /(?:첫|초반)\s*\d+\s*초(?!\s*만에)|\b\d+\s*초\s*(?:훅|이내|후|오프닝|클립|분량|연출|촬영)|\b(?:[3-9]|\d{2,})\s*초\s*컷/g;
 
 let currentPath = "beauty";
-let selectedDays = 30;
+let selectedDays = 1;
 let selectedSort = "grade";
 let selectedPromoFilter = "all";
 let selectedFormatFilter = "all";
