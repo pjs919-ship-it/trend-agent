@@ -11,7 +11,7 @@ description: >-
 
 ## Step 1. 정책서(`docs/POLICY.md`) 자동 합격표 검증
 샌드박스에서 아래 자동 검사를 실행한다:
-1. `python -m py_compile agent_core.py history_store.py pipeline.py app.py qa/run_once.py qa/eval_golden.py qa/benchmark_days.py qa/run_live_all.py`
+1. `python -m py_compile agent_core.py history_store.py pipeline.py streamlit_app.py qa/run_once.py qa/eval_golden.py qa/benchmark_days.py qa/run_live_all.py`
 2. `python qa/eval_golden.py` → `ALL TESTS PASSED` 확인
    - 골든셋 Drop 정확도 100% (`jfsweQpxqsY` 등 영역 불일치 강제 Drop)
    - 날조 인용 0건
