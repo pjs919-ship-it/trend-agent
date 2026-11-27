@@ -4,7 +4,7 @@
 
 ## Brand
 - **Name**: 트렌드핏 (TrendFit)
-- **Subtitle**: 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너
+- **Subtitle**: 올리브영 출신 PM이 만든 K-뷰티 숏폼 연구소
 - **Category**: K-뷰티 숏폼 트렌드 분석 및 캠페인 기획 AI SaaS
 - **Stage**: Phase 1 외부 유저 테스트 (지인·SNS 반응 및 PMF 측정)
 - **URL**: Vercel 프로덕션 배포 (`https://trendfit.vercel.app`)
