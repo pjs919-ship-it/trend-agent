@@ -1,11 +1,845 @@
 {
   "_meta": {
     "description": "K-뷰티 핵심 채널 풀 (playlistItems.list 1유닛 수집 및 자동 발굴 채널 누적)",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   "channels": [
-    {"channel_id": "UC_oliveyoung_official", "title": "올리브영", "category": "beauty", "source": "seed"},
-    {"channel_id": "UCsJ6RuBiTVWRX156FVbeaGg", "title": "디렉터파이", "category": "beauty/skincare", "source": "seed"},
-    {"channel_id": "UCt91i_8k1vX7s2hM6k8Q9wA", "title": "레오제이", "category": "beauty/makeup", "source": "seed"}
+    {
+      "channel_id": "UC_oliveyoung_official",
+      "title": "올리브영",
+      "category": "beauty",
+      "source": "seed"
+    },
+    {
+      "channel_id": "UCsJ6RuBiTVWRX156FVbeaGg",
+      "title": "디렉터파이",
+      "category": "beauty/skincare",
+      "source": "seed"
+    },
+    {
+      "channel_id": "UCt91i_8k1vX7s2hM6k8Q9wA",
+      "title": "레오제이",
+      "category": "beauty/makeup",
+      "source": "seed"
+    },
+    {
+      "channel_id": "UCqMSAjR4auHJ7HaufcyMQbg",
+      "title": "하옌",
+      "handle": "@하옌-b4x",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCQA3XzmQHgkqkewnmKoREAw",
+      "title": "이카도 ㅣ 뷰티꿀템🍡",
+      "handle": "@lov_ekado",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC853mvTODlFRoU2ZPgzmH7w",
+      "title": "채롭",
+      "handle": "@chaerop08",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCfTSvBm8wkJUWIjq0uVD7qg",
+      "title": "이루비",
+      "handle": "@v이루비v",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCL_1ZRb3Phs3wBR7Dnr9P1A",
+      "title": "꿀템수첩",
+      "handle": "@꿀템수첩7",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCfZQ9uYK3HipxYUyNpatP9Q",
+      "title": "닥터제우스 ",
+      "handle": "@닥터제우스1",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC-Yr1pm8FbJMA5SA0YDHTRw",
+      "title": "헤이조인 HEYJOINN",
+      "handle": "@heyjoinn",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCXwX08DBYNsg9NFMkWk3L7g",
+      "title": "떼잉",
+      "handle": "@ddaeing_o",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCiMxDLGAhtphbUgj5xrY42g",
+      "title": "최애실록",
+      "handle": "@favorite-c9v",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCJFn71uHTFyVL6KDx1Xv0ng",
+      "title": "예뻐영",
+      "handle": "@영상속제품사진클릭",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCry77W-QRpsHdQ4MWOMPW6g",
+      "title": "꿀템발굴소",
+      "handle": "@formylife_erin",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCte7RuWHTrHJASSt-Nq5buw",
+      "title": "유니 YUNI",
+      "handle": "@유니yuni-u3p",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCbDEpKYIxpFJwrqOatkv9tA",
+      "title": "서로디 lody",
+      "handle": "@서로디lody",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCITRs0bBh8PHioswUh8ds3A",
+      "title": "코스덕",
+      "handle": "@코스덕",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCHCL-VtQlNJTmPA7oy6HQXg",
+      "title": "선스캣 sun's cat",
+      "handle": "@선스캣sunscat",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC1zQq31NQavbbSsDDZpX7Mg",
+      "title": "핑쿠야",
+      "handle": "@핑쿠야o",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC7qhqcwO58pFHVyJax9rzxw",
+      "title": "예뻐지는공간",
+      "handle": "@예뻐지는공간-e8t",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCa7m7DWFPDlKMiouX_K8ABQ",
+      "title": "미소녀",
+      "handle": "@me_sonyeo",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCPsFy59OcBzPeOcsKvI1UDQ",
+      "title": "뷰티조아",
+      "handle": "@뷰티조아",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCIR_Tl0yW7DPYpXQDFyhqng",
+      "title": "코코넛향기",
+      "handle": "@코코넛향기-z2r",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCD1AhUE9t403v1H5i9xfJSA",
+      "title": "득템포착",
+      "handle": "@득템포착",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCo9-zOfUrHa9D1WwATfGZkg",
+      "title": "땡스템",
+      "handle": "@땡스템",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCYxuoueMuR3f80RU_ua4TXA",
+      "title": "로빗 lobit🐰🫧",
+      "handle": "@로빗뷰티",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC6aN98jlOHhGqF_jxyP7KOg",
+      "title": "셀럽온에어",
+      "handle": "",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC4ooivar6SvfFG_OQFCB-zg",
+      "title": "탱구리뷰티",
+      "handle": "",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCUpNXozXc66VrVvh-jD_JSA",
+      "title": "찐콕이",
+      "handle": "",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCrUBA-Mz6-UihcogwvmnrZg",
+      "title": "셀럽픽스",
+      "handle": "",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCyYRK1qwlPXr6yFoz7lOFYQ",
+      "title": "풀소유",
+      "handle": "",
+      "category": "beauty",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCwpOBaU52h03y2_jHFqB2Eg",
+      "title": "셀럽템노트",
+      "handle": "",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCgVFjcW7tql27Z1qjDSXNKA",
+      "title": "다우니실내건조",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCx3U2Upon4FSPgHLiz42HiA",
+      "title": "아트릭스",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCdwZHA_PYT9sa18W4hcpozQ",
+      "title": "루루뷰티",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC0l_Io9P2rTbM82PoC9Bi4w",
+      "title": "덕칼럼",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCBe6652nD2J9UTU2ekJJiFg",
+      "title": "진서 JINSEO",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCTLGmZ8NvfHtmuFLwarnGIw",
+      "title": "K-모먼트",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC5ldX1z_46k7AavdTx9KqVw",
+      "title": "아이돌멩이e",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCNqPg9ZEnEMj-qazl_TamDQ",
+      "title": "예리부 YERIBU",
+      "handle": "",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCaUeSTYD1Fnlf8Mj2ygGKJg",
+      "title": "고운박사뷰티랩",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCLYlNIBKtROPRvStqcWJ6sQ",
+      "title": "썰병장",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCzdvODXd5Fclmdt8ecPVBfw",
+      "title": "일단체크",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCAfL1r-IPHD1EoI3BUR8LLw",
+      "title": "후맘",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCSif05kQuclHVo-L6ajrS7A",
+      "title": "장수노트",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC4OMwa7uM-RC-36JObkN3LQ",
+      "title": "내면의 여유",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC23emwqOLL9pYZYJzxH9iuA",
+      "title": "선 빈",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCYfAankzCbhjIV4EsU4Vzdw",
+      "title": "한별두별[Hanna]",
+      "handle": "",
+      "category": "beauty/skincare/cream",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCqkj9uCyinseKkMhvsO-gXA",
+      "title": "Theory of AI",
+      "handle": "",
+      "category": "beauty/skincare/sun",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCT0hOMxD29g2B6BrK6QTIag",
+      "title": "현징이",
+      "handle": "",
+      "category": "beauty/skincare/sun",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCAeRRBrVjXcZ9Jvm9_mp3og",
+      "title": "허니랩",
+      "handle": "",
+      "category": "beauty/skincare/mask",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCUD5_6rdyhEH0pQZBpbesbg",
+      "title": "KimKIKI 킴키키 ",
+      "handle": "",
+      "category": "beauty/skincare/cleansing",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UClyh_R-XH_AmUFM3pazFGGQ",
+      "title": "빵루미",
+      "handle": "",
+      "category": "beauty/makeup/lip",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC3brxnbi0ITz7oxtEf4Yqww",
+      "title": "Rainbow_shop",
+      "handle": "",
+      "category": "beauty/makeup/lip",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCZNJE2iUeOjzqLdKMvgGaqA",
+      "title": "행쇼픽",
+      "handle": "",
+      "category": "beauty/makeup/lip",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCRXL4vnST2AE6UtjrYMv4tw",
+      "title": "뽀용뇽 l 남다른 뷰티꿀팁",
+      "handle": "",
+      "category": "beauty/makeup/lip",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCJTscxMmPdz4yuzMNkk-N4g",
+      "title": "독고바비",
+      "handle": "",
+      "category": "beauty/makeup/blush",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCIbGRPk78FhgyYLbkXR6WGQ",
+      "title": "예능꿀벌",
+      "handle": "",
+      "category": "beauty/makeup/blush",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCH5Eg4KvlMGPNIHZJSAUH8A",
+      "title": "홀앙희",
+      "handle": "",
+      "category": "beauty/makeup/blush",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCK3L6x0ZGU-2cfTDMLnmUyw",
+      "title": "진뉴 JINNEW",
+      "handle": "",
+      "category": "beauty/makeup/blush",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC8UyBg2k3nSk3avtszjwiIQ",
+      "title": "채하나 CHAE HANA",
+      "handle": "",
+      "category": "beauty/makeup/cushion",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCOcn2TjZHmmjj2dp8UjLUiQ",
+      "title": "셀럽카트",
+      "handle": "",
+      "category": "beauty/makeup/cushion",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCAJKsKmumOybMKA0jZ1i7nw",
+      "title": "거지코덕",
+      "handle": "",
+      "category": "beauty/makeup/cushion",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCW67yGQxNNMnLqRHyaTjygA",
+      "title": "Hong's MakeuPlay 홍이모",
+      "handle": "",
+      "category": "beauty/makeup/cushion",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCR8th9vv4cSnfoY-Gx5hnbA",
+      "title": "스칼렛 언니",
+      "handle": "",
+      "category": "beauty/makeup/cushion",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCtCjKDmBCT7Docc9ajaxl-g",
+      "title": "시온이야",
+      "handle": "",
+      "category": "beauty/makeup/eye",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC0AZ-zF4qkpdwsDJ_ECCV4Q",
+      "title": "원하",
+      "handle": "",
+      "category": "beauty/makeup/eye",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC9oQKggaTQK7n-EuTEUGljw",
+      "title": "세지 Sezi",
+      "handle": "",
+      "category": "beauty/makeup/eye",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCYdYEVp2t0zD5xJu0hKWAgw",
+      "title": "조말랭Jomalraeng",
+      "handle": "",
+      "category": "beauty/hairbody/hair",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCTdP4FkLNVjknpzJ51VkRzQ",
+      "title": "숏똥",
+      "handle": "",
+      "category": "beauty/hairbody/body",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCBEvSDXPu2rsaI7pRV9W1UQ",
+      "title": "꼬다쾃 CODAQUATT",
+      "handle": "",
+      "category": "beauty/hairbody/body",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCK48BNQNEsozmrZediy1d9w",
+      "title": "오늘도 좋은것들",
+      "handle": "",
+      "category": "beauty/hairbody/body",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCJP3RQ7l7AF72W4fpFVCSXA",
+      "title": "만세템",
+      "handle": "@만세템",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCdMVDLrQpV2gb3NAA_PSlOQ",
+      "title": "갈뮤인",
+      "handle": "@갈뮤인",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCui7WmNxSEbk-jjQiUJucmw",
+      "title": "밍디씨",
+      "handle": "@m1ngd.c",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCqp4T7IfaOFJ-iM_LvVKAhA",
+      "title": "스타일로그",
+      "handle": "@스타일로그1",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCWAekfV5MoDYnPWsqZ_JIIQ",
+      "title": "키치잇",
+      "handle": "@키치잇",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCNNr9mpgswC4fQg9j6CuULQ",
+      "title": "나온뷰티 naon beauty",
+      "handle": "@naon__beauty",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCtFB6iOH1mbwDOAFUL3htyA",
+      "title": "많을 다,나타날 현",
+      "handle": "@conniyu",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCtgE4LyeI-Y2ZADVA-ogRaw",
+      "title": "핫한걸",
+      "handle": "@hathangirl",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC0IiRuu05k9HorF0GGWVodw",
+      "title": "본지나 BON GINA",
+      "handle": "@by.bon_gina",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCoFfV8sTi5PWKEdvJP2XzWQ",
+      "title": "늘이농",
+      "handle": "@neulenong",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCVrEU6vtQ4hU3ANgehCirzw",
+      "title": "3분동안 최원준",
+      "handle": "@3분동안_최원준",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC_xVzJW2DD6aIYxa_cGXCOA",
+      "title": "지려밍",
+      "handle": "@jiryumin9",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCu38CqTttqEQFwVccmFPlyQ",
+      "title": "진자림 Jinjalim",
+      "handle": "@jinjalim",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCg8biZv_Mp9BjEvQp7X6Gng",
+      "title": "고마난 gomanan",
+      "handle": "@goguma054",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCn_fZLXut_Tj9-QihG_9l0g",
+      "title": "안다 ANDA",
+      "handle": "@anda",
+      "category": "beauty/skincare",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCR-JyJ2jFNVlrCBPCdcfYRg",
+      "title": "뷰티노트",
+      "handle": "@뷰티note",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCCowKQRGtlVMMg9EbXoXwMg",
+      "title": "통과제리",
+      "handle": "@passjjerry2",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC6-LIVLh2ty4nJRryFmzWzw",
+      "title": "홍앤미 TV",
+      "handle": "@제품보기_hongnmitv",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCxKrNR9sPCbQnCmktNIxBkQ",
+      "title": "셀럽Vibe",
+      "handle": "@celleb_vibe",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCDm6UJ7cowmsHBVrZ3csqeg",
+      "title": "아임예지",
+      "handle": "@soprano.imyeji",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCSRNyqnk4oKjuX3YWRpPfbA",
+      "title": "끄적끄적",
+      "handle": "@doodling_story",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCpzsDyS_kLA3KZXqntKkMwA",
+      "title": "한끗뷰티",
+      "handle": "@hankkeut.beauty",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC4v-eBm6GybHKE_WqWuB7-Q",
+      "title": "김감쟈",
+      "handle": "@첫사랑꾸리_김감쟈",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC9c_LyrFLDRsg3hQuIUoL2A",
+      "title": "셀럽의 인생템",
+      "handle": "@favoriteitem",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCgMZ46dvTaP9K37uCnWfGrg",
+      "title": "꿀하우스",
+      "handle": "@꿀하우스_s",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC491okEQXbzp5H1PCMLiY9A",
+      "title": "단아",
+      "handle": "@단아danah",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC1oF9ZrjT3Z1nwaRG1c-4bw",
+      "title": "쥔장🫨",
+      "handle": "@jwin_jang_real",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCH4HTeEMlL_QuuLYeMEi8vA",
+      "title": "만불",
+      "handle": "@manpick_s2",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC37Co35ZiPJHivVFmEcAuTw",
+      "title": "렁바오",
+      "handle": "@rungbao486",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UChR-QJHWHQYJRhUfdm4FIzw",
+      "title": "꽁꽁템",
+      "handle": "@꽁꽁템",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCAEqgVJCBUUpZJ4Ac4E4sCw",
+      "title": "웨일",
+      "handle": "@whale_n27",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCJxRLFtdyqGBtQOw8VWRlrw",
+      "title": "똑띠누누NUNU",
+      "handle": "@yu_ttogtti",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UClHe-IBvI7BF8PIbiTN7R3g",
+      "title": "줍줍템즈",
+      "handle": "@줍줍템즈",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCOAamv6nT7FkW3P0sPkABIQ",
+      "title": "셴나Shenna's",
+      "handle": "@셴나shennas",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCyU7FQ78KvOKm0IE31sZmgw",
+      "title": "서채아",
+      "handle": "@chaea_beauty",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC-yr4j-6r5M3VuFjG7uIKNA",
+      "title": "뷰티줌인",
+      "handle": "@beautyzoomin",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCxRXB40WybbjoHtDnk41uFQ",
+      "title": "셀럽픽잇",
+      "handle": "@셀럽픽잇-y9s",
+      "category": "beauty/makeup",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UC3NCtDnzSQ7c2UUXwsa_l8g",
+      "title": "체리돌",
+      "handle": "@체리돌",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCoYnTNiabeM7F-mFyhf5bhw",
+      "title": "LGCAREAD",
+      "handle": "@lgcaread",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCQHsLNX3oa3lHMYvxpRSRtQ",
+      "title": "아비노코리아",
+      "handle": "@aveenokor",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCPQMQSyqbgOwrnAYrVDwwcw",
+      "title": "전문가추천템",
+      "handle": "@전문가추천템",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCv6inWPq54R2_iODUHvVlpQ",
+      "title": "탐템이",
+      "handle": "@탐템이",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCz7Xamne5SbBrsv-6Qcno2Q",
+      "title": "꾸미템",
+      "handle": "@꾸미_템",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCzUgwZxZsfMAdOX4skTn4bg",
+      "title": "연수스",
+      "handle": "@258aammm",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCsuzSMCEEVSgH4zUfie5bDQ",
+      "title": "셀럽의선택",
+      "handle": "@셀럽의선택-r9f",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCze7YoT9loZXrDanSHldd8w",
+      "title": "셀럽20초",
+      "handle": "@셀럽20초",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCTsCz65Q4RKfOyT_5txFWZA",
+      "title": "모다모다 MODAMODA",
+      "handle": "@modamodaofficial",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    },
+    {
+      "channel_id": "UCzI_yVE99v1Ln0Oi9aoHc0w",
+      "title": "빛나는 미러왁싱",
+      "handle": "@mirrorwaxing",
+      "category": "beauty/hairbody",
+      "source": "auto_discovered"
+    }
   ]
 }
