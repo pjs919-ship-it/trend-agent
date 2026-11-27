@@ -59,3 +59,23 @@
 1. **경쟁 브랜드 유료 시딩 레이더**: 특정 경쟁사/키워드의 주간 협찬 집행 빈도 및 소구점 리포트
 2. **올리브영/다이소 랭킹 × 쇼츠 바이럴 교차 대시보드**: 유통 채널 인기 템의 숏폼 확산 선행 지표화
 3. **팀 협업 워크스페이스**: 브랜드별 제품 DB 클라우드 저장, 시딩 컨택 상태 관리(CRM)
+
+---
+
+## 4. 외부 배포 · 그로스 측정 & SEO 로드맵
+
+> **선행 조건**: **최종 서비스명 + 신뢰 제목(예: `올리브영 출신 PM이 만든...`) 확정 후** 아래 Phase 1을 일괄 반영한다.
+
+### Phase 1 — 유저 테스트 · 지인/SNS 배포 패키지 (Vercel + 무료 측정 4종)
+- **호스팅 구조**: **Vercel**(정적 화면 + 2단계 AI 키 숨김 서버리스 `/api/plan`) + **GitHub Actions**(1단계 트렌드 수집 유지, 크론 누락 시 Vercel/외부 트리거 보완)
+- **4단 데이터 파이프라인 (DB 없이 구축)**:
+  1. **UTM 링크 분리**: `kakao` / `linkedin` / `threads` 등 채널별 유입·전환 비교
+  2. **GA4 핵심 5이벤트**: `view_landing` → `explore_filter` → `open_step2` → `generate_step2`(카테고리·타겟 포함) → `copy_step2_output`(핵심 전환 지표)
+  3. **Microsoft Clarity**: 이탈 구간 세션 녹화·히트맵으로 UX 막힘 지점 확인
+  4. **Google Sheets 정성 피드백**: 2단계 결과 직후 `👍 / 💬` 버튼 + 헤더 `의견 남기기` (유입 UTM·카테고리·한 줄 이유 시트 누적 → `docs/USER_FEEDBACK.md` 관리)
+- **공유 & 검색 기본**: 카톡/SNS용 OG 태그(`og:title`, `og:description`, `og:image`) + Google Search Console 등록 + `robots.txt` / `sitemap.xml` / `canonical` 기본 설정
+
+### Phase 2 — PMF 확인 후 오가닉 유입 확장 (본격 SEO / GEO)
+- **카테고리별 정적 HTML 자동 생성 (pSEO)**: 배치 실행 시 `/trends/...` 정적 브리핑 페이지를 함께 생성해 검색·AI 봇 크롤링 대응
+- **콘텐츠 SEO/GEO**: `docs/KBEAUTY_SLANG_GLOSSARY.md` 기반 K-뷰티 숏폼 용어집 공개 + JSON-LD(`SoftwareApplication`/`Article`) 및 `/llms.txt` 추가
+- **DB 도입 시점**: 로그인·내 제품 저장·시딩 CRM이 들어가는 유료화 직전에 Supabase 등으로 일괄 전환
