@@ -6,19 +6,19 @@
 <title>트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너</title>
 <meta name="description" content="오늘 뜨는 K-뷰티 쇼츠 트렌드를 매일 분석해, 우리 제품과 타겟에 딱 맞는 촬영 콘티·카피·시딩 초안까지 1분 만에 만들어주는 마케팅 AI 파트너입니다." />
 <meta name="robots" content="index,follow" />
-<link rel="canonical" href="https://trendfit.vercel.app/" />
+<link rel="canonical" href="https://trendfit-phi.vercel.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="ko_KR" />
 <meta property="og:site_name" content="트렌드핏" />
 <meta property="og:title" content="트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너" />
 <meta property="og:description" content="오늘 뜨는 K-뷰티 쇼츠 분석부터 우리 브랜드 맞춤 카피·콘티·시딩 초안까지 1분 만에 완성하세요." />
-<meta property="og:image" content="https://trendfit.vercel.app/og-card.png" />
+<meta property="og:image" content="https://trendfit-phi.vercel.app/og-card.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="트렌드핏 — 올리브영 출신 PM이 만든 K-뷰티 마케팅 AI 파트너" />
 <meta name="twitter:description" content="오늘 뜨는 K-뷰티 쇼츠 분석부터 우리 브랜드 맞춤 카피·콘티·시딩 초안까지 1분 만에 완성하세요." />
-<meta name="twitter:image" content="https://trendfit.vercel.app/og-card.png" />
+<meta name="twitter:image" content="https://trendfit-phi.vercel.app/og-card.png" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23BE185D'/%3E%3Cpath d='M8 21l5.5-5.5 4 4L24 12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M19 12h5v5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <style>
@@ -398,6 +398,20 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
   font-size: 12.5px; color: var(--ink-secondary); cursor: pointer; font-family: inherit;
 }
 .fb-chip.active { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); font-weight: 600; }
+.vd-modal { max-width: 560px; }
+.vd-top { display: flex; gap: 14px; align-items: flex-start; margin: 12px 0; }
+.vd-thumb { width: 84px; height: 112px; border-radius: 10px; object-fit: cover; background: #F4F2ED; flex-shrink: 0; border: 1px solid #ECEAE4; }
+.vd-hook {
+  background: var(--purple-soft); border: 1px solid #FBCFE8; border-radius: 10px;
+  padding: 10px 12px; font-size: 13.5px; color: var(--ink); margin: 10px 0;
+}
+.vd-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  background: #FAFAF8; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 10px;
+}
+.vd-stat-lbl { font-size: 11.5px; color: var(--muted); display: block; }
+.vd-stat-val { font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.short-title { cursor: pointer; background: none; border: 0; padding: 0; text-align: left; font-family: inherit; }
 .toast {
   position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #FFF;
   padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
@@ -600,6 +614,15 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
     </div>
   </div>
 </div>
+<div id="vdModalBackdrop" class="fb-modal-backdrop" onclick="if (event.target === this) closeVideoDetailModal()">
+  <div class="fb-modal vd-modal" role="dialog" aria-modal="true" aria-labelledby="vdModalTitle">
+    <div class="fb-modal-head">
+      <div id="vdModalTags" class="feed-tags"></div>
+      <button type="button" class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeVideoDetailModal()">닫기</button>
+    </div>
+    <div id="vdModalBody"></div>
+  </div>
+</div>
 <div id="toast" class="toast">복사되었습니다.</div>
 <script src="local_keys.js"></script>
 <script src="data/trends_snapshot.js" onerror="void 0"></script>
@@ -692,9 +715,9 @@ function norm(s) {
   return String(s ?? "").replace(/\[[^\]]{1,15}\]|>>/g, " ").replace(/[^a-zA-Z0-9가-힣]+/g, "").toLowerCase();
 }
 const TRACKING_CONFIG = {
-  ga4Id: "",              // Stage 2: GA4 측정 ID (예: "G-XXXXXXXXXX")
-  clarityId: "",          // Stage 2: Microsoft Clarity 프로젝트 ID
-  feedbackWebhookUrl: ""  // Stage 2: Google Apps Script 웹앱 URL
+  ga4Id: "G-X29JXSV5KS",  // GA4 측정 ID
+  clarityId: "",          // Microsoft Clarity 프로젝트 ID (선택)
+  feedbackWebhookUrl: ""  // Google Apps Script 웹앱 URL (선택)
 };
 let _utmCache = null;
 let _landingTracked = false;
@@ -1636,9 +1659,9 @@ function renderStep1Result(data) {
     return `<div class="feed-item">
       <div class="feed-left">
         <div class="td-rank ${rankNum === 1 ? 'top1' : ''}">${rankNum}</div>
-        <a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener" title="쇼츠 바로 보기">
+        <button type="button" style="background:none;border:0;padding:0;cursor:pointer;" onclick="openVideoDetailModal('${esc(v.video_id)}')" title="영상 분석 먼저 보기">
           <img class="short-thumb" src="${esc(thumb)}" alt="thumb"/>
-        </a>
+        </button>
       </div>
       <div class="feed-mid">
         <div class="feed-tags">
@@ -1646,7 +1669,7 @@ function renderStep1Result(data) {
           ${promoTag}
           ${riseTag}
         </div>
-        <a class="short-title" href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a>
+        <button type="button" class="short-title" onclick="openVideoDetailModal('${esc(v.video_id)}')">${esc(v.title)}</button>
         ${f.what_happens ? `<div class="short-fact">${esc(f.what_happens)}</div>` : ""}
         <div class="short-sub">
           ${v.channel_title ? `<span>${esc(v.channel_title)}</span><span>·</span>` : ""}
@@ -2030,6 +2053,79 @@ function renderStep2Result(s2) {
   `;
 }
 
+function isAdminMode() {
+  if (!isWebOrigin()) return true;
+  try {
+    const q = new URLSearchParams(window.location?.search || "");
+    return q.get("admin") === "1" || q.get("debug") === "1";
+  } catch (e) { return false; }
+}
+function applyAdminVisibility() {
+  if (typeof document === "undefined") return;
+  const showAdmin = isAdminMode();
+  const btn = document.getElementById("toggleApiBtn");
+  const det = document.getElementById("apiDetails");
+  const log = document.getElementById("logDetails");
+  if (btn) btn.style.display = showAdmin ? "" : "none";
+  if (det && !showAdmin) det.style.display = "none";
+  if (log) log.style.display = showAdmin ? "" : "none";
+}
+function openVideoDetailModal(videoId) {
+  if (!step1Data) return;
+  const v = (step1Data.videos || []).find(x => x.video_id === videoId);
+  if (!v) return;
+  const f = (step1Data.facts || []).find(x => x.video_id === videoId) || {};
+  const g = getViralGrade(v.views, v.views_per_day, v.views_per_subscriber);
+  const gradeClsMap = { S: "g-s", A: "g-a", B: "g-b", C: "g-c" };
+  const thumb = v.thumbnail_url || `https://i.ytimg.com/vi/${esc(v.video_id)}/mqdefault.jpg`;
+  const promoTag = v.has_paid_promotion
+    ? `<span class="tag-mini tag-ad">광고</span>`
+    : `<span class="tag-mini tag-org">오가닉</span>`;
+  const subRatioStr = formatRatio(v.views_per_subscriber);
+  const avgRatioStr = formatRatio(v.views_vs_channel_avg);
+  const tagsEl = document.getElementById("vdModalTags");
+  const bodyEl = document.getElementById("vdModalBody");
+  if (tagsEl) {
+    tagsEl.innerHTML = `<span class="grade-txt ${gradeClsMap[g.code] || 'g-c'}">${g.code}등급</span>${promoTag}<span class="tag-mini" style="background:#F4F2ED;color:var(--ink-secondary);">${esc(f.format_tag || "인기 쇼츠")}</span>`;
+  }
+  if (bodyEl) {
+    bodyEl.innerHTML = `
+      <div class="vd-top">
+        <img class="vd-thumb" src="${esc(thumb)}" alt="thumb" />
+        <div style="min-width:0;flex:1;">
+          <h3 id="vdModalTitle" style="margin:0 0 6px;font-size:16px;line-height:1.4;color:var(--ink);">${esc(v.title)}</h3>
+          <div style="font-size:12.5px;color:var(--muted);">${esc(v.channel_title || "크리에이터")} · ${esc(f.domain || "K-뷰티")}</div>
+          <div style="margin-top:8px;">
+            <a href="https://youtube.com/shorts/${esc(v.video_id)}" target="_blank" rel="noopener" onclick="trackEvent('click_youtube_source',{video_id:'${esc(v.video_id)}'})" style="font-size:12.5px;color:var(--purple);font-weight:600;text-decoration:none;">유튜브 원본 영상 보기 ↗</a>
+          </div>
+        </div>
+      </div>
+      ${f.hook_quote ? `<div class="vd-hook"><div style="font-size:11.5px;font-weight:600;color:var(--purple);margin-bottom:3px;">초반 시선 고정 포인트</div>"${esc(f.hook_quote)}"</div>` : ""}
+      ${f.what_happens ? `<div style="font-size:13.5px;color:var(--ink-secondary);line-height:1.55;margin-top:8px;"><b style="color:var(--ink);">왜 반응이 나왔나요?</b><br/>${esc(f.what_happens)}</div>` : ""}
+      <div class="vd-stats">
+        <div><span class="vd-stat-lbl">누적 조회수</span><span class="vd-stat-val">${formatKoNum(v.views)}</span></div>
+        <div><span class="vd-stat-lbl">채널 평소 대비</span><span class="vd-stat-val">${avgRatioStr ? avgRatioStr + "배" : formatKoNum(v.views_per_day) + "/일"}</span></div>
+        <div><span class="vd-stat-lbl">구독자 대비</span><span class="vd-stat-val">${subRatioStr ? subRatioStr + "배" : "-"}</span></div>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" onclick="closeVideoDetailModal()">목록으로</button>
+        <button type="button" class="btn btn-primary" onclick="startStep2FromDetail('${esc(v.video_id)}')">이 공식으로 우리 상품 기획하기 →</button>
+      </div>
+    `;
+  }
+  const bd = document.getElementById("vdModalBackdrop");
+  if (bd) bd.classList.add("open");
+  trackEvent("view_video_detail", { video_id: videoId, path: currentPath });
+}
+function closeVideoDetailModal() {
+  const bd = document.getElementById("vdModalBackdrop");
+  if (bd) bd.classList.remove("open");
+}
+function startStep2FromDetail(videoId) {
+  closeVideoDetailModal();
+  openStep2Panel(videoId);
+}
+
 function initLocalKeys() {
   const env = window.__LOCAL_ENV__ || {};
   const ytEl = document.getElementById("ytKey");
@@ -2063,6 +2159,7 @@ function initLocalKeys() {
 }
 
 initLocalKeys();
+applyAdminVisibility();
 initAnalytics();
 syncProdTargetOptions();
 renderExplorerNav();
