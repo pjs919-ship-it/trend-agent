@@ -2,23 +2,22 @@ name: 숏폼레이더 일일 트렌드 배치 업데이트
 
 on:
   schedule:
-    # 매일 아침 (UTC 23:17 = KST 08:17) — 최근 30일(대세) 전체 갱신
-    - cron: '17 23 * * *'
-    # 매일 저녁 (UTC 08:23 = KST 17:23, 유튜브 쿼터 초기화 직후) — 최근 7일(급상승) 전체 갱신
-    - cron: '23 8 * * *'
+    # 매일 아침 07:15 KST (UTC 22:15) — 하루 1회 30일·7일·1일 전체 갱신
+    - cron: '15 22 * * *'
   workflow_dispatch:
     inputs:
       days:
-        description: '수집 기간 (30 / 7 / both)'
+        description: '수집 기간 (all / 30 / 7 / 1)'
         required: true
-        default: '30'
+        default: 'all'
         type: choice
         options:
+          - 'all'
           - '30'
           - '7'
-          - 'both'
+          - '1'
       paths:
-        description: '테스트용 특정 경로 (비우면 전체 16개, 예: beauty,beauty/skincare/toner)'
+        description: '테스트용 특정 경로 (비우면 전체 13개, 예: beauty,beauty/skincare/toner)'
         required: false
         default: ''
 
@@ -46,10 +45,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "days=${{ github.event.inputs.days }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "23 8 * * *" ]; then
-            echo "days=7" >> $GITHUB_OUTPUT
           else
-            echo "days=30" >> $GITHUB_OUTPUT
+            echo "days=all" >> $GITHUB_OUTPUT
           fi
 
       - name: 1단계 트렌드 스냅샷 갱신

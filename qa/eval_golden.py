@@ -729,20 +729,20 @@ def test_shareable_html_export(products):
 
 
 def test_step1_step2_kr_flow(products):
-    # 1) KR_EXPLORE_TREE 16개 뷰티 전용 경로 + 5개 유통·고민 빠른 칩 검증 ("all" 제거)
+    # 1) KR_EXPLORE_TREE 13개 코스메틱(기초·색조) 전용 경로 검증 ("all"·"hairbody" 제거)
     expected_keys = {
-        "beauty", "beauty/skincare", "beauty/makeup", "beauty/hairbody",
+        "beauty", "beauty/skincare", "beauty/makeup",
         "beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream",
         "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing",
         "beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye",
-        "beauty/hairbody/hair", "beauty/hairbody/body",
     }
     _assert("all" not in agent_core.KR_EXPLORE_TREE, "all 경로가 아직 남아있음")
     _assert(set(agent_core.KR_EXPLORE_TREE.keys()) == expected_keys,
             f"KR_EXPLORE_TREE 경로 불일치: {set(agent_core.KR_EXPLORE_TREE.keys())}")
     _assert(agent_core.KR_EXPLORE_TREE["beauty"]["parent"] is None, "beauty 루트 parent가 None이 아님")
     for k, node in agent_core.KR_EXPLORE_TREE.items():
-        _assert(len(node["keywords"]) == 3, f"{k} 키워드 수 != 3: {node['keywords']}")
+        expected_kw_cnt = 3 if node["level"] <= 1 else 2
+        _assert(len(node["keywords"]) == expected_kw_cnt, f"{k} 키워드 수 != {expected_kw_cnt}: {node['keywords']}")
     _assert(not hasattr(agent_core, "KR_BEAUTY_QUICK_CHIPS"), "제거된 KR_BEAUTY_QUICK_CHIPS가 남아있음")
     _assert("무료 조회 한도" in agent_core._format_youtube_api_error(Exception("HttpError 403 quotaExceeded")), "쿼터 초과 오류 안내 변환 실패")
     _assert("올바르지 않아요" in agent_core._format_youtube_api_error(Exception("HttpError 400 API key not valid")), "키 오류 안내 변환 실패")

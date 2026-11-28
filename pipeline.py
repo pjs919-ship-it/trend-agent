@@ -203,12 +203,20 @@ def enrich_with_transcripts(videos: List[Dict[str, Any]], sleep_s: float = 0.4) 
 # ───────────────────────── 스키마 ─────────────────────────
 class Fact(BaseModel):
     video_id: str
+    hook_quote: str = Field(description="초반 훅 문장을 제목/자막 원문 그대로 복사(수정·창작 금지). 없으면 빈 문자열")
+    evidence_quote: str = Field(description="분석의 근거가 되는 제목/자막 원문 그대로 복사(수정·창작 금지)")
     domain: str = Field(description="기초/스킨케어 | 색조/메이크업 | 헤어/바디 | 기타/뷰티무관 중 하나")
     format_tag: str = Field(description="영상 포맷 태그: 비포/애프터 실험형 | 올영 추천 리스트형 | 응급처치 루틴형 | 믹싱 꿀팁형 | 겟레디윗미 | 제품 리뷰형 | 기타 중 하나")
     what_happens: str = Field(description="영상에서 실제로 일어나는 일 한 문장(60자 이내). 제공된 제목·자막에 있는 내용만")
+    viral_reason: str = Field(
+        default="",
+        description="왜 반응이 나왔는지 2~3문장(110~180자): [① 건드린 시청자 고민/심리] + [② 권위·가성비·반전·시즌 키워드 등 후킹/유지 장치] + [③ 제공된 조회수·구독자 대비·평소 대비 수치 근거]. 제공된 텍스트·수치에 없는 사실·성분·효능 추측 절대 금지",
+    )
+    apply_point: str = Field(
+        default="",
+        description="마케터가 자사 제품에 바로 적용할 수 있는 숏폼 기획·카피 포인트 1문장(70자 이내)",
+    )
     product_types: List[str] = Field(description="영상에 실제 등장하는 제품군. 없으면 빈 리스트")
-    hook_quote: str = Field(description="초반 훅 문장을 제목/자막 원문 그대로 복사(수정 금지). 없으면 빈 문자열")
-    evidence_quote: str = Field(description="what_happens를 뒷받침하는 제목/자막 원문 그대로 복사(수정 금지)")
 
 
 class FactSheet(BaseModel):
@@ -246,11 +254,19 @@ class BriefSheet(BaseModel):
 
 
 # ───────────────────────── LLM 호출 ─────────────────────────
-def make_llm(api_key: Optional[str] = None, model: str = "gemini-2.5-flash-lite", temperature: float = 0.2):
+def make_llm(
+    api_key: Optional[str] = None,
+    model: str = "gemini-2.5-flash-lite",
+    temperature: float = 0.2,
+    thinking_budget: Optional[int] = None,
+):
     key = api_key or os.getenv("GOOGLE_API_KEY")
     if not key:
         raise ValueError("GOOGLE_API_KEY가 없습니다.")
-    return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
+    kwargs: Dict[str, Any] = {"model": model, "google_api_key": key, "temperature": temperature}
+    if thinking_budget is not None and "2.5" in str(model):
+        kwargs["thinking_budget"] = int(thinking_budget)
+    return ChatGoogleGenerativeAI(**kwargs)
 
 
 def _invoke(llm, schema, prompt: str, retries: int = 3):
@@ -282,29 +298,39 @@ def _invoke(llm, schema, prompt: str, retries: int = 3):
 def extract_facts(llm, videos: List[Dict[str, Any]]) -> FactSheet:
     blocks = []
     for v in videos:
+        promo = "광고" if v.get("has_paid_promotion") else "오가닉"
+        sub_cnt = int(v.get("subscriber_count") or 0)
+        sub_ratio = float(v.get("views_per_subscriber") or 0)
+        avg_ratio = float(v.get("views_vs_channel_avg") or 0)
         blocks.append(
-            f"[video_id={v['video_id']}] 제목: {v.get('title','')} | 채널: {v.get('channel_title','')} | "
-            f"조회수: {v.get('views',0):,} | 일평균: {v.get('views_per_day', 0):,} | 텍스트출처: {v['text_source']}\n"
-            f"텍스트: {v['source_text'][:900]}"
+            f"[video_id={v['video_id']}] 제목: {v.get('title','')} | 채널: {v.get('channel_title','')} (구독자 {sub_cnt:,}명) | "
+            f"조회수: {v.get('views',0):,} | 일평균: {v.get('views_per_day', 0):,} | "
+            f"평소 대비: {avg_ratio:.1f}배 | 구독자 대비: {sub_ratio:.1f}배 | 유형: {promo} | 텍스트출처: {v['text_source']}\n"
+            f"텍스트: {v['source_text'][:550]}"
         )
     prompt = (
-        "당신은 10년차 한국 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 각각에 대해, "
-        "제공된 제목·자막에 실제로 있는 내용만으로 '영상에서 일어나는 일'을 정리하고, "
-        "전체 영상에서 반복되는 실무 시장 인사이트를 도출하세요.\n"
-        "규칙:\n"
-        "- 제공된 텍스트에 없는 내용은 추측하지 마세요. 뷰티와 무관한 영상(알바썰·뉴스·음식·게임 등)만 domain을 '기타/뷰티무관'으로 분류하세요.\n"
-        "- hook_quote, evidence_quote는 위 텍스트에서 원문 그대로 복사하세요(고쳐 쓰기 금지).\n"
+        "당신은 올리브영 출신 10년차 K-뷰티 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 각각에 대해 "
+        "제공된 제목·자막·수치만으로 '초반 시선 고정 포인트'와 '왜 반응이 나왔는지'를 날카롭게 분석하고, "
+        "고조회수·급상승 영상들의 공통점을 종합해 메인 인사이트 요약을 도출하세요.\n"
+        "규칙 (할루시네이션 절대 방지):\n"
+        "- [Quote-First 원칙] 반드시 hook_quote와 evidence_quote를 위 텍스트에서 원문 그대로 먼저 복사한 뒤(고쳐 쓰기·창작 금지), 그 근거 범위 안에서만 what_happens·viral_reason·apply_point를 작성하세요.\n"
+        "- 제공된 텍스트·수치에 없는 성분, 효능, 임상 결과, 브랜드 배경 스토리는 절대 추측·창작하지 마세요. 자막이 없는(meta) 영상은 제목·설명과 실제 수치(구독자 대비·평소 대비·오가닉/광고)에서 확인되는 사실만 근거로 분석하세요.\n"
+        "- 뷰티와 무관한 영상(알바썰·뉴스·음식·게임 등)만 domain을 '기타/뷰티무관'으로 분류하세요.\n"
         "- domain 구분: 토너·세럼·크림·패드·마스크·세안 등 피부 관리=기초/스킨케어, "
         "쿠션·파운데이션·블러셔·틴트·립·섀도 등=색조/메이크업, 샴푸·바디=헤어/바디. "
         "올리브영·다이소 추천템 종합 영상처럼 여러 뷰티 카테고리가 섞인 경우는 가장 비중이 큰 뷰티 영역(기초/스킨케어, 색조/메이크업, 헤어/바디) 중 하나로 분류하세요.\n"
         f"- format_tag는 반드시 다음 중 하나를 선택하세요: {' | '.join(FORMAT_TAGS)}\n"
-        "- [market_patterns 작성 절대 규칙] 단순 단어·명사구 나열 금지! "
-        "반드시 [① 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(실제 영상 제목·수치 근거)] 3요소를 담은 "
-        "완성된 1~2문장(45자 이상)으로 2~3개 작성하세요. "
-        "단, 조회수 1만 미만 또는 좋아요율 1% 미만인 영상군을 '높은 반응/폭발적 인기'로 과장하지 말고 '초기 반응/저유입 참고 수준'으로 정직하게 쓰세요.\n"
-        "- 한국 숏폼 유행어 오역 금지: '밤티'=못생기고 촌스럽거나 구린 비주얼(부정 표현, 절대 '밤에 좋은'으로 오역 금지), "
+        "- [viral_reason 작성 규칙] '자신의 인생템을 소개한다' 같은 뻔한 줄거리 요약 금지! 반드시 2~3문장(110~180자) 안에 "
+        "① 건드린 시청자 고민/결핍 + ② 권위(청담샵·원장)·초저가 대비(다이소 5천원)·반전·시즌 검색어(올영 블프/내돈내산) 등 클릭/시청 유지 장치 + ③ 실제 수치 근거(조회수·구독자 대비 N배·평소 대비 N배)를 구체적으로 쓰세요.\n"
+        "- [apply_point 작성 규칙] 마케터가 자사 제품에 바로 적용할 수 있는 포맷·후킹 공식 1문장(70자 이내)을 쓰세요.\n"
+        "- [market_patterns 작성 절대 규칙] 메인 화면 상단 인사이트 요약 영역에 그대로 노출됩니다. 단순 단어·명사구 나열 금지! "
+        "고조회수·급상승 영상들의 공통점을 종합해 [① 공통 연출/포맷/키워드] + [② 시청자 심리·시즌 맥락] + [③ 실제 상위 영상 제목·수치 근거] 3요소를 담은 "
+        "완성된 1~2문장(50~115자) 3개로 작성하세요. "
+        "단, 조회수 1만 미만 또는 좋아요율 1% 미만인 영상군을 '폭발적 인기'로 과장하지 말고 '초기 반응/저유입 참고 수준'으로 정직하게 쓰세요.\n"
+        "- [K-뷰티 사실 기준] 올영세일은 연 4회(3·6·9·12월 분기 1회 약 7일간)이며, 올영데이 일정은 매월 변동되므로 특정 날짜를 임의로 단정하지 마세요. 한국 숏폼 유행어: "
+        "'밤티'=못생기고 촌스럽거나 구린 비주얼(부정 표현, 절대 '밤에 좋은'으로 오역 금지), "
         "'느좋'=느낌 좋다, '추구미'=추구하는 이미지, '톤그로'=피부톤과 안 어울림, '화잘먹'=화장이 잘 먹는 피부.\n"
-        "- 입력된 모든 video_id에 대해 하나씩 반환하세요.\n\n" + "\n\n".join(blocks)
+        "- 입력된 모든 video_id에 대해 하나도 누락 없이 반환하세요.\n\n" + "\n\n".join(blocks)
     )
     return _invoke(llm, FactSheet, prompt)
 
@@ -348,6 +374,8 @@ def audit_facts(facts: List[Fact], videos: List[Dict[str, Any]]) -> List[Dict[st
                 "domain": "기타/뷰티무관",
                 "format_tag": "기타",
                 "what_happens": "(팩트 추출 누락)",
+                "viral_reason": "",
+                "apply_point": "",
                 "product_types": [],
                 "hook_quote": "",
                 "evidence_quote": "",
@@ -1513,6 +1541,32 @@ def _summarize_recommended_formats(facts: List[Dict[str, Any]], videos: List[Dic
     return summary[:3]
 
 
+class MarketPatternsOnly(BaseModel):
+    market_patterns: List[str] = Field(
+        default_factory=list,
+        description="상위 쇼츠의 공통점을 종합한 실무 인사이트 3개 문장",
+    )
+
+
+def extract_market_patterns_only(llm, videos: List[Dict[str, Any]], cached_facts: Dict[str, Dict[str, Any]]) -> List[str]:
+    """모든 영상이 캐시된 경우 상위 15편 요약본만으로 메인 인사이트 3줄을 경량 생성합니다."""
+    lines = []
+    for v in videos[:15]:
+        vid = v["video_id"]
+        f = cached_facts.get(vid, {})
+        lines.append(
+            f"- 제목: {v.get('title','')} | 조회수: {v.get('views',0):,} | 구독자대비: {float(v.get('views_per_subscriber') or 0):.1f}배 | "
+            f"포맷: {f.get('format_tag','-')} | 이유: {(f.get('viral_reason') or f.get('what_happens') or '')[:100]}"
+        )
+    prompt = (
+        "당신은 올리브영 출신 10년차 K-뷰티 숏폼 마케팅 전략가입니다. 아래 상위 쇼츠들의 공통점을 종합해 메인 인사이트 요약 3문장을 작성하세요.\n"
+        "- [① 공통 연출/포맷/키워드] + [② 시청자 심리·시즌 맥락] + [③ 실제 상위 영상 제목·수치 근거] 3요소를 담은 완성된 1~2문장(50~115자) 3개 작성.\n"
+        "- 제공된 내용 외 사실·효능 추측 금지. 올영세일은 연 4회(3·6·9·12월).\n\n" + "\n".join(lines)
+    )
+    res = _invoke(llm, MarketPatternsOnly, prompt)
+    return [p.strip() for p in (res.market_patterns or []) if p and p.strip()][:3]
+
+
 def run_step1_explore(
     videos: List[Dict[str, Any]],
     path_label: str,
@@ -1520,19 +1574,48 @@ def run_step1_explore(
     llm=None,
     api_key: Optional[str] = None,
     model: str = "gemini-2.5-flash-lite",
-    max_videos: int = 10,
+    max_videos: int = 30,
     use_history: bool = True,
     history_path: Optional[str] = None,
+    thinking_budget: Optional[int] = None,
+    cached_facts: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """[Step 1] 브랜드 정보 완전 배제 — 한국(KR) 쇼츠 팩트·포맷·시장 패턴·추천 포맷만 객관 추출합니다."""
-    llm = llm or make_llm(api_key, model)
+    llm = llm or make_llm(api_key, model, thinking_budget=thinking_budget)
     vids = enrich_with_transcripts(videos[:max_videos])
     if use_history:
         vids = history_store.annotate_with_history(vids, save=True, store_path=history_path)
 
-    fact_sheet = extract_facts(llm, vids)
-    facts = audit_facts(fact_sheet.facts, vids)
-    market_patterns = [p.strip() for p in (fact_sheet.market_patterns or []) if p and p.strip()][:3]
+    cache = cached_facts or {}
+    uncached_vids = [v for v in vids if v["video_id"] not in cache]
+
+    # 신규 영상만 15편 단위 청크 분할 AI 분석 (이미 분석된 video_id는 0토큰 캐시 재사용)
+    raw_facts: List[Fact] = []
+    market_patterns: List[str] = []
+    if uncached_vids:
+        chunk_size = 15
+        for idx in range(0, len(uncached_vids), chunk_size):
+            chunk = uncached_vids[idx:idx + chunk_size]
+            fact_sheet = extract_facts(llm, chunk)
+            raw_facts.extend(fact_sheet.facts or [])
+            if idx == 0 and len(uncached_vids) >= min(5, len(vids)):
+                market_patterns = [p.strip() for p in (fact_sheet.market_patterns or []) if p and p.strip()][:3]
+
+    audited_new = audit_facts(raw_facts, uncached_vids) if uncached_vids else []
+    new_by_id = {f["video_id"]: f for f in audited_new}
+
+    facts: List[Dict[str, Any]] = []
+    for v in vids:
+        vid = v["video_id"]
+        if vid in new_by_id:
+            facts.append(new_by_id[vid])
+        elif vid in cache:
+            facts.append(dict(cache[vid]))
+
+    if not market_patterns and vids:
+        facts_map = {f["video_id"]: f for f in facts}
+        market_patterns = extract_market_patterns_only(llm, vids, facts_map)
+
     recommended_formats = _summarize_recommended_formats(facts, vids)
 
     stats = {

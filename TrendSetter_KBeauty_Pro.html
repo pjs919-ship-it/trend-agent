@@ -598,8 +598,9 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
       <div class="field"><label>제미나이 AI API 키</label><input id="ggKey" type="password" placeholder="AIza..." /></div>
       <div class="field"><label>AI 분석 모델</label>
         <select id="modelSel">
-          <option value="gemini-2.5-flash-lite" selected>빠른 무료 모델</option>
-          <option value="gemini-flash-latest">표준 무료 모델</option>
+          <option value="gemini-flash-latest" selected>표준 고품질 모델 (Flash)</option>
+          <option value="gemini-pro-latest">심층 추론 모델 (Pro)</option>
+          <option value="gemini-2.5-flash-lite">경량 모델 (Flash-Lite)</option>
         </select>
       </div>
     </div>
@@ -678,8 +679,6 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
           <option value="색조 > 블러셔">색조 &gt; 블러셔</option>
           <option value="색조 > 쿠션·파데">색조 &gt; 쿠션·파데</option>
           <option value="색조 > 아이메이크업">색조 &gt; 아이메이크업</option>
-          <option value="헤어·바디 > 샴푸·트리트먼트">헤어·바디 &gt; 샴푸·트리트먼트</option>
-          <option value="헤어·바디 > 바디케어">헤어·바디 &gt; 바디케어</option>
         </select>
       </div>
       <div class="field"><label>홍보할 상품명</label><input id="prodName" type="text" placeholder="예: 우리 브랜드 수분 토너" /></div>
@@ -707,7 +706,8 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
       <textarea id="prodKeywords" rows="2" placeholder="예: 저분자 히알루론산 워터 제형, 화장 전 속건조 케어, 화장솜 5분 토너팩 활용"></textarea>
     </div>
     <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="runStep2Match()">캠페인·카피 만들기</button>
+      <button id="step2RunBtn" class="btn btn-primary" onclick="runStep2Match()">캠페인·카피 만들기</button>
+      <span id="step2QuotaPill" class="pill pill-drop" style="font-size:12px;">오늘 남은 무료 기획: 3/3회</span>
       <span style="font-size:12.5px;color:var(--muted);">카피 3종, 4단 촬영 콘티, 시딩 DM 초안을 한 번에 생성합니다.</span>
     </div>
     <div id="step2Status" class="status-bar"></div>
@@ -779,22 +779,19 @@ details.b2b-details summary { font-size: 13px; font-weight: 500; color: var(--in
 
 <script>
 const KR_TREE = {
-  "beauty": { label: "뷰티 전체", parent: null, mode: "search", keywords: ["올리브영 추천템", "스킨케어 꿀팁", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup", "beauty/hairbody"] },
+  "beauty": { label: "뷰티 전체", parent: null, mode: "search", keywords: ["올리브영 추천템", "스킨케어 꿀팁", "뷰티 꿀템"], children: ["beauty/skincare", "beauty/makeup"] },
   "beauty/skincare": { label: "기초 스킨케어", parent: "beauty", mode: "search", keywords: ["스킨케어 루틴", "속건조 케어", "화잘먹 기초"], children: ["beauty/skincare/toner", "beauty/skincare/serum", "beauty/skincare/cream", "beauty/skincare/sun", "beauty/skincare/mask", "beauty/skincare/cleansing"] },
   "beauty/makeup": { label: "색조 메이크업", parent: "beauty", mode: "search", keywords: ["메이크업 꿀팁", "립틴트", "블러셔"], children: ["beauty/makeup/lip", "beauty/makeup/blush", "beauty/makeup/cushion", "beauty/makeup/eye"] },
-  "beauty/hairbody": { label: "헤어·바디", parent: "beauty", mode: "search", keywords: ["헤어케어", "두피케어", "바디로션"], children: ["beauty/hairbody/hair", "beauty/hairbody/body"] },
-  "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너패드", "속건조 토너", "닦토 팩"], children: [] },
-  "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "모공 앰플", "진정 세럼"], children: [] },
-  "beauty/skincare/cream": { label: "크림·로션", parent: "beauty/skincare", mode: "search", keywords: ["수분크림", "장벽크림", "로션 추천"], children: [] },
-  "beauty/skincare/sun": { label: "선크림", parent: "beauty/skincare", mode: "search", keywords: ["선크림 추천", "무기자차", "선세럼"], children: [] },
-  "beauty/skincare/mask": { label: "마스크팩", parent: "beauty/skincare", mode: "search", keywords: ["마스크팩 추천", "1일1팩", "수분팩"], children: [] },
-  "beauty/skincare/cleansing": { label: "클렌징", parent: "beauty/skincare", mode: "search", keywords: ["클렌징오일 추천", "클렌징폼", "블랙헤드 클렌징"], children: [] },
-  "beauty/makeup/lip": { label: "립·틴트", parent: "beauty/makeup", mode: "search", keywords: ["립틴트 추천", "립조합", "글로우립"], children: [] },
-  "beauty/makeup/blush": { label: "블러셔", parent: "beauty/makeup", mode: "search", keywords: ["블러셔 추천", "치크 꿀팁", "쿨톤 블러셔"], children: [] },
-  "beauty/makeup/cushion": { label: "쿠션·파데", parent: "beauty/makeup", mode: "search", keywords: ["쿠션 추천", "파데 추천", "화잘먹"], children: [] },
-  "beauty/makeup/eye": { label: "아이메이크업", parent: "beauty/makeup", mode: "search", keywords: ["아이섀도우", "속눈썹 꿀팁", "아이라인"], children: [] },
-  "beauty/hairbody/hair": { label: "샴푸·트리트먼트", parent: "beauty/hairbody", mode: "search", keywords: ["샴푸 추천", "트리트먼트 추천", "두피케어"], children: [] },
-  "beauty/hairbody/body": { label: "바디케어", parent: "beauty/hairbody", mode: "search", keywords: ["바디로션 추천", "바디워시 추천", "바디미스트"], children: [] }
+  "beauty/skincare/toner": { label: "토너·패드", parent: "beauty/skincare", mode: "search", keywords: ["토너패드", "속건조 토너"], children: [] },
+  "beauty/skincare/serum": { label: "세럼·앰플", parent: "beauty/skincare", mode: "search", keywords: ["수분세럼", "진정 세럼"], children: [] },
+  "beauty/skincare/cream": { label: "크림·로션", parent: "beauty/skincare", mode: "search", keywords: ["수분크림", "장벽크림"], children: [] },
+  "beauty/skincare/sun": { label: "선크림", parent: "beauty/skincare", mode: "search", keywords: ["선크림 추천", "선세럼"], children: [] },
+  "beauty/skincare/mask": { label: "마스크팩", parent: "beauty/skincare", mode: "search", keywords: ["마스크팩 추천", "수분팩"], children: [] },
+  "beauty/skincare/cleansing": { label: "클렌징", parent: "beauty/skincare", mode: "search", keywords: ["클렌징오일 추천", "블랙헤드 클렌징"], children: [] },
+  "beauty/makeup/lip": { label: "립·틴트", parent: "beauty/makeup", mode: "search", keywords: ["립틴트 추천", "립조합"], children: [] },
+  "beauty/makeup/blush": { label: "블러셔", parent: "beauty/makeup", mode: "search", keywords: ["블러셔 추천", "치크 꿀팁"], children: [] },
+  "beauty/makeup/cushion": { label: "쿠션·파데", parent: "beauty/makeup", mode: "search", keywords: ["쿠션 추천", "파데 추천"], children: [] },
+  "beauty/makeup/eye": { label: "아이메이크업", parent: "beauty/makeup", mode: "search", keywords: ["아이섀도우", "속눈썹 꿀팁"], children: [] }
 };
 
 function getNode(key) {
@@ -1123,7 +1120,7 @@ function getPathLabel(key) {
   return getPathChain(key).map(k => getNode(k).label).join(" > ");
 }
 function renderExplorerNav() {
-  const topCats = ["beauty", "beauty/skincare", "beauty/makeup", "beauty/hairbody"];
+  const topCats = ["beauty", "beauty/skincare", "beauty/makeup"];
   const activeTop = topCats.find(tc => currentPath === tc || (tc !== "beauty" && currentPath.startsWith(tc + "/"))) || "beauty";
 
   document.getElementById("crumbBar").innerHTML = topCats.map(tc => {
@@ -1137,7 +1134,7 @@ function renderExplorerNav() {
   const childEl = document.getElementById("childChips");
   if (!children.length) {
     childEl.className = "sub-hint";
-    childEl.innerHTML = `기초·색조·헤어 탭을 누르면 <b>토너·패드, 세럼·앰플, 립·틴트</b> 등 세부 품목까지 좁혀볼 수 있어요.`;
+    childEl.innerHTML = `기초·색조 탭을 누르면 <b>토너·패드, 세럼·앰플, 립·틴트</b> 등 세부 품목까지 좁혀볼 수 있어요.`;
   } else {
     childEl.className = "sub-row";
     childEl.innerHTML = `<span class="ctrl-lbl">└ ${esc(getNode(subParent).label)} 세부 품목</span>` +
@@ -1711,20 +1708,19 @@ async function runStep1Live(forceLive = false) {
     addLog(`최종 상위 ${videos.length}건 선정 | 평균 조회수 ${avgV.toLocaleString()}회 | 하루 평균 ${avgVpd.toLocaleString()}회`);
 
     st.textContent = "2/2. AI가 요즘 뜨는 포맷과 실무 인사이트를 정리하고 있어요...";
-    const p1 = `당신은 10년차 한국 K-뷰티 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 목록(조회수·하루 평균·구독자 대비 배수·댓글 수·제목·설명)을 분석해 반드시 JSON으로 반환하세요.
+    const p1 = `당신은 올리브영 출신 10년차 한국 K-뷰티 숏폼 마케팅 전략가입니다. 아래 한국 유튜브 쇼츠 목록(조회수·하루 평균·구독자 대비·평소 대비·오가닉/광고·제목·설명)을 분석해 반드시 JSON으로 반환하세요.
 
-[스키마]
-{"market_patterns":["인사이트1","인사이트2","인사이트3"],"facts":[{"video_id":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","product_types":[],"hook_quote":"","evidence_quote":""}]}
+[스키마 — Quote-First 원칙: 원문 인용 먼저]
+{"market_patterns":["인사이트1","인사이트2","인사이트3"],"facts":[{"video_id":"","hook_quote":"","evidence_quote":"","domain":"기초/스킨케어|색조/메이크업|헤어/바디|기타/뷰티무관","format_tag":"비포/애프터 실험형|올영 추천 리스트형|응급처치 루틴형|믹싱 꿀팁형|겟레디윗미|제품 리뷰형|기타","what_happens":"","viral_reason":"","apply_point":"","product_types":[]}]}
 
-[market_patterns 작성 절대 규칙 — 매우 중요]
-1. 단순 단어·명사구 나열 절대 금지!
-2. 각 항목은 반드시 [① 실제 수집된 영상 속 어떤 연출/포맷이] + [② 시청자의 어떤 심리·고민을 건드려] + [③ 어떤 조회수/반응으로 이어지고 있는지(실제 영상 소재·수치 근거 포함)] 3요소를 갖춘 완성된 1~2문장(45자 이상)으로 작성하세요.
-3. 정직성 규칙: 조회수 1만 미만인 영상군을 '폭발적 인기'로 절대 과장하지 말고, '초기 반응' 또는 '참고 수준'이라고 사실대로 쓰세요.
-4. 제공된 영상 목록에 없는 내용은 추측하지 말고, facts의 hook_quote·evidence_quote는 아래 원문에서 그대로 복사하세요.
-5. 한국 숏폼 유행어 오역 금지: '밤티'=못생기고 촌스럽거나 구린 비주얼(부정 표현, 절대 '밤에 좋은'으로 해석 금지), '느좋'=느낌 좋다(세련된 무드), '추구미'=추구하는 이미지, '톤그로'=피부톤과 안 어울림, '화잘먹'=화장이 잘 먹는 피부.
+[할루시네이션 방지 및 작성 절대 규칙]
+1. Quote-First: 각 영상마다 hook_quote·evidence_quote를 아래 원문에서 그대로 복사한 뒤 그 범위 안에서만 what_happens(60자 이내)·viral_reason(110~180자)·apply_point(70자 이내)를 작성하세요. 제공된 텍스트·수치에 없는 성분·효능·배경 추측 절대 금지.
+2. viral_reason은 '자신의 인생템을 소개한다' 같은 뻔한 줄거리 요약 금지! 반드시 [① 건드린 시청자 고민/심리] + [② 권위·가성비 대비·반전·시즌 키워드 등 후킹 장치] + [③ 실제 조회수·구독자 대비·평소 대비 수치 근거]를 구체적으로 쓰세요.
+3. market_patterns(메인 상단 인사이트 요약)는 단순 단어 나열 금지! 고조회수·급상승 영상들의 공통점을 종합해 [① 공통 연출/포맷/키워드] + [② 시청자 심리·시즌 맥락] + [③ 실제 상위 영상 제목·수치 근거]를 담은 완성된 1~2문장(50~115자) 3개로 작성하세요. 조회수 1만 미만 영상군을 '폭발적 인기'로 과장 금지.
+4. K-뷰티 사실 기준: 올영세일은 연 4회(3·6·9·12월 분기 1회 약 7일간)이며, 올영데이 날짜는 매월 변동되므로 임의로 단정하지 마세요. 유행어: '밤티'=못생기고 구린 비주얼(부정), '느좋'=느낌 좋다, '추구미'=추구하는 이미지, '톤그로'=톤과 안 어울림, '화잘먹'=화장이 잘 먹는 피부.
 
 [수집된 쇼츠 목록]
-` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 하루평균:${v.views_per_day.toLocaleString()}회 | 구독자대비:${v.views_per_subscriber != null ? v.views_per_subscriber + '배' : '미공개'} | 댓글:${v.comments}개 | 제목:${v.title} | 설명:${v.description}`).join("\n");
+` + videos.map(v => `[${v.video_id}] 조회수:${v.views.toLocaleString()}회 | 하루평균:${v.views_per_day.toLocaleString()}회 | 평소대비:${v.views_vs_channel_avg != null ? v.views_vs_channel_avg + '배' : '-'} | 구독자대비:${v.views_per_subscriber != null ? v.views_per_subscriber + '배' : '미공개'} | 유형:${v.has_paid_promotion ? '광고' : '오가닉'} | 제목:${v.title} | 설명:${v.description}`).join("\n");
     const t0 = Date.now();
     const s1 = await callGeminiJson(ggKey, model, p1);
     addLog(`AI 분석 완료 (${((Date.now() - t0) / 1000).toFixed(1)}초) | 인사이트 ${(s1.market_patterns || []).length}줄, 영상 요약 ${(s1.facts || []).length}건`);
@@ -2041,6 +2037,106 @@ function buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone,
   };
 }
 
+const STEP2_DAILY_LIMIT = 3;
+const STEP2_USAGE_LS_KEY = "trendfit_step2_usage_v1";
+
+function getKstDateKey() {
+  try {
+    return new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+  } catch {
+    return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  }
+}
+
+function readLsStep2Count(dateKey) {
+  try {
+    if (typeof localStorage === "undefined") return 0;
+    const raw = JSON.parse(localStorage.getItem(STEP2_USAGE_LS_KEY) || "{}");
+    return raw && raw.date === dateKey ? Math.max(0, Number(raw.count) || 0) : 0;
+  } catch { return 0; }
+}
+
+function writeLsStep2Count(dateKey, count) {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STEP2_USAGE_LS_KEY, JSON.stringify({ date: dateKey, count }));
+    }
+  } catch {}
+}
+
+function openStep2Idb() {
+  return new Promise((resolve) => {
+    try {
+      if (typeof indexedDB === "undefined") return resolve(null);
+      const req = indexedDB.open("trendfit_quota_db", 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains("usage")) db.createObjectStore("usage");
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch { resolve(null); }
+  });
+}
+
+async function readIdbStep2Count(dateKey) {
+  const db = await openStep2Idb();
+  if (!db) return 0;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction("usage", "readonly");
+      const req = tx.objectStore("usage").get(STEP2_USAGE_LS_KEY);
+      req.onsuccess = () => {
+        const v = req.result;
+        resolve(v && v.date === dateKey ? Math.max(0, Number(v.count) || 0) : 0);
+      };
+      req.onerror = () => resolve(0);
+    } catch { resolve(0); }
+  });
+}
+
+async function writeIdbStep2Count(dateKey, count) {
+  const db = await openStep2Idb();
+  if (!db) return;
+  try {
+    const tx = db.transaction("usage", "readwrite");
+    tx.objectStore("usage").put({ date: dateKey, count }, STEP2_USAGE_LS_KEY);
+  } catch {}
+}
+
+async function getStep2UsageCount() {
+  const dk = getKstDateKey();
+  const lsCnt = readLsStep2Count(dk);
+  const idbCnt = await readIdbStep2Count(dk);
+  const maxCnt = Math.max(lsCnt, idbCnt);
+  if (maxCnt !== lsCnt) writeLsStep2Count(dk, maxCnt);
+  if (maxCnt !== idbCnt) writeIdbStep2Count(dk, maxCnt);
+  return maxCnt;
+}
+
+async function incrementStep2Usage() {
+  const dk = getKstDateKey();
+  const next = (await getStep2UsageCount()) + 1;
+  writeLsStep2Count(dk, next);
+  await writeIdbStep2Count(dk, next);
+  await refreshStep2QuotaUi();
+  return next;
+}
+
+async function refreshStep2QuotaUi() {
+  const pill = document.getElementById("step2QuotaPill");
+  if (!pill) return;
+  if (isAdminMode()) {
+    pill.textContent = "관리자 모드: 무제한";
+    return;
+  }
+  const used = await getStep2UsageCount();
+  const rem = Math.max(0, STEP2_DAILY_LIMIT - used);
+  pill.textContent = `오늘 남은 무료 기획: ${rem}/${STEP2_DAILY_LIMIT}회`;
+  pill.style.background = rem === 0 ? "#FEF2F2" : "";
+  pill.style.color = rem === 0 ? "var(--danger)" : "";
+}
+
 async function runStep2Match() {
   if (!step1Data) return;
   const cat = document.getElementById("prodCat").value;
@@ -2051,10 +2147,19 @@ async function runStep2Match() {
   const st = document.getElementById("step2Status");
   if (!prodName) { st.textContent = "홍보할 상품명을 먼저 입력하거나 우측 상단 샘플 버튼을 눌러보세요."; return; }
 
+  const ggKey = document.getElementById("ggKey").value.trim();
+  if (!isAdminMode() && !ggKey && isWebOrigin()) {
+    const used = await getStep2UsageCount();
+    if (used >= STEP2_DAILY_LIMIT) {
+      st.innerHTML = `오늘 무료 기획(${STEP2_DAILY_LIMIT}회)을 모두 사용했어요. 내일 0시에 초기화되며, 더 많은 생성이 필요하시면 <button type="button" onclick="openFeedbackModal('step2_quota')" style="background:none;border:none;color:var(--purple);font-weight:600;text-decoration:underline;cursor:pointer;padding:0;font-family:inherit;">의견 남기기</button>로 알려주세요.`;
+      await refreshStep2QuotaUi();
+      return;
+    }
+  }
+
   const presetMatch = Object.values(PRESETS).find(p => p.name === prodName);
   const bannedList = presetMatch ? presetMatch.banned : [];
   const allowedClaims = prodKw.split(/(?:\n+|,(?!\d))/).map(s => s.trim()).filter(Boolean);
-  const ggKey = document.getElementById("ggKey").value.trim();
   const model = document.getElementById("modelSel").value;
 
   const videos = sortVideos((step1Data.videos || []).filter(v => !isSpam(v) && isKorean(v)));
@@ -2081,7 +2186,8 @@ async function runStep2Match() {
 - 영상 포맷: ${refFact.format_tag || "인기 쇼츠"}
 - 초반 훅 원문: ${refFact.hook_quote || refVid.title}
 - 실제 내용: ${refFact.what_happens || refVid.title}
-- 설명 요약: ${(refVid.description || "").slice(0, 220)}
+- 왜 반응이 나왔는지: ${refFact.viral_reason || refFact.what_happens || refVid.title}
+${refFact.apply_point ? `- 우리 브랜드 적용 포인트: ${refFact.apply_point}\n` : ""}- 설명 요약: ${(refVid.description || "").slice(0, 220)}
 - 이번 주 시장 흐름: ${patternsTxt}
 
 [우리 제품 정보 — 반드시 이 범위 안의 성분·수치·특징만 사용]
@@ -2125,6 +2231,9 @@ JSON 스키마:
         seeding_fit: hasKor(raw.seeding_fit) ? raw.seeding_fit : fb.seeding_fit
       };
       st.textContent = `'${prodName}' 맞춤 촬영 기획안을 완성했어요. 바로 복사해서 촬영이나 크리에이터 전달에 써보세요.`;
+      if (!isAdminMode() && aiSource === "server_proxy") {
+        await incrementStep2Usage();
+      }
     } catch (e) {
       st.textContent = "AI 연결이 원활하지 않아 기본 구조로 기획안을 먼저 만들었어요.";
       plan = buildFallbackPlan(refVid, refFact, prodName, cat, prodTarget, prodTone, allowedClaims);
@@ -2299,6 +2408,9 @@ function openVideoDetailModal(videoId) {
   const avgRatioStr = formatRatio(v.views_vs_channel_avg);
   const tagsEl = document.getElementById("vdModalTags");
   const bodyEl = document.getElementById("vdModalBody");
+  const hookTxt = f.hook_quote || v.title || "";
+  const whyTxt = (f.viral_reason || "").trim() || (f.what_happens || "").trim() || `${v.has_paid_promotion ? "유료 광고 표기" : "오가닉"} 영상으로 누적 ${formatKoNum(v.views)}회${subRatioStr ? ` (구독자 대비 ${subRatioStr}배)` : ""}를 기록하며 제목 키워드 중심의 클릭 유입을 이끌었습니다.`;
+  const applyTxt = (f.apply_point || "").trim();
   if (tagsEl) {
     tagsEl.innerHTML = `<span class="grade-txt ${gradeClsMap[g.code] || 'g-c'}">${g.code}등급</span>${promoTag}<span class="tag-mini" style="background:#F4F2ED;color:var(--ink-secondary);">${esc(f.format_tag || "인기 쇼츠")}</span>`;
   }
@@ -2314,8 +2426,9 @@ function openVideoDetailModal(videoId) {
           </div>
         </div>
       </div>
-      ${f.hook_quote ? `<div class="vd-hook"><div style="font-size:11.5px;font-weight:600;color:var(--purple);margin-bottom:3px;">초반 시선 고정 포인트</div>"${esc(f.hook_quote)}"</div>` : ""}
-      ${f.what_happens ? `<div style="font-size:13.5px;color:var(--ink-secondary);line-height:1.55;margin-top:8px;"><b style="color:var(--ink);">왜 반응이 나왔나요?</b><br/>${esc(f.what_happens)}</div>` : ""}
+      ${hookTxt ? `<div class="vd-hook"><div style="font-size:11.5px;font-weight:600;color:var(--purple);margin-bottom:3px;">초반 시선 고정 포인트</div>"${esc(hookTxt)}"</div>` : ""}
+      <div style="font-size:13.5px;color:var(--ink-secondary);line-height:1.6;margin-top:10px;"><b style="color:var(--ink);display:block;margin-bottom:4px;">왜 반응이 나왔나요?</b>${esc(whyTxt)}</div>
+      ${applyTxt ? `<div style="font-size:13px;color:var(--ink-secondary);line-height:1.55;margin-top:10px;padding:10px 12px;background:#F8F7F4;border-radius:8px;border:1px solid var(--line);"><b style="color:var(--ink);display:block;margin-bottom:2px;">우리 브랜드 적용 포인트</b>${esc(applyTxt)}</div>` : ""}
       <div class="vd-stats">
         <div><span class="vd-stat-lbl">누적 조회수</span><span class="vd-stat-val">${formatKoNum(v.views)}</span></div>
         <div><span class="vd-stat-lbl">채널 평소 대비</span><span class="vd-stat-val">${avgRatioStr ? avgRatioStr + "배" : formatKoNum(v.views_per_day) + "/일"}</span></div>
@@ -2389,6 +2502,7 @@ function renderSnapshotImmediate(snap) {
   return false;
 }
 (async function initDefaultView() {
+  refreshStep2QuotaUi();
   const renderedLocal = renderSnapshotImmediate(window.SHORTFORM_RADAR_SNAPSHOT);
   if (renderedLocal && !_landingTracked) {
     _landingTracked = true;
